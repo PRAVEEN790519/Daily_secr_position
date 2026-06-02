@@ -3,7 +3,7 @@
 :root {
   --bg-color: #F8FAFC;
   --container-bg: #FFFFFF;
-  --border-color: #D1D5DB;
+  --border-color: #d2dbd1;
   --primary-color: #2563EB;
   --primary-hover: #1D4ED8;
   --text-color: #111827;
@@ -239,7 +239,7 @@ body,
 }
 
 .dropdown-item:hover {
-  background-color: #EFF6FF;
+  background-color: #ffefef;
   color: var(--primary-color);
 }
 
@@ -836,7 +836,7 @@ body,
 }
 
 .multiselect-trigger:hover {
-  border-color: #9CA3AF;
+  border-color: #a3af9c;
 }
 
 .multiselect-trigger:focus {
@@ -1084,7 +1084,7 @@ body,
 }
 
 .category-heading-trigger:hover {
-  background-color: #F8FAFC;
+  background-color: #c0c6cb;
 }
 
 .category-heading-trigger.selected {
