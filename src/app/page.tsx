@@ -22,884 +22,186 @@ interface Circuit {
   systemCode: string;
   description: string;
   divisionData: Record<string, DivisionStatus>;
+  category: string;
 }
 
-// 17 Circuit categories with rich operational mock data for each division
-const CIRCUITS_DATABASE: Circuit[] = [
-  {
-    id: 1,
-    name: "ICMS & COM Position",
-    badge: "ICMS",
-    systemCode: "SECR/TEL/ICMS-01",
-    description: "Integrated Coaching Management System & Control Office Application status tracking.",
-    divisionData: {
-      Bilaspur: {
-        status: "normal",
-        lastUpdated: "Today, 11:30 AM",
-        details: [
-          { label: "ICMS Server Status", value: "ONLINE (Primary)" },
-          { label: "COM Network Latency", value: "24 ms (Excellent)" },
-          { label: "Active Terminal Count", value: "14 Nodes Connected" },
-          { label: "Backup Uplink Route", value: "Secondary OFC (Standby)" }
-        ],
-        recentLogs: [
-          "11:30 AM - Routine ping checks completed. Packet loss: 0%.",
-          "09:15 AM - Backup channel automatic switchover test successful."
-        ]
-      },
-      Raipur: {
-        status: "normal",
-        lastUpdated: "Today, 10:45 AM",
-        details: [
-          { label: "ICMS Server Status", value: "ONLINE (Primary)" },
-          { label: "COM Network Latency", value: "32 ms (Good)" },
-          { label: "Active Terminal Count", value: "9 Nodes Connected" },
-          { label: "Backup Uplink Route", value: "Secondary OFC (Standby)" }
-        ],
-        recentLogs: [
-          "10:45 AM - System sync check passed with HQ server.",
-          "08:00 AM - Shift change login reports normal functionality across terminals."
-        ]
-      },
-      Nagpur: {
-        status: "degraded",
-        lastUpdated: "Today, 12:15 PM",
-        details: [
-          { label: "ICMS Server Status", value: "ONLINE (Alternate Path)" },
-          { label: "COM Network Latency", value: "95 ms (High)" },
-          { label: "Active Terminal Count", value: "8 Nodes Connected" },
-          { label: "Backup Uplink Route", value: "Active (Primary OFC Link Outage)" }
-        ],
-        recentLogs: [
-          "12:15 PM - High latency observed due to alternate routing via Gondia ring.",
-          "10:30 AM - Primary link down. Auto-switched to alternate media. Section engineer notified."
-        ]
-      }
+// 7 categories with 35+ circuits populated programmatically with realistic data
+const generateCircuitDatabase = (): Circuit[] => {
+  const categories = [
+    {
+      category: "Communication & Voice Circuits",
+      items: [
+        { name: "ICMS & COM Position", badge: "ICMS", code: "ICMS-01", desc: "Integrated Coaching Management System & Control Office Application status tracking." },
+        { name: "FOIS (VSAT)", badge: "FOIS", code: "FOIS-02", desc: "Freight Operations Information System terminal connectivity and central host communications." },
+        { name: "GM–CRB Hotline", badge: "HOTLINE", code: "HOT-03", desc: "Direct voice hotline linking General Manager to CRB." },
+        { name: "Video Conferencing with Divisions", badge: "VC-D", code: "VC-04", desc: "Daily video conference link connecting HQ to divisional heads." },
+        { name: "Railway Board Video Phones", badge: "VP-RB", code: "VPHONE-05", desc: "SIP-based video telephone terminals for Board communications." },
+        { name: "CFTM Conference", badge: "CONF", code: "CONF-06", desc: "Conference circuit for Chief Freight Transportation Manager operations." },
+        { name: "Rail Madad", badge: "MADAD", code: "MAD-07", desc: "Passenger grievance portal integration and telecom complaints hotline." }
+      ]
+    },
+    {
+      category: "Network & Internet",
+      items: [
+        { name: "Railnet / Internet", badge: "NET", code: "NET-08", desc: "SECR Railway Intranet and official broadband gateways." },
+        { name: "Wi-Fi", badge: "WIFI", code: "WIFI-09", desc: "Public Wi-Fi access points at stations (RailWire)." },
+        { name: "Google Wi-Fi", badge: "G-WIFI", code: "GWIFI-10", desc: "High-speed Google Wi-Fi station hotspots tracking." },
+        { name: "UTS", badge: "UTS", code: "UTS-11", desc: "Unreserved Ticketing System network terminals." },
+        { name: "PRS", badge: "PRS", code: "PRS-12", desc: "Passenger Reservation System ticketing gateways." }
+      ]
+    },
+    {
+      category: "Cable Infrastructure",
+      items: [
+        { name: "Cable Cut (OFC & Quad)", badge: "CUT", code: "CUT-13", desc: "Real-time track monitoring of optical fiber and copper quad media cuts." },
+        { name: "Temporary Joints", badge: "JOINT", code: "JNT-14", desc: "Temporary splice closures awaiting permanent block jointing." },
+        { name: "Low Insulation", badge: "INS", code: "INS-15", desc: "Insulation resistance values monitoring for signaling/block quad pairs." }
+      ]
+    },
+    {
+      category: "Display System",
+      items: [
+        { name: "CGDM", badge: "CGDM", code: "CGDM-16", desc: "Coach Guidance Display System showing coach layouts on platforms." },
+        { name: "TIB", badge: "TIB", code: "TIB-17", desc: "Train Indication Boards displaying arrival and departure timings." }
+      ]
+    },
+    {
+      category: "Testing & Maintenance",
+      items: [
+        { name: "Walkie-Talkie Testing", badge: "VHF-T", code: "VHFT-18", desc: "VHF hand-held transceiver frequency and power test logs." },
+        { name: "Walkie-Talkie Repairing", badge: "VHF-R", code: "VHFR-19", desc: "Workshop maintenance records and battery cell replacements." }
+      ]
+    },
+    {
+      category: "CCTV",
+      items: [
+        { name: "CCTV Monitoring", badge: "CCTV-M", code: "CCTVM-20", desc: "Video surveillance cameras live status feeds at platforms." },
+        { name: "CCTV Maintenance", badge: "CCTV-S", code: "CCTVS-21", desc: "NVR storage check, camera cleaning, and PoE switch repairs." }
+      ]
+    },
+    {
+      category: "Exchange",
+      items: [
+        { name: "BSP", badge: "EX-BSP", code: "EX-01", desc: "Bilaspur main electronic telephone exchange switchboard." },
+        { name: "Div HQ", badge: "EX-HQ", code: "EX-02", desc: "Divisional Headquarters telecom exchange system." },
+        { name: "Div (for Zone)", badge: "EX-DIV", code: "EX-03", desc: "Divisional trunk lines connecting to zonal network." },
+        { name: "Loco Shed (BSP)", badge: "EX-LOC", code: "EX-04", desc: "Loco shed dedicated internal exchange lines." },
+        { name: "RIG", badge: "EX-RIG", code: "EX-05", desc: "Raigarh station local railway exchange." },
+        { name: "APG", badge: "EX-APG", code: "EX-06", desc: "Anuppur local railway exchange." },
+        { name: "SDL", badge: "EX-SDL", code: "EX-07", desc: "Shahdol railway telephone exchange." },
+        { name: "MDGR", badge: "EX-MDGR", code: "EX-08", desc: "Manendragarh exchange terminal." },
+        { name: "BSRI", badge: "EX-BSRI", code: "EX-09", desc: "Bishrampur exchange unit." },
+        { name: "CPH", badge: "EX-CPH", code: "EX-10", desc: "Champa junction local exchange." },
+        { name: "KRBA", badge: "EX-KRBA", code: "EX-11", desc: "Korba industrial branch exchange." },
+        { name: "BRJN", badge: "EX-BRJN", code: "EX-12", desc: "Brajrajnagar station exchange." },
+        { name: "PND", badge: "EX-PND", code: "EX-13", desc: "Pendra Road local railway exchange." },
+        { name: "UMR", badge: "EX-UMR", code: "EX-14", desc: "Umaria railway telephone exchange." },
+        { name: "BRS", badge: "EX-BRS", code: "EX-15", desc: "Birsinghpur exchange lines." }
+      ]
     }
-  },
-  {
-    id: 2,
-    name: "FOIS",
-    badge: "FOIS",
-    systemCode: "SECR/TEL/FOIS-02",
-    description: "Freight Operations Information System terminal connectivity and central host communications.",
-    divisionData: {
-      Bilaspur: {
-        status: "normal",
-        lastUpdated: "Today, 12:40 PM",
-        details: [
-          { label: "FOIS Terminal Server", value: "ONLINE" },
-          { label: "CRIS Host Link Status", value: "CONNECTED" },
-          { label: "Loading Points Checked", value: "18/18 Operational" },
-          { label: "Packet Loss Rate", value: "0.01%" }
-        ],
-        recentLogs: [
-          "12:40 PM - CRIS main server communication verified. Sync complete.",
-          "07:30 AM - Loading point terminal at BSP yard rebooted during shift change."
-        ]
-      },
-      Raipur: {
-        status: "normal",
-        lastUpdated: "Today, 11:50 AM",
-        details: [
-          { label: "FOIS Terminal Server", value: "ONLINE" },
-          { label: "CRIS Host Link Status", value: "CONNECTED" },
-          { label: "Loading Points Checked", value: "12/12 Operational" },
-          { label: "Packet Loss Rate", value: "0.00%" }
-        ],
-        recentLogs: [
-          "11:50 AM - All terminals operating normally. Zero pending complaints.",
-          "08:20 AM - Daily network throughput checks passed."
-        ]
-      },
-      Nagpur: {
-        status: "normal",
-        lastUpdated: "Today, 10:10 AM",
-        details: [
-          { label: "FOIS Terminal Server", value: "ONLINE" },
-          { label: "CRIS Host Link Status", value: "CONNECTED" },
-          { label: "Loading Points Checked", value: "11/11 Operational" },
-          { label: "Packet Loss Rate", value: "0.05%" }
-        ],
-        recentLogs: [
-          "10:10 AM - Connectivity test completed for MIB yard terminals. Status OK.",
-          "06:45 AM - Switchport reset in server rack resolved temporary login delay."
-        ]
+  ];
+
+  let currentId = 1;
+  const db: Circuit[] = [];
+
+  for (const cat of categories) {
+    for (const item of cat.items) {
+      const divisionData: Record<string, DivisionStatus> = {};
+      
+      for (const division of ["Bilaspur", "Raipur", "Nagpur"]) {
+        let status: "normal" | "degraded" | "critical" = "normal";
+        
+        // Inject mock states
+        if (division === "Nagpur" && (item.name === "Low Insulation" || item.name === "Railnet / Internet")) {
+          status = "degraded";
+        } else if (division === "Raipur" && item.name === "Cable Cut (OFC & Quad)") {
+          status = "critical";
+        } else if (division === "Bilaspur" && item.name === "Temporary Joints") {
+          status = "degraded";
+        } else if (division === "Raipur" && item.name === "CCTV Monitoring") {
+          status = "degraded";
+        }
+
+        let details: DetailRow[] = [];
+        let recentLogs: string[] = [];
+
+        // Category-specific details
+        if (cat.category === "Exchange") {
+          details = [
+            { label: "SIP Registration", value: status === "critical" ? "OFFLINE" : "REGISTERED" },
+            { label: "Active Analog Lines", value: status === "normal" ? "94 / 96 Lines" : "82 / 96 Lines" },
+            { label: "VoIP Trunk Status", value: status === "critical" ? "FAILED" : "HEALTHY" },
+            { label: "MDF Card Uptime", value: "18 Days" }
+          ];
+          recentLogs = [
+            `Today, 09:15 AM - Routine MDF cleaning completed at ${item.name} exchange.`,
+            `Yesterday - Uptime and channel sync check verified by Section Engineer.`
+          ];
+        } else if (cat.category === "Network & Internet") {
+          details = [
+            { label: "Link Speed (Dn/Up)", value: "500 / 500 Mbps" },
+            { label: "Gateway Status", value: status === "normal" ? "ONLINE" : "DEGRADED" },
+            { label: "IP Pool Usage", value: "68% Utilized" },
+            { label: "Latency to HQ", value: "14 ms" }
+          ];
+          recentLogs = [
+            `Today, 10:00 AM - Router memory usage cleared. Network throughput normal.`,
+            `Yesterday - Checked load-balancer policies. Redundant link is standby.`
+          ];
+        } else if (cat.category === "Cable Infrastructure") {
+          details = [
+            { label: "Active Fault Alerts", value: status === "normal" ? "0 Alerts" : "1 Alert Active" },
+            { label: "OTDR Status", value: status === "normal" ? "Clear" : "Fault Localized" },
+            { label: "Line Impedance", value: status === "normal" ? "5.4 Mega-Ohms" : "0.3 Mega-Ohms" },
+            { label: "Section Patrolled", value: "Checked Today" }
+          ];
+          recentLogs = [
+            `Today, 11:00 AM - Patrolling supervisor submitted clearance logs.`,
+            `Yesterday - Attenuation testing logged: average loss 0.18 dB/km.`
+          ];
+        } else {
+          details = [
+            { label: "System Status", value: status === "normal" ? "ONLINE" : status === "degraded" ? "DEGRADED" : "OUTAGE" },
+            { label: "Primary Uplink", value: "OFC Core 4" },
+            { label: "Active Node Count", value: "12 Terminals" },
+            { label: "Packet Loss Rate", value: "0.0%" }
+          ];
+          recentLogs = [
+            `Today, 08:30 AM - Shift switchover checks passed successfully.`,
+            `Yesterday - System ping status logged: 100% packets returned.`
+          ];
+        }
+
+        divisionData[division] = {
+          status,
+          lastUpdated: "Today, 11:30 AM",
+          details,
+          recentLogs
+        };
       }
-    }
-  },
-  {
-    id: 3,
-    name: "Exchange",
-    badge: "EXCH",
-    systemCode: "SECR/TEL/EXCH-03",
-    description: "Railway Telephone Exchange lines, SIP servers, and VoIP channels monitoring.",
-    divisionData: {
-      Bilaspur: {
-        status: "normal",
-        lastUpdated: "Today, 01:10 PM",
-        details: [
-          { label: "SIP Main Server Status", value: "ONLINE" },
-          { label: "Analog Lines Active", value: "242 / 250 Lines" },
-          { label: "VoIP Channels Healthy", value: "99.2% Channels Available" },
-          { label: "Primary ISDN PRI Link", value: "ACTIVE" }
-        ],
-        recentLogs: [
-          "01:10 PM - PRI line signaling checked. Response within thresholds.",
-          "09:00 AM - Routine maintenance on MDF terminal block completed."
-        ]
-      },
-      Raipur: {
-        status: "normal",
-        lastUpdated: "Today, 12:30 PM",
-        details: [
-          { label: "SIP Main Server Status", value: "ONLINE" },
-          { label: "Analog Lines Active", value: "181 / 185 Lines" },
-          { label: "VoIP Channels Healthy", value: "100% Channels Available" },
-          { label: "Primary ISDN PRI Link", value: "ACTIVE" }
-        ],
-        recentLogs: [
-          "12:30 PM - SIP registration queries processed. No failures.",
-          "08:00 AM - Shift logging confirmed full operational capability."
-        ]
-      },
-      Nagpur: {
-        status: "normal",
-        lastUpdated: "Today, 01:05 PM",
-        details: [
-          { label: "SIP Main Server Status", value: "ONLINE" },
-          { label: "Analog Lines Active", value: "114 / 120 Lines" },
-          { label: "VoIP Channels Healthy", value: "98.5% Channels Available" },
-          { label: "Primary ISDN PRI Link", value: "ACTIVE (Alternate Path)" }
-        ],
-        recentLogs: [
-          "01:05 PM - Main exchanges dial test passed successfully.",
-          "10:45 AM - Secondary PRI channel noise level resolved after cable re-termination."
-        ]
-      }
-    }
-  },
-  {
-    id: 4,
-    name: "CCTV",
-    badge: "VSS",
-    systemCode: "SECR/TEL/CCTV-04",
-    description: "Station Video Surveillance System (VSS) cameras and Network Video Recorder (NVR) storage.",
-    divisionData: {
-      Bilaspur: {
-        status: "normal",
-        lastUpdated: "Today, 01:20 PM",
-        details: [
-          { label: "Total Cameras Configured", value: "124 Cameras" },
-          { label: "Active Operational Cameras", value: "122 Active" },
-          { label: "NVR Storage Status", value: "ONLINE (28/30 Days Retained)" },
-          { label: "System Frame Rate Status", value: "Stable 25fps" }
-        ],
-        recentLogs: [
-          "01:20 PM - 2 cameras on Platform 3 reported fuzzy feed. Lens cleaned.",
-          "09:10 AM - Backup storage server array rebuild check: completed successfully."
-        ]
-      },
-      Raipur: {
-        status: "degraded",
-        lastUpdated: "Today, 12:45 PM",
-        details: [
-          { label: "Total Cameras Configured", value: "85 Cameras" },
-          { label: "Active Operational Cameras", value: "79 Active (6 Offline)" },
-          { label: "NVR Storage Status", value: "ONLINE (29/30 Days Retained)" },
-          { label: "Offline Locations", value: "PF 2 East End, Waiting Hall 1" }
-        ],
-        recentLogs: [
-          "12:45 PM - PoE switch at PF 2 East End power cycled. 2 cameras restored.",
-          "10:00 AM - 4 cameras offline reported at Raipur main entrance due to cable work."
-        ]
-      },
-      Nagpur: {
-        status: "normal",
-        lastUpdated: "Today, 01:00 PM",
-        details: [
-          { label: "Total Cameras Configured", value: "96 Cameras" },
-          { label: "Active Operational Cameras", value: "94 Active" },
-          { label: "NVR Storage Status", value: "ONLINE (24/30 Days Retained)" },
-          { label: "VSS Server Temperature", value: "22°C (Optimal)" }
-        ],
-        recentLogs: [
-          "01:00 PM - Routine system health report generated.",
-          "08:15 AM - Camera alignment adjusted at ticketing hall lobby."
-        ]
-      }
-    }
-  },
-  {
-    id: 5,
-    name: "Railnet / Internet",
-    badge: "NET",
-    systemCode: "SECR/TEL/NET-05",
-    description: "Railway Intranet (RailNet) and broadband internet gateways routing operational traffic.",
-    divisionData: {
-      Bilaspur: {
-        status: "normal",
-        lastUpdated: "Today, 01:30 PM",
-        details: [
-          { label: "Primary Gateway Link", value: "ACTIVE (RailTel 1 Gbps)" },
-          { label: "Secondary Backup Link", value: "STANDBY (Healthy)" },
-          { label: "IP Pool Utilization", value: "92% Allocated" },
-          { label: "DNS Resolution Time", value: "8 ms" }
-        ],
-        recentLogs: [
-          "01:30 PM - Gateway traffic monitoring shows normal utilization levels.",
-          "06:00 AM - Monthly bandwidth quota refresh applied automatically."
-        ]
-      },
-      Raipur: {
-        status: "normal",
-        lastUpdated: "Today, 01:15 PM",
-        details: [
-          { label: "Primary Gateway Link", value: "ACTIVE (RailTel 500 Mbps)" },
-          { label: "Secondary Backup Link", value: "ACTIVE (Load Balanced)" },
-          { label: "IP Pool Utilization", value: "71% Allocated" },
-          { label: "DNS Resolution Time", value: "11 ms" }
-        ],
-        recentLogs: [
-          "01:15 PM - Active routing table verified. Load balancing operational.",
-          "08:30 AM - Firewall rules updated to block unauthorized protocols."
-        ]
-      },
-      Nagpur: {
-        status: "degraded",
-        lastUpdated: "Today, 01:25 PM",
-        details: [
-          { label: "Primary Gateway Link", value: "ACTIVE (RailTel 500 Mbps)" },
-          { label: "Secondary Backup Link", value: "OFFLINE (Link Error)" },
-          { label: "IP Pool Utilization", value: "83% Allocated" },
-          { label: "Gateway Status Alert", value: "No redundancy active" }
-        ],
-        recentLogs: [
-          "01:25 PM - Alternate ISP link reported fiber cut in local loop. RailTel notified.",
-          "11:00 AM - Secondary firewall unit rebooted for firmware inspection."
-        ]
-      }
-    }
-  },
-  {
-    id: 6,
-    name: "CGDB",
-    badge: "CGDB",
-    systemCode: "SECR/TEL/CGDB-06",
-    description: "Coach Guidance Display Boards at platforms displaying coach sequences.",
-    divisionData: {
-      Bilaspur: {
-        status: "normal",
-        lastUpdated: "Today, 12:55 PM",
-        details: [
-          { label: "Platform Boards Status", value: "Platform 1-8 ONLINE" },
-          { label: "Central Controller Link", value: "ACTIVE" },
-          { label: "Display Nodes Verified", value: "123 / 128 Active" },
-          { label: "Sync Latency Status", value: "Normal (<1.5s)" }
-        ],
-        recentLogs: [
-          "12:55 PM - Coach sequence sync checked for Train 12833. Update successful.",
-          "10:15 AM - PF 4 display board node 14 replaced due to LED panel fade."
-        ]
-      },
-      Raipur: {
-        status: "normal",
-        lastUpdated: "Today, 11:20 AM",
-        details: [
-          { label: "Platform Boards Status", value: "Platform 1-6 ONLINE" },
-          { label: "Central Controller Link", value: "ACTIVE" },
-          { label: "Display Nodes Verified", value: "96 / 96 Active" },
-          { label: "Sync Latency Status", value: "Normal (<1.0s)" }
-        ],
-        recentLogs: [
-          "11:20 AM - Integration test with national train database successful.",
-          "08:45 AM - Morning test text broadcast on all screens completed."
-        ]
-      },
-      Nagpur: {
-        status: "normal",
-        lastUpdated: "Today, 12:40 PM",
-        details: [
-          { label: "Platform Boards Status", value: "Platform 1-4 ONLINE" },
-          { label: "Central Controller Link", value: "ACTIVE" },
-          { label: "Display Nodes Verified", value: "59 / 64 Active" },
-          { label: "Sync Latency Status", value: "Normal (<1.8s)" }
-        ],
-        recentLogs: [
-          "12:40 PM - Comm loop check completed. Offline panels scheduled for repair.",
-          "09:30 AM - Controller IP address remapped to avoid local gateway conflicts."
-        ]
-      }
-    }
-  },
-  {
-    id: 7,
-    name: "TIB",
-    badge: "TIB",
-    systemCode: "SECR/TEL/TIB-07",
-    description: "Train Indication Boards (PIDS) displaying train arrival/departure status.",
-    divisionData: {
-      Bilaspur: {
-        status: "normal",
-        lastUpdated: "Today, 01:00 PM",
-        details: [
-          { label: "Main Station Display Board", value: "ONLINE" },
-          { label: "PIDS Central Server Link", value: "ACTIVE" },
-          { label: "Display Panels Sync", value: "SYNCED (100%)" },
-          { label: "Manual Override Panel", value: "READY" }
-        ],
-        recentLogs: [
-          "01:00 PM - Routine NTP time sync completed across all indication systems.",
-          "09:15 AM - Station main board luminance adjusted for day viewing."
-        ]
-      },
-      Raipur: {
-        status: "normal",
-        lastUpdated: "Today, 12:00 PM",
-        details: [
-          { label: "Main Station Display Board", value: "ONLINE" },
-          { label: "PIDS Central Server Link", value: "ACTIVE" },
-          { label: "Display Panels Sync", value: "SYNCED (100%)" },
-          { label: "Manual Override Panel", value: "READY" }
-        ],
-        recentLogs: [
-          "12:00 PM - Data stream verified from divisional control charts.",
-          "07:30 AM - System reboot for daily configuration refresh completed."
-        ]
-      },
-      Nagpur: {
-        status: "normal",
-        lastUpdated: "Today, 01:10 PM",
-        details: [
-          { label: "Main Station Display Board", value: "ONLINE" },
-          { label: "PIDS Central Server Link", value: "ACTIVE" },
-          { label: "Display Panels Sync", value: "SYNCED (100%)" },
-          { label: "Manual Override Panel", value: "READY" }
-        ],
-        recentLogs: [
-          "01:10 PM - Live feed from NTES checked and running.",
-          "09:40 AM - Terminal controller chassis cleaned and fan checked."
-        ]
-      }
-    }
-  },
-  {
-    id: 8,
-    name: "Wi-Fi",
-    badge: "WIFI",
-    systemCode: "SECR/TEL/WIFI-08",
-    description: "Station Public Wi-Fi access points and user session load tracking (RailWire).",
-    divisionData: {
-      Bilaspur: {
-        status: "normal",
-        lastUpdated: "Today, 01:35 PM",
-        details: [
-          { label: "Total Access Points", value: "48 APs Online" },
-          { label: "Active Connected Users", value: "1,242 Users" },
-          { label: "Average Session Speed", value: "12.4 Mbps" },
-          { label: "DHCP Lease Pool Status", value: "15% Free (Optimal)" }
-        ],
-        recentLogs: [
-          "01:35 PM - Bandwidth usage metrics peak checked at Platform 1 & 2.",
-          "11:15 AM - 1 access point near VIP lounge rebooted due to high association count."
-        ]
-      },
-      Raipur: {
-        status: "normal",
-        lastUpdated: "Today, 01:10 PM",
-        details: [
-          { label: "Total Access Points", value: "32 APs Online" },
-          { label: "Active Connected Users", value: "818 Users" },
-          { label: "Average Session Speed", value: "15.1 Mbps" },
-          { label: "DHCP Lease Pool Status", value: "38% Free" }
-        ],
-        recentLogs: [
-          "01:10 PM - Public portal login logs normal auth success rates.",
-          "08:30 AM - Wireless signal spectrum scan indicates clean channels."
-        ]
-      },
-      Nagpur: {
-        status: "normal",
-        lastUpdated: "Today, 12:50 PM",
-        details: [
-          { label: "Total Access Points", value: "36 APs Online" },
-          { label: "Active Connected Users", value: "904 Users" },
-          { label: "Average Session Speed", value: "10.8 Mbps" },
-          { label: "DHCP Lease Pool Status", value: "30% Free" }
-        ],
-        recentLogs: [
-          "12:50 PM - User session duration limits verified with RailTel RADIUS server.",
-          "09:10 AM - Local AP coverage mapping checked at passenger waiting halls."
-        ]
-      }
-    }
-  },
-  {
-    id: 9,
-    name: "UTS / PRS",
-    badge: "TKT",
-    systemCode: "SECR/TEL/UTS-09",
-    description: "Passenger reservation and ticketing systems communication networks status.",
-    divisionData: {
-      Bilaspur: {
-        status: "normal",
-        lastUpdated: "Today, 01:25 PM",
-        details: [
-          { label: "UTS Thin Client Network", value: "ONLINE" },
-          { label: "PRS Central Link Status", value: "CONNECTED (Active)" },
-          { label: "Operational UTS Counters", value: "12 Counters Active" },
-          { label: "Operational PRS Counters", value: "8 Counters Active" }
-        ],
-        recentLogs: [
-          "01:25 PM - Ticket printing transaction latency verified (<200ms).",
-          "08:00 AM - Morning PRS terminal configurations activated without issues."
-        ]
-      },
-      Raipur: {
-        status: "normal",
-        lastUpdated: "Today, 01:10 PM",
-        details: [
-          { label: "UTS Thin Client Network", value: "ONLINE" },
-          { label: "PRS Central Link Status", value: "CONNECTED (Active)" },
-          { label: "Operational UTS Counters", value: "8 Counters Active" },
-          { label: "Operational PRS Counters", value: "6 Counters Active" }
-        ],
-        recentLogs: [
-          "01:10 PM - System heartbeat monitored. Network path stable.",
-          "08:00 AM - Shift switchover diagnostics completed successfully."
-        ]
-      },
-      Nagpur: {
-        status: "normal",
-        lastUpdated: "Today, 12:45 PM",
-        details: [
-          { label: "UTS Thin Client Network", value: "ONLINE" },
-          { label: "PRS Central Link Status", value: "CONNECTED (Active)" },
-          { label: "Operational UTS Counters", value: "6 Counters Active" },
-          { label: "Operational PRS Counters", value: "4 Counters Active" }
-        ],
-        recentLogs: [
-          "12:45 PM - Checked secondary backup VSAT link. Standby mode active.",
-          "08:15 AM - Terminal hardware testing at NGP booking office cleared."
-        ]
-      }
-    }
-  },
-  {
-    id: 10,
-    name: "Cable Cut (OFC & Quad)",
-    badge: "OFC",
-    systemCode: "SECR/TEL/CUT-10",
-    description: "Real-time tracking of Optical Fiber Cable and Quad telecom medium cuts and disruptions.",
-    divisionData: {
-      Bilaspur: {
-        status: "normal",
-        lastUpdated: "Today, 01:30 PM",
-        details: [
-          { label: "Outstanding Cable Cuts", value: "0 Active Cuts" },
-          { label: "OFC Ring Status", value: "Fully Protected Ring" },
-          { label: "OTDR Status Check", value: "Normal (Clear)" },
-          { label: "Quad Medium Status", value: "Healthy" }
-        ],
-        recentLogs: [
-          "01:30 PM - Continuous loop test reports normal attenuation levels.",
-          "09:00 AM - Patrolling reports submitted for Champa-Gevra Road section. All secure."
-        ]
-      },
-      Raipur: {
-        status: "critical",
-        lastUpdated: "Today, 01:40 PM",
-        details: [
-          { label: "Outstanding Cable Cuts", value: "1 Active Cut" },
-          { label: "Cut Location Location", value: "KM 142/6 (R-URD Section)" },
-          { label: "Restoration Status", value: "Splicing in Progress" },
-          { label: "Traffic Status", value: "Diverted to alternate ring (No disruption)" }
-        ],
-        recentLogs: [
-          "01:40 PM - Jointing team has reached the site. Splicing started on 24-core fiber.",
-          "12:15 PM - Fiber cut alarm triggered on Raipur-Urad section. OTDR localized cut at KM 142/6."
-        ]
-      },
-      Nagpur: {
-        status: "normal",
-        lastUpdated: "Today, 01:10 PM",
-        details: [
-          { label: "Outstanding Cable Cuts", value: "0 Active Cuts" },
-          { label: "OFC Ring Status", value: "Fully Protected Ring" },
-          { label: "OTDR Status Check", value: "Normal (Clear)" },
-          { label: "Quad Medium Status", value: "Healthy" }
-        ],
-        recentLogs: [
-          "01:10 PM - Loop testing checks resolved without alarms.",
-          "08:30 AM - Section engineer confirms complete clearance of third-party track excavation zone."
-        ]
-      }
-    }
-  },
-  {
-    id: 11,
-    name: "Temporary Joints",
-    badge: "JOINT",
-    systemCode: "SECR/TEL/JNT-11",
-    description: "Tracking temporary joints in OFC network requiring permanent splicing block.",
-    divisionData: {
-      Bilaspur: {
-        status: "degraded",
-        lastUpdated: "Today, 11:00 AM",
-        details: [
-          { label: "Active Temporary Joints", value: "4 Joints Registered" },
-          { label: "Joint Locations", value: "KM 42/2, KM 118/4, KM 192/1, KM 204/8" },
-          { label: "Permanency Schedule", value: "Awaiting Next Scheduled Block" },
-          { label: "Average Joint Loss", value: "0.22 dB (Acceptable)" }
-        ],
-        recentLogs: [
-          "11:00 AM - Checked joint status at KM 42/2. Enclosure sealed and dry.",
-          "09:30 AM - Block request submitted for permanent splicing on Gevra Road route."
-        ]
-      },
-      Raipur: {
-        status: "normal",
-        lastUpdated: "Today, 10:15 AM",
-        details: [
-          { label: "Active Temporary Joints", value: "2 Joints Registered" },
-          { label: "Joint Locations", value: "KM 88/1, KM 112/5" },
-          { label: "Permanency Schedule", value: "Scheduled within 10 days" },
-          { label: "Average Joint Loss", value: "0.15 dB" }
-        ],
-        recentLogs: [
-          "10:15 AM - Visual patrol checks confirm joint protection boxes intact.",
-          "08:45 AM - Joint permanency plan drafted for upcoming line maintenance."
-        ]
-      },
-      Nagpur: {
-        status: "degraded",
-        lastUpdated: "Today, 12:45 PM",
-        details: [
-          { label: "Active Temporary Joints", value: "6 Joints Registered" },
-          { label: "Joint Locations", value: "Quad sections (Various)" },
-          { label: "Permanency Schedule", value: "Awaiting Quad-to-OFC conversion" },
-          { label: "Average Joint Loss", value: "0.31 dB (High)" }
-        ],
-        recentLogs: [
-          "12:45 PM - Joint loss at NGP-KAV section checked. Remapped line to fiber core 8.",
-          "10:00 AM - Section supervisor recommends complete enclosure replacement at KM 22."
-        ]
-      }
-    }
-  },
-  {
-    id: 12,
-    name: "Low Insulation",
-    badge: "INS",
-    systemCode: "SECR/TEL/INS-12",
-    description: "Insulation monitoring of Quad Cables to prevent cross-talk and channel noise.",
-    divisionData: {
-      Bilaspur: {
-        status: "degraded",
-        lastUpdated: "Today, 01:25 PM",
-        details: [
-          { label: "Low Insulation Alarms", value: "2 Active Alarms" },
-          { label: "Affected Sections", value: "BSP-USL Section, BYT-HN Section" },
-          { label: "Measured Impedance", value: "0.4 Mega-Ohms (Threshold: 1.0)" },
-          { label: "Action Status", value: "Megger testing scheduled today" }
-        ],
-        recentLogs: [
-          "01:25 PM - Megger readings logged for BSP-USL. Joint condensation suspected.",
-          "10:30 AM - Alarm flagged on quad pair 4 (Block circuit bypass)."
-        ]
-      },
-      Raipur: {
-        status: "normal",
-        lastUpdated: "Today, 11:00 AM",
-        details: [
-          { label: "Low Insulation Alarms", value: "0 Active Alarms" },
-          { label: "Affected Sections", value: "None" },
-          { label: "Measured Impedance", value: "All sections > 5.0 Mega-Ohms" },
-          { label: "Action Status", value: "Standard compliance maintained" }
-        ],
-        recentLogs: [
-          "11:00 AM - Routine insulation resistance checks completed. All channels healthy.",
-          "07:30 AM - Log reports show zero static noise complaints."
-        ]
-      },
-      Nagpur: {
-        status: "degraded",
-        lastUpdated: "Today, 01:40 PM",
-        details: [
-          { label: "Low Insulation Alarms", value: "3 Active Alarms" },
-          { label: "Affected Sections", value: "NGP-KAV, NGP-ITR, ITR-KP Sections" },
-          { label: "Measured Impedance", value: "0.3 Mega-Ohms (Degraded)" },
-          { label: "Action Status", value: "Joint inspections planned" }
-        ],
-        recentLogs: [
-          "01:40 PM - High humidity is affecting the NGP-ITR quad joints. Inspection team dispatched.",
-          "11:00 AM - Routine testing flagged low insulation value on gate telephone circuit."
-        ]
-      }
-    }
-  },
-  {
-    id: 13,
-    name: "Walkie-Talkie Testing",
-    badge: "VHF-T",
-    systemCode: "SECR/TEL/VHF-13",
-    description: "Daily operational checks and battery monitoring of VHF Walkie-Talkies.",
-    divisionData: {
-      Bilaspur: {
-        status: "normal",
-        lastUpdated: "Today, 01:15 PM",
-        details: [
-          { label: "Units Tested Today", value: "45 Walkie-Talkies" },
-          { label: "Found Fit For Service", value: "45 Units (100% Fit)" },
-          { label: "Batteries Replaced", value: "2 Units (Routine)" },
-          { label: "Frequency Deviation Status", value: "Within limit (0.005%)" }
-        ],
-        recentLogs: [
-          "01:15 PM - Station master and yard staff sets checked and certified OK.",
-          "08:00 AM - Morning shift testing completed. Total 45 walkie-talkies verified."
-        ]
-      },
-      Raipur: {
-        status: "normal",
-        lastUpdated: "Today, 12:45 PM",
-        details: [
-          { label: "Units Tested Today", value: "32 Walkie-Talkies" },
-          { label: "Found Fit For Service", value: "31 Units (1 Unit faulty)" },
-          { label: "Batteries Replaced", value: "1 Unit" },
-          { label: "Faulty Unit ID", value: "WT/RPR/421 (Low TX output)" }
-        ],
-        recentLogs: [
-          "12:45 PM - Unit WT/RPR/421 sent to divisional workshop for repair.",
-          "08:15 AM - Operational VHF sync test completed with station controls."
-        ]
-      },
-      Nagpur: {
-        status: "normal",
-        lastUpdated: "Today, 01:00 PM",
-        details: [
-          { label: "Units Tested Today", value: "38 Walkie-Talkies" },
-          { label: "Found Fit For Service", value: "38 Units" },
-          { label: "Batteries Replaced", value: "3 Units" },
-          { label: "Frequency Deviation Status", value: "Within limit" }
-        ],
-        recentLogs: [
-          "01:00 PM - Shift testing for loco pilots and guards completed. All OK.",
-          "09:10 AM - Standby battery bank charge level verified."
-        ]
-      }
-    }
-  },
-  {
-    id: 14,
-    name: "Walkie-Talkie Repairing",
-    badge: "VHF-R",
-    systemCode: "SECR/TEL/VHF-14",
-    description: "Tracking repairs, spare parts inventory, and turnaround times in telecom workshops.",
-    divisionData: {
-      Bilaspur: {
-        status: "normal",
-        lastUpdated: "Today, 01:25 PM",
-        details: [
-          { label: "Units In Workshop", value: "6 Walkie-Talkies" },
-          { label: "Repaired Today", value: "2 Units" },
-          { label: "Pending Spare Parts", value: "4 Units (On Order)" },
-          { label: "Average Turnaround Time", value: "3.2 Days" }
-        ],
-        recentLogs: [
-          "01:25 PM - 2 sets with audio distortion repaired (speaker module replaced).",
-          "11:15 AM - Spares requisition list sent to stores department."
-        ]
-      },
-      Raipur: {
-        status: "normal",
-        lastUpdated: "Today, 11:30 AM",
-        details: [
-          { label: "Units In Workshop", value: "4 Walkie-Talkies" },
-          { label: "Repaired Today", value: "1 Unit" },
-          { label: "Pending Spare Parts", value: "3 Units" },
-          { label: "Average Turnaround Time", value: "4.1 Days" }
-        ],
-        recentLogs: [
-          "11:30 AM - Unit WT/RPR/421 registered in workshop system.",
-          "09:00 AM - Diagnostic testing on transmitter modules completed."
-        ]
-      },
-      Nagpur: {
-        status: "normal",
-        lastUpdated: "Today, 12:20 PM",
-        details: [
-          { label: "Units In Workshop", value: "8 Walkie-Talkies" },
-          { label: "Repaired Today", value: "3 Units" },
-          { label: "Pending Spare Parts", value: "5 Units" },
-          { label: "Average Turnaround Time", value: "3.8 Days" }
-        ],
-        recentLogs: [
-          "12:20 PM - 3 walkie-talkies returned to service with new battery latch mechanisms.",
-          "10:45 AM - Circuit board cleaning and soldering of antenna terminals completed."
-        ]
-      }
-    }
-  },
-  {
-    id: 15,
-    name: "Rail Madad",
-    badge: "MADAD",
-    systemCode: "SECR/TEL/MAD-15",
-    description: "Operational status and complaint resolution monitoring for passenger portal (Rail Madad).",
-    divisionData: {
-      Bilaspur: {
-        status: "normal",
-        lastUpdated: "Today, 01:30 PM",
-        details: [
-          { label: "Active Open Complaints", value: "0 Complaints" },
-          { label: "Average Resolution Time", value: "12 Minutes" },
-          { label: "HQ Portal Integration", value: "CONNECTED" },
-          { label: "Daily Total Resolved", value: "14 Complaints" }
-        ],
-        recentLogs: [
-          "01:30 PM - Zero pending complaints logged in dashboard.",
-          "11:45 AM - Telecom complaint at BSP VIP waiting room resolved within 8 minutes."
-        ]
-      },
-      Raipur: {
-        status: "normal",
-        lastUpdated: "Today, 01:25 PM",
-        details: [
-          { label: "Active Open Complaints", value: "1 Complaint" },
-          { label: "Average Resolution Time", value: "18 Minutes" },
-          { label: "HQ Portal Integration", value: "CONNECTED" },
-          { label: "Pending Issue", value: "Wi-Fi login issue reported at RPR PF 1" }
-        ],
-        recentLogs: [
-          "01:25 PM - Wi-Fi AP login failure complaint received. Support team investigating.",
-          "10:15 AM - Station phone line complaint resolved at booking counter."
-        ]
-      },
-      Nagpur: {
-        status: "normal",
-        lastUpdated: "Today, 01:10 PM",
-        details: [
-          { label: "Active Open Complaints", value: "0 Complaints" },
-          { label: "Average Resolution Time", value: "15 Minutes" },
-          { label: "HQ Portal Integration", value: "CONNECTED" },
-          { label: "Daily Total Resolved", value: "9 Complaints" }
-        ],
-        recentLogs: [
-          "01:10 PM - Rail Madad queue checked. Status: clear.",
-          "08:30 AM - Network node socket replaced at ticketing hall to fix ticket machine disconnect."
-        ]
-      }
-    }
-  },
-  {
-    id: 16,
-    name: "Video Conferencing Test with Divisions",
-    badge: "VC-D",
-    systemCode: "SECR/TEL/VC-16",
-    description: "Daily checks and signal diagnostics of videoconferencing links from HQ to Divisions.",
-    divisionData: {
-      Bilaspur: {
-        status: "normal",
-        lastUpdated: "Today, 11:15 AM",
-        details: [
-          { label: "HQ to BSP VC Link", value: "TESTED OK" },
-          { label: "Packet Loss Rate", value: "0.1% (Excellent)" },
-          { label: "Audio Reception Quality", value: "Clear & Stable" },
-          { label: "Video Reception Quality", value: "HD 1080p (Stable)" }
-        ],
-        recentLogs: [
-          "11:15 AM - Morning video call test with BSP Divisional Telecom Office passed.",
-          "09:30 AM - MCU system sync and port routing validated."
-        ]
-      },
-      Raipur: {
-        status: "normal",
-        lastUpdated: "Today, 11:20 AM",
-        details: [
-          { label: "HQ to R VC Link", value: "TESTED OK" },
-          { label: "Packet Loss Rate", value: "0.2% (Good)" },
-          { label: "Audio Reception Quality", value: "Clear" },
-          { label: "Video Reception Quality", value: "HD 1080p (Stable)" }
-        ],
-        recentLogs: [
-          "11:20 AM - Connection test completed with Raipur Telecom Control. Resolution 1080p.",
-          "09:35 AM - Router policy check for voice/video packets validated."
-        ]
-      },
-      Nagpur: {
-        status: "normal",
-        lastUpdated: "Today, 11:25 AM",
-        details: [
-          { label: "HQ to NGP VC Link", value: "TESTED OK" },
-          { label: "Packet Loss Rate", value: "0.5% (Acceptable)" },
-          { label: "Audio Reception Quality", value: "Normal (Slight latency)" },
-          { label: "Video Reception Quality", value: "HD 720p (Stable)" }
-        ],
-        recentLogs: [
-          "11:25 AM - Connection test completed. 720p stream active due to routing via alternate ring.",
-          "09:40 AM - Codec system rebooted to refresh cache."
-        ]
-      }
-    }
-  },
-  {
-    id: 17,
-    name: "Railway Board Video Phone Test",
-    badge: "VP-RB",
-    systemCode: "SECR/TEL/VPHONE-17",
-    description: "Integrated Video Phone terminal communication tests linking SECR to Railway Board.",
-    divisionData: {
-      Bilaspur: {
-        status: "normal",
-        lastUpdated: "Today, 10:30 AM",
-        details: [
-          { label: "Terminal Status Check", value: "ONLINE" },
-          { label: "Direct Dialing Extension", value: "38920" },
-          { label: "Link Margin Score", value: "99.8% (Optimal)" },
-          { label: "SIP Registration Status", value: "Registered with RB Call Manager" }
-        ],
-        recentLogs: [
-          "10:30 AM - Direct loop dial test with RB Telecom desk completed. Link OK.",
-          "08:30 AM - Video call hardware diagnostics: success."
-        ]
-      },
-      Raipur: {
-        status: "normal",
-        lastUpdated: "Today, 10:35 AM",
-        details: [
-          { label: "Terminal Status Check", value: "ONLINE" },
-          { label: "Direct Dialing Extension", value: "38921" },
-          { label: "Link Margin Score", value: "99.5%" },
-          { label: "SIP Registration Status", value: "Registered with RB Call Manager" }
-        ],
-        recentLogs: [
-          "10:35 AM - Dial tone and link routing checks passed.",
-          "08:40 AM - Echo cancellation levels adjusted on handset."
-        ]
-      },
-      Nagpur: {
-        status: "normal",
-        lastUpdated: "Today, 10:40 AM",
-        details: [
-          { label: "Terminal Status Check", value: "ONLINE" },
-          { label: "Direct Dialing Extension", value: "38922" },
-          { label: "Link Margin Score", value: "99.2%" },
-          { label: "SIP Registration Status", value: "Registered with RB Call Manager" }
-        ],
-        recentLogs: [
-          "10:40 AM - Audio-video loop test completed successfully.",
-          "08:45 AM - Device uptime stats checked: 14 days without reset."
-        ]
-      }
+
+      db.push({
+        id: currentId++,
+        name: item.name,
+        badge: item.badge,
+        systemCode: `SECR/TEL/${item.code}`,
+        description: item.desc,
+        divisionData,
+        category: cat.category
+      });
     }
   }
-];
+
+  return db;
+};
+
+const CIRCUITS_DATABASE = generateCircuitDatabase();
 
 export default function Home() {
   const [selectedDivision, setSelectedDivision] = useState<string>("Bilaspur");
   const [divisionDropdownOpen, setDivisionDropdownOpen] = useState<boolean>(false);
   const [selectedCircuit, setSelectedCircuit] = useState<Circuit | null>(null);
-  const [circuitDropdownOpen, setCircuitDropdownOpen] = useState<boolean>(false);
+  const [openDropdownCategory, setOpenDropdownCategory] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [liveTime, setLiveTime] = useState<string>("");
 
@@ -1021,7 +323,7 @@ export default function Home() {
         setDivisionDropdownOpen(false);
       }
       if (circuitRef.current && !circuitRef.current.contains(event.target as Node)) {
-        setCircuitDropdownOpen(false);
+        setOpenDropdownCategory(null);
       }
       if (reasonsRef.current && !reasonsRef.current.contains(event.target as Node)) {
         setReasonsDropdownOpen(false);
@@ -1066,20 +368,31 @@ export default function Home() {
     return () => clearInterval(interval);
   }, []);
 
-  // Filter circuit list based on search query
-  const filteredCircuits = useMemo(() => {
-    if (!searchQuery.trim()) return CIRCUITS_DATABASE;
-    return CIRCUITS_DATABASE.filter((circuit) =>
-      circuit.name.toLowerCase().includes(searchQuery.toLowerCase())
+  // Toggle category dropdown and clear search
+  const handleToggleCategoryDropdown = (category: string) => {
+    setSearchQuery("");
+    setOpenDropdownCategory((prev) => (prev === category ? null : category));
+  };
+
+  // Get circuits filtered by category and search query
+  const getFilteredCategoryCircuits = (categoryName: string) => {
+    const circuitsInCategory = CIRCUITS_DATABASE.filter(c => c.category === categoryName);
+    if (!searchQuery.trim()) return circuitsInCategory;
+    return circuitsInCategory.filter((c) =>
+      c.name.toLowerCase().includes(searchQuery.toLowerCase())
     );
-  }, [searchQuery]);
+  };
 
   // Handle circuit selection
   const handleSelectCircuit = (circuit: Circuit) => {
     setSelectedCircuit(circuit);
     setLogInput("");
     setSaveSuccess(false);
+    if (circuit.category === "Exchange") {
+      setExchangeName(circuit.name.endsWith("Exchange") ? circuit.name : `${circuit.name} Exchange`);
+    }
   };
+
 
   // Get active status details for the current selection
   const activeStatus = useMemo(() => {
@@ -1522,69 +835,100 @@ export default function Home() {
         <aside className="left-panel">
           <h2 className="panel-title">Name of Circuit</h2>
           
-          <div className="circuit-select-wrapper" ref={circuitRef}>
-            <button
-              className={`circuit-trigger ${circuitDropdownOpen ? "open" : ""}`}
-              onClick={() => setCircuitDropdownOpen(!circuitDropdownOpen)}
-              aria-label="Select Circuit"
-            >
-              <span>{selectedCircuit ? selectedCircuit.name : "Select a Circuit..."}</span>
-            </button>
-            
-            {circuitDropdownOpen && (
-              <div className="circuit-dropdown-menu">
-                {/* Search input field inside dropdown */}
-                <div className="circuit-dropdown-search-wrapper" style={{ position: "relative" }}>
-                  <span className="circuit-dropdown-search-icon">
-                    <svg
-                      width="13"
-                      height="13"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2.5"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
-                      <circle cx="11" cy="11" r="8"></circle>
-                      <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                    </svg>
-                  </span>
-                  <input
-                    type="text"
-                    placeholder="Search circuit..."
-                    className="circuit-dropdown-search"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    autoFocus
-                    aria-label="Search circuits"
-                  />
-                </div>
+          <div className="categories-dropdown-list" ref={circuitRef} style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
+            {[
+              "Communication & Voice Circuits",
+              "Network & Internet",
+              "Cable Infrastructure",
+              "Display System",
+              "Testing & Maintenance",
+              "CCTV",
+              "Exchange"
+            ].map((catName, index) => {
+              const isOpen = openDropdownCategory === catName;
+              const filteredList = getFilteredCategoryCircuits(catName);
+              const isSelectedInCat = selectedCircuit && selectedCircuit.category === catName;
+              
+              return (
+                <div key={catName} className={`category-select-group ${isSelectedInCat ? "active-category" : ""}`}>
+                  <button
+                    type="button"
+                    className={`category-heading-trigger ${isOpen ? "open" : ""} ${isSelectedInCat ? "selected" : ""}`}
+                    onClick={() => handleToggleCategoryDropdown(catName)}
+                    aria-label={`Toggle ${catName}`}
+                  >
+                    <span className="category-heading-text">
+                      {index + 1}. {catName}
+                    </span>
+                    <span className="category-arrow">
+                      {isOpen ? "▲" : "▼"}
+                    </span>
+                  </button>
 
-                {/* Scrollable list inside dropdown */}
-                <div className="circuit-dropdown-list">
-                  {filteredCircuits.length > 0 ? (
-                    filteredCircuits.map((circuit) => (
-                      <div
-                        key={circuit.id}
-                        className={`circuit-item ${selectedCircuit?.id === circuit.id ? "active" : ""}`}
-                        onClick={() => {
-                          handleSelectCircuit(circuit);
-                          setCircuitDropdownOpen(false);
-                        }}
-                      >
-                        <span>{circuit.name}</span>
-                        <span className="circuit-badge">{circuit.badge}</span>
+                  {/* Show selected circuit details if closed and selected */}
+                  {isSelectedInCat && !isOpen && (
+                    <div className="category-selected-preview">
+                      <span className="dot"></span>
+                      <span>{selectedCircuit.name}</span>
+                    </div>
+                  )}
+
+                  {isOpen && (
+                    <div className="circuit-dropdown-inline-box">
+                      {/* Search input inside dropdown for searching category items */}
+                      <div className="circuit-dropdown-search-wrapper" style={{ position: "relative" }}>
+                        <span className="circuit-dropdown-search-icon">
+                          <svg
+                            width="12"
+                            height="12"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2.5"
+                          >
+                            <circle cx="11" cy="11" r="8"></circle>
+                            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                          </svg>
+                        </span>
+                        <input
+                          type="text"
+                          placeholder="Search circuit..."
+                          className="circuit-dropdown-search"
+                          value={searchQuery}
+                          onChange={(e) => setSearchQuery(e.target.value)}
+                          autoFocus
+                          onClick={(e) => e.stopPropagation()}
+                          aria-label={`Search ${catName}`}
+                        />
                       </div>
-                    ))
-                  ) : (
-                    <div style={{ padding: "12px", fontSize: "12.5px", color: "#6B7280", textAlign: "center" }}>
-                      No circuits found.
+
+                      {/* Scrollable list inside dropdown */}
+                      <div className="circuit-dropdown-list" style={{ maxHeight: "180px", overflowY: "auto" }}>
+                        {filteredList.length > 0 ? (
+                          filteredList.map((circuit) => (
+                            <div
+                              key={circuit.id}
+                              className={`circuit-item ${selectedCircuit?.id === circuit.id ? "active" : ""}`}
+                              onClick={() => {
+                                handleSelectCircuit(circuit);
+                                setOpenDropdownCategory(null);
+                              }}
+                            >
+                              <span>{circuit.name}</span>
+                              <span className="circuit-badge">{circuit.badge}</span>
+                            </div>
+                          ))
+                        ) : (
+                          <div style={{ padding: "12px", fontSize: "12px", color: "#6B7280", textAlign: "center" }}>
+                            No circuits found.
+                          </div>
+                        )}
+                      </div>
                     </div>
                   )}
                 </div>
-              </div>
-            )}
+              );
+            })}
           </div>
         </aside>
 
@@ -1889,7 +1233,7 @@ export default function Home() {
                 <span>Telecom Desk SECR HQ Bilaspur</span>
               </div>
             </div>
-          ) : selectedCircuit.name === "Exchange" ? (
+          ) : selectedCircuit.category === "Exchange" ? (
             /* Exchange Fault Entry Form Workspace */
             <div className="workspace-content">
               {/* Workspace Title bar */}
