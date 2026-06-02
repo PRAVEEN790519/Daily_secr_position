@@ -1217,9 +1217,14 @@ body,
 }
 
 .circuit-item:hover {
-  background-color: #F3F4F6;
-  color: var(--text-color);
+  background-color: #EFF6FF;
+  color: var(--primary-color);
   transform: translateX(2px);
+}
+
+.circuit-item:hover .circuit-badge {
+  background-color: #DBEAFE;
+  color: var(--primary-color);
 }
 
 .circuit-item.active {
