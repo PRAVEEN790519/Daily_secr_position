@@ -197,6 +197,14 @@ const generateCircuitDatabase = (): Circuit[] => {
 
 const CIRCUITS_DATABASE = generateCircuitDatabase();
 
+const isStandardFaultCircuit = (circuit: Circuit) => {
+  return (
+    circuit.category === "Communication & Voice Circuits" &&
+    circuit.name !== "Rail Madad" &&
+    circuit.name !== "Railway Board Video Phones"
+  );
+};
+
 export default function Home() {
   const [selectedDivision, setSelectedDivision] = useState<string>("Bilaspur");
   const [divisionDropdownOpen, setDivisionDropdownOpen] = useState<boolean>(false);
@@ -257,6 +265,47 @@ export default function Home() {
   const [netFormErrors, setNetFormErrors] = useState<Record<string, string>>({});
   const [netFormSuccess, setNetFormSuccess] = useState<boolean>(false);
   const [netSaving, setNetSaving] = useState<boolean>(false);
+  
+  // Rail Madad form states
+  const [madadBalanceLast, setMadadBalanceLast] = useState<string>("");
+  const [madadReceived, setMadadReceived] = useState<string>("");
+  const [madadComplied, setMadadComplied] = useState<string>("");
+  const [madadDescription, setMadadDescription] = useState<string>("");
+  const [madadCaseTime, setMadadCaseTime] = useState<string>("");
+  const [madadComplianceDetails, setMadadComplianceDetails] = useState<string>("");
+  const [madadComplianceTime, setMadadComplianceTime] = useState<string>("");
+  const [madadRemarks, setMadadRemarks] = useState<string>("");
+  const [madadFormErrors, setMadadFormErrors] = useState<Record<string, string>>({});
+  const [madadFormSuccess, setMadadFormSuccess] = useState<boolean>(false);
+  const [madadSaving, setMadadSaving] = useState<boolean>(false);
+
+  // Railway Board Video Phone form states
+  const [vpPhodChamber, setVpPhodChamber] = useState<string>("");
+  const [vpCustomPhod, setVpCustomPhod] = useState<string>("");
+  const [vpTestingTime, setVpTestingTime] = useState<string>("");
+  const [vpVideoClarity, setVpVideoClarity] = useState<string>("");
+  const [vpAudioClarity, setVpAudioClarity] = useState<string>("");
+  const [vpRemarks, setVpRemarks] = useState<string>("");
+  const [vpFormErrors, setVpFormErrors] = useState<Record<string, string>>({});
+  const [vpFormSuccess, setVpFormSuccess] = useState<boolean>(false);
+  const [vpSaving, setVpSaving] = useState<boolean>(false);
+
+  // Cable Cut form states
+  const [ccSectionName, setCcSectionName] = useState<string>("");
+  const [ccKmNo, setCcKmNo] = useState<string>("");
+  const [ccCableTypes, setCcCableTypes] = useState<string[]>([]);
+  const [ccCableTypesOpen, setCcCableTypesOpen] = useState<boolean>(false);
+  const [ccCutByWhom, setCcCutByWhom] = useState<string[]>([]);
+  const [ccCutByWhomOpen, setCcCutByWhomOpen] = useState<boolean>(false);
+  const [ccFailureTime, setCcFailureTime] = useState<string>("");
+  const [ccRectificationTime, setCcRectificationTime] = useState<string>("");
+  const [ccCustomCableType, setCcCustomCableType] = useState<string>("");
+  const [ccCustomCutBy, setCcCustomCutBy] = useState<string>("");
+  const [ccReasonOfFailure, setCcReasonOfFailure] = useState<string>("");
+  const [ccRemarks, setCcRemarks] = useState<string>("");
+  const [ccFormErrors, setCcFormErrors] = useState<Record<string, string>>({});
+  const [ccFormSuccess, setCcFormSuccess] = useState<boolean>(false);
+  const [ccSaving, setCcSaving] = useState<boolean>(false);
 
   // Refs to handle click outside for dropdowns
   const divisionRef = useRef<HTMLDivElement>(null);
@@ -266,11 +315,14 @@ export default function Home() {
   const exchReasonsRef = useRef<HTMLDivElement>(null);
   const netLocRef = useRef<HTMLDivElement>(null);
   const netReasonsRef = useRef<HTMLDivElement>(null);
+  const ccCableTypesRef = useRef<HTMLDivElement>(null);
+  const ccCutByWhomRef = useRef<HTMLDivElement>(null);
 
-  // Saved Logged Faults registry with dummy entry
+  // Saved Logged Faults registry with dummy entries for Communication & Voice Circuits
   const [savedFaults, setSavedFaults] = useState<any[]>([
     {
       id: 1,
+      circuitId: 1, // ICMS & COM Position
       division: "Bilaspur",
       faultySection: "BSP-CPH Section",
       circuitFailed: "ICMS Link Primary",
@@ -279,6 +331,42 @@ export default function Home() {
       duration: "1 Hrs 45 Min",
       reasons: "Equipment Failure (STM)",
       remarks: "STM unit card reset at Champa exchange."
+    },
+    {
+      id: 2,
+      circuitId: 2, // FOIS (VSAT)
+      division: "Bilaspur",
+      faultySection: "BSP-PND Section",
+      circuitFailed: "FOIS VSAT Link",
+      failureTime: "02-06-2026 10:00",
+      rectificationTime: "02-06-2026 12:30",
+      duration: "2 Hrs 30 Min",
+      reasons: "Link Failure",
+      remarks: "Bypass switch toggled to restore connection."
+    },
+    {
+      id: 3,
+      circuitId: 7, // Rail Madad
+      division: "Raipur",
+      faultySection: "Raipur Control",
+      circuitFailed: "Rail Madad Hotline",
+      failureTime: "02-06-2026 11:00",
+      rectificationTime: "02-06-2026 11:45",
+      duration: "0 Hrs 45 Min",
+      reasons: "Power Failure",
+      remarks: "UPS power card replaced."
+    },
+    {
+      id: 4,
+      circuitId: 4, // Video Conferencing with Divisions
+      division: "Nagpur",
+      faultySection: "NGP-HQ Conference Room",
+      circuitFailed: "Nagpur VC Main Codec",
+      failureTime: "02-06-2026 15:00",
+      rectificationTime: "02-06-2026 16:20",
+      duration: "1 Hrs 20 Min",
+      reasons: "Equipment Failure (STM)",
+      remarks: "Zonal VC link test verified post firmware update."
     }
   ]);
 
@@ -316,6 +404,53 @@ export default function Home() {
     }
   ]);
 
+  // Saved Logged Rail Madad Cases
+  const [savedMadadRecords, setSavedMadadRecords] = useState<any[]>([
+    {
+      id: 1,
+      division: "Bilaspur",
+      balanceLast: "2",
+      received: "5",
+      complied: "4",
+      netBalance: 3,
+      description: "Grievance #88291 - Passenger reported Wi-Fi outage in coach S3 of BSP-Raipur train.",
+      caseTime: "02-06-2026 09:30",
+      complianceDetails: "AP reset in train and signal strength verified at Bilaspur station platform.",
+      complianceTime: "02-06-2026 10:15",
+      remarks: "Closed successfully with passenger confirmation."
+    }
+  ]);
+
+  // Saved Logged Railway Board Video Phone Tests
+  const [savedVpRecords, setSavedVpRecords] = useState<any[]>([
+    {
+      id: 1,
+      division: "Bilaspur",
+      phodChamber: "PCSTE",
+      testingTime: "02-06-2026 11:30",
+      videoClarity: "Excellent",
+      audioClarity: "Excellent",
+      remarks: "Tested successfully with Railway Board console officer."
+    }
+  ]);
+
+  // Saved Logged Cable Cuts
+  const [savedCcRecords, setSavedCcRecords] = useState<any[]>([
+    {
+      id: 1,
+      division: "Bilaspur",
+      sectionName: "BSP-CPH Section",
+      kmNo: "712/14",
+      cableTypes: "OFC (24 Core), 6 Quad Cable",
+      cutByWhom: "NHAI Contractor (JCB Digging)",
+      failureTime: "02-06-2026 09:30",
+      rectificationTime: "02-06-2026 15:45",
+      duration: "6 Hrs 15 Min",
+      reasonOfFailure: "Excavation without S&T permission",
+      remarks: "Splicing of 24 Core OFC and jointing of quad cable completed."
+    }
+  ]);
+
   // Close dropdowns on clicking outside
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -339,6 +474,12 @@ export default function Home() {
       }
       if (netReasonsRef.current && !netReasonsRef.current.contains(event.target as Node)) {
         setNetReasonsDropdownOpen(false);
+      }
+      if (ccCableTypesRef.current && !ccCableTypesRef.current.contains(event.target as Node)) {
+        setCcCableTypesOpen(false);
+      }
+      if (ccCutByWhomRef.current && !ccCutByWhomRef.current.contains(event.target as Node)) {
+        setCcCutByWhomOpen(false);
       }
     }
     document.addEventListener("mousedown", handleClickOutside);
@@ -391,6 +532,56 @@ export default function Home() {
     if (circuit.category === "Exchange") {
       setExchangeName(circuit.name.endsWith("Exchange") ? circuit.name : `${circuit.name} Exchange`);
     }
+    // Clear standard form inputs when switching circuits
+    setFaultySection("");
+    setCircuitFailed("");
+    setFailureTime("");
+    setRectificationTime("");
+    setSelectedReasons([]);
+    setCustomReason("");
+    setRemarks("");
+    setFormErrors({});
+
+    // Clear Rail Madad form inputs when switching circuits
+    setMadadBalanceLast("");
+    setMadadReceived("");
+    setMadadComplied("");
+    setMadadDescription("");
+    setMadadCaseTime("");
+    setMadadComplianceDetails("");
+    setMadadComplianceTime("");
+    setMadadRemarks("");
+    setMadadFormErrors({});
+    setMadadFormSuccess(false);
+    setMadadSaving(false);
+
+    // Clear Video Phone states when switching circuits
+    setVpPhodChamber("");
+    setVpCustomPhod("");
+    setVpTestingTime("");
+    setVpVideoClarity("");
+    setVpAudioClarity("");
+    setVpRemarks("");
+    setVpFormErrors({});
+    setVpFormSuccess(false);
+    setVpSaving(false);
+
+    // Clear Cable Cut states when switching circuits
+    setCcSectionName("");
+    setCcKmNo("");
+    setCcCableTypes([]);
+    setCcCableTypesOpen(false);
+    setCcCutByWhom([]);
+    setCcCutByWhomOpen(false);
+    setCcFailureTime("");
+    setCcRectificationTime("");
+    setCcCustomCableType("");
+    setCcCustomCutBy("");
+    setCcReasonOfFailure("");
+    setCcRemarks("");
+    setCcFormErrors({});
+    setCcFormSuccess(false);
+    setCcSaving(false);
   };
 
 
@@ -399,6 +590,22 @@ export default function Home() {
     if (!selectedCircuit) return null;
     return selectedCircuit.divisionData[selectedDivision];
   }, [selectedCircuit, selectedDivision]);
+
+  // Filter standard faults by selected division and selected circuit ID
+  const filteredFaults = useMemo(() => {
+    if (!selectedCircuit) return [];
+    return savedFaults.filter(
+      (f) => f.circuitId === selectedCircuit.id && f.division === selectedDivision
+    );
+  }, [savedFaults, selectedCircuit, selectedDivision]);
+
+  // Rail Madad Net Balance Case Auto-calculation
+  const netBalanceCase = useMemo(() => {
+    const last = parseInt(madadBalanceLast, 10) || 0;
+    const rec = parseInt(madadReceived, 10) || 0;
+    const comp = parseInt(madadComplied, 10) || 0;
+    return last + rec - comp;
+  }, [madadBalanceLast, madadReceived, madadComplied]);
 
   // Combine static and dynamic logs
   const displayLogs = useMemo(() => {
@@ -488,6 +695,7 @@ export default function Home() {
 
     const newFault = {
       id: Date.now(),
+      circuitId: selectedCircuit?.id,
       division: selectedDivision,
       faultySection: faultySection.trim(),
       circuitFailed: circuitFailed.trim(),
@@ -764,6 +972,249 @@ export default function Home() {
     }, 1200);
   };
 
+  // Handle Save Rail Madad Form
+  const handleSaveMadadRecord = (e: React.FormEvent) => {
+    e.preventDefault();
+    const errors: Record<string, string> = {};
+
+    if (!madadBalanceLast.trim()) {
+      errors.madadBalanceLast = "Case Balance Till Last Date is required";
+    } else if (isNaN(Number(madadBalanceLast))) {
+      errors.madadBalanceLast = "Must be a numeric value";
+    }
+
+    if (!madadReceived.trim()) {
+      errors.madadReceived = "Case Received on Date is required";
+    } else if (isNaN(Number(madadReceived))) {
+      errors.madadReceived = "Must be a numeric value";
+    }
+
+    if (!madadComplied.trim()) {
+      errors.madadComplied = "Case complied On Date is required";
+    } else if (isNaN(Number(madadComplied))) {
+      errors.madadComplied = "Must be a numeric value";
+    }
+
+    if (!madadDescription.trim()) errors.madadDescription = "Description of Case is required";
+    if (!madadCaseTime) errors.madadCaseTime = "Case Date & Time is required";
+
+    if (!madadComplianceDetails.trim()) errors.madadComplianceDetails = "S&T Compliance Details are required";
+    if (!madadComplianceTime) errors.madadComplianceTime = "S&T Compliance Date & Time is required";
+
+    if (Object.keys(errors).length > 0) {
+      setMadadFormErrors(errors);
+      return;
+    }
+
+    setMadadFormErrors({});
+    setMadadSaving(true);
+
+    // Simulate loading state (1.2 seconds)
+    setTimeout(() => {
+      // Date formatter: DD-MM-YYYY HH:MM
+      const formatDate = (dateStr: string) => {
+        const d = new Date(dateStr);
+        const day = String(d.getDate()).padStart(2, "0");
+        const month = String(d.getMonth() + 1).padStart(2, "0");
+        const year = d.getFullYear();
+        const hour = String(d.getHours()).padStart(2, "0");
+        const minute = String(d.getMinutes()).padStart(2, "0");
+        return `${day}-${month}-${year} ${hour}:${minute}`;
+      };
+
+      const newMadadRecord = {
+        id: Date.now(),
+        division: selectedDivision,
+        balanceLast: madadBalanceLast,
+        received: madadReceived,
+        complied: madadComplied,
+        netBalance: netBalanceCase,
+        description: madadDescription.trim(),
+        caseTime: formatDate(madadCaseTime),
+        complianceDetails: madadComplianceDetails.trim(),
+        complianceTime: formatDate(madadComplianceTime),
+        remarks: madadRemarks.trim()
+      };
+
+      setSavedMadadRecords(prev => [newMadadRecord, ...prev]);
+      setMadadSaving(false);
+
+      // Reset form fields
+      setMadadBalanceLast("");
+      setMadadReceived("");
+      setMadadComplied("");
+      setMadadDescription("");
+      setMadadCaseTime("");
+      setMadadComplianceDetails("");
+      setMadadComplianceTime("");
+      setMadadRemarks("");
+      setMadadFormSuccess(true);
+
+      // Auto hide success banner after 5 seconds
+      setTimeout(() => setMadadFormSuccess(false), 5000);
+    }, 1200);
+  };
+
+  // Handle Save Railway Board Video Phone Test Form
+  const handleSaveVpRecord = (e: React.FormEvent) => {
+    e.preventDefault();
+    const errors: Record<string, string> = {};
+
+    if (!vpPhodChamber) errors.vpPhodChamber = "PHOD Chamber is required";
+    if (vpPhodChamber === "Other" && !vpCustomPhod.trim()) {
+      errors.vpCustomPhod = "Custom chamber name is required";
+    }
+    if (!vpTestingTime) errors.vpTestingTime = "Tested with RB Date & Time is required";
+    if (!vpVideoClarity) errors.vpVideoClarity = "Video Clarity is required";
+    if (!vpAudioClarity) errors.vpAudioClarity = "Audio Clarity is required";
+
+    if (Object.keys(errors).length > 0) {
+      setVpFormErrors(errors);
+      return;
+    }
+
+    setVpFormErrors({});
+    setVpSaving(true);
+
+    // Simulate loading state (1.2 seconds)
+    setTimeout(() => {
+      // Date formatter: DD-MM-YYYY HH:MM
+      const formatDate = (dateStr: string) => {
+        const d = new Date(dateStr);
+        const day = String(d.getDate()).padStart(2, "0");
+        const month = String(d.getMonth() + 1).padStart(2, "0");
+        const year = d.getFullYear();
+        const hour = String(d.getHours()).padStart(2, "0");
+        const minute = String(d.getMinutes()).padStart(2, "0");
+        return `${day}-${month}-${year} ${hour}:${minute}`;
+      };
+
+      const newVpRecord = {
+        id: Date.now(),
+        division: selectedDivision,
+        phodChamber: vpPhodChamber === "Other" ? `Other: ${vpCustomPhod.trim()}` : vpPhodChamber,
+        testingTime: formatDate(vpTestingTime),
+        videoClarity: vpVideoClarity,
+        audioClarity: vpAudioClarity,
+        remarks: vpRemarks.trim()
+      };
+
+      setSavedVpRecords(prev => [newVpRecord, ...prev]);
+      setVpSaving(false);
+
+      // Reset form fields
+      setVpPhodChamber("");
+      setVpCustomPhod("");
+      setVpTestingTime("");
+      setVpVideoClarity("");
+      setVpAudioClarity("");
+      setVpRemarks("");
+      setVpFormSuccess(true);
+
+      // Auto hide success banner after 5 seconds
+      setTimeout(() => setVpFormSuccess(false), 5000);
+    }, 1200);
+  };
+
+  // Cable Cut Auto-calculated duration
+  const ccTotalDuration = useMemo(() => {
+    if (!ccFailureTime || !ccRectificationTime) return "";
+    const start = new Date(ccFailureTime);
+    const end = new Date(ccRectificationTime);
+    if (isNaN(start.getTime()) || isNaN(end.getTime())) return "";
+    
+    const diffMs = end.getTime() - start.getTime();
+    if (diffMs < 0) return "RT is earlier than Failure Time";
+    
+    const diffMinutes = Math.floor(diffMs / (1000 * 60));
+    const hrs = Math.floor(diffMinutes / 60);
+    const mins = diffMinutes % 60;
+    
+    return `${hrs} Hrs ${mins} Min`;
+  }, [ccFailureTime, ccRectificationTime]);
+
+  // Handle Save Cable Cut Form
+  const handleSaveCcRecord = (e: React.FormEvent) => {
+    e.preventDefault();
+    const errors: Record<string, string> = {};
+
+    if (!ccSectionName.trim()) errors.ccSectionName = "Section name is required";
+    if (!ccKmNo.trim()) errors.ccKmNo = "KM Number is required";
+    if (ccCableTypes.length === 0) errors.ccCableTypes = "At least one cable type is required";
+    if (ccCableTypes.includes("Other") && !ccCustomCableType.trim()) {
+      errors.ccCustomCableType = "Custom cable type details are required";
+    }
+    if (ccCutByWhom.length === 0) errors.ccCutByWhom = "At least one entity is required";
+    if (ccCutByWhom.includes("Other") && !ccCustomCutBy.trim()) {
+      errors.ccCustomCutBy = "Details on who cut the cable are required";
+    }
+    if (!ccFailureTime) errors.ccFailureTime = "Failure Date & Time is required";
+    if (!ccRectificationTime) errors.ccRectificationTime = "Rectification Time (RT) is required";
+    if (!ccReasonOfFailure.trim()) errors.ccReasonOfFailure = "Reason of failure is required";
+
+    if (ccFailureTime && ccRectificationTime) {
+      const start = new Date(ccFailureTime);
+      const end = new Date(ccRectificationTime);
+      if (end.getTime() < start.getTime()) {
+        errors.ccRectificationTime = "Rectification Time cannot be earlier than Failure Time";
+      }
+    }
+
+    if (Object.keys(errors).length > 0) {
+      setCcFormErrors(errors);
+      return;
+    }
+
+    setCcFormErrors({});
+    setCcSaving(true);
+
+    // Simulate loading state (1.2 seconds)
+    setTimeout(() => {
+      // Date formatter: DD-MM-YYYY HH:MM
+      const formatDate = (dateStr: string) => {
+        const d = new Date(dateStr);
+        const day = String(d.getDate()).padStart(2, "0");
+        const month = String(d.getMonth() + 1).padStart(2, "0");
+        const year = d.getFullYear();
+        const hour = String(d.getHours()).padStart(2, "0");
+        const minute = String(d.getMinutes()).padStart(2, "0");
+        return `${day}-${month}-${year} ${hour}:${minute}`;
+      };
+
+      const newCcRecord = {
+        id: Date.now(),
+        division: selectedDivision,
+        sectionName: ccSectionName.trim(),
+        kmNo: ccKmNo.trim(),
+        cableTypes: ccCableTypes.map(c => c === "Other" ? `Other: ${ccCustomCableType.trim()}` : c).join(", "),
+        cutByWhom: ccCutByWhom.map(c => c === "Other" ? `Other: ${ccCustomCutBy.trim()}` : c).join(", "),
+        failureTime: formatDate(ccFailureTime),
+        rectificationTime: formatDate(ccRectificationTime),
+        duration: ccTotalDuration,
+        reasonOfFailure: ccReasonOfFailure.trim(),
+        remarks: ccRemarks.trim()
+      };
+
+      setSavedCcRecords(prev => [newCcRecord, ...prev]);
+      setCcSaving(false);
+
+      setCcSectionName("");
+      setCcKmNo("");
+      setCcCableTypes([]);
+      setCcCustomCableType("");
+      setCcCutByWhom([]);
+      setCcCustomCutBy("");
+      setCcFailureTime("");
+      setCcRectificationTime("");
+      setCcReasonOfFailure("");
+      setCcRemarks("");
+      setCcFormSuccess(true);
+
+      // Auto hide success banner after 5 seconds
+      setTimeout(() => setCcFormSuccess(false), 5000);
+    }, 1200);
+  };
+
   return (
     <div className="dashboard-container">
       {/* HEADER SECTION */}
@@ -939,13 +1390,13 @@ export default function Home() {
             <div className="empty-state">
               <p>Select a Circuit from the left panel to view details.</p>
             </div>
-          ) : selectedCircuit.name === "ICMS & COM Position" ? (
-            /* ICMS & COM Position - Fault Entry Form Workspace */
+          ) : isStandardFaultCircuit(selectedCircuit) ? (
+            /* Standard Fault Entry Form Workspace */
             <div className="workspace-content">
               {/* Workspace Title bar */}
               <div className="workspace-title-section">
                 <div className="workspace-title-left">
-                  <h2>ICMS & COM Position - Fault Entry Form</h2>
+                  <h2>{selectedCircuit.name} - Fault Entry Form</h2>
                   <div className="workspace-meta">
                     <span>Code: {selectedCircuit.systemCode}</span>
                     <span className="meta-divider">|</span>
@@ -1169,10 +1620,8 @@ export default function Home() {
               <div className="logged-faults-section">
                 <h3>Logged Fault Registry ({selectedDivision} Division)</h3>
                 <div className="fault-record-list">
-                  {savedFaults.filter(f => f.division === selectedDivision).length > 0 ? (
-                    savedFaults
-                      .filter(f => f.division === selectedDivision)
-                      .map((fault) => (
+                  {filteredFaults.length > 0 ? (
+                    filteredFaults.map((fault) => (
                         <div key={fault.id} className="fault-record">
                           <div className="fault-record-header">
                             <span className="fault-record-title">{fault.circuitFailed}</span>
@@ -2094,6 +2543,939 @@ export default function Home() {
                     <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
                   </svg>
                   <span>SECR Railnet Monitoring Link</span>
+                </div>
+                <span>Telecom Desk SECR HQ Bilaspur</span>
+              </div>
+            </div>
+          ) : selectedCircuit.name === "Rail Madad" ? (
+            /* Rail Madad Monitoring & Case Entry Form Workspace */
+            <div className="workspace-content">
+              {/* Workspace Title bar */}
+              <div className="workspace-title-section">
+                <div className="workspace-title-left">
+                  <h2>Rail Madad Case Entry Form</h2>
+                  <div className="workspace-meta">
+                    <span>Code: {selectedCircuit.systemCode}</span>
+                    <span className="meta-divider">|</span>
+                    <span>Division: {selectedDivision}</span>
+                  </div>
+                </div>
+                
+                <div className="status-badge yellow">
+                  <span className="dot"></span>
+                  <span>Rail Madad Console</span>
+                </div>
+              </div>
+
+              {/* Success Notification Alert */}
+              {madadFormSuccess && (
+                <div className="alert-banner">
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="3"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                  </svg>
+                  <span>✅ Rail Madad Case Record Saved Successfully</span>
+                </div>
+              )}
+
+              {/* Rail Madad Case Entry Form */}
+              <form className="fault-form" onSubmit={handleSaveMadadRecord}>
+                <div className="form-group-row">
+                  {/* Case Balance Till Last Date */}
+                  <div className="form-group">
+                    <label htmlFor="madadBalanceLast" className="form-label">
+                      Case Balance Till Last Date <span className="required">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      id="madadBalanceLast"
+                      className={`form-input ${madadFormErrors.madadBalanceLast ? "field-error-border" : ""}`}
+                      placeholder="Enter balance cases till last date"
+                      value={madadBalanceLast}
+                      onChange={(e) => setMadadBalanceLast(e.target.value)}
+                    />
+                    {madadFormErrors.madadBalanceLast && (
+                      <span className="error-text">{madadFormErrors.madadBalanceLast}</span>
+                    )}
+                  </div>
+
+                  {/* Case Received on Date */}
+                  <div className="form-group">
+                    <label htmlFor="madadReceived" className="form-label">
+                      Case Received on Date <span className="required">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      id="madadReceived"
+                      className={`form-input ${madadFormErrors.madadReceived ? "field-error-border" : ""}`}
+                      placeholder="Enter cases received today"
+                      value={madadReceived}
+                      onChange={(e) => setMadadReceived(e.target.value)}
+                    />
+                    {madadFormErrors.madadReceived && (
+                      <span className="error-text">{madadFormErrors.madadReceived}</span>
+                    )}
+                  </div>
+                </div>
+
+                <div className="form-group-row">
+                  {/* Case Complied On Date */}
+                  <div className="form-group">
+                    <label htmlFor="madadComplied" className="form-label">
+                      Case complied On Date <span className="required">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      id="madadComplied"
+                      className={`form-input ${madadFormErrors.madadComplied ? "field-error-border" : ""}`}
+                      placeholder="Enter cases complied today"
+                      value={madadComplied}
+                      onChange={(e) => setMadadComplied(e.target.value)}
+                    />
+                    {madadFormErrors.madadComplied && (
+                      <span className="error-text">{madadFormErrors.madadComplied}</span>
+                    )}
+                  </div>
+
+                  {/* Net Balance Case On Date (Calculated, read-only) */}
+                  <div className="form-group">
+                    <label htmlFor="madadNetBalance" className="form-label">
+                      Net Balance Case On Date
+                    </label>
+                    <input
+                      type="text"
+                      id="madadNetBalance"
+                      className="form-input"
+                      value={netBalanceCase}
+                      readOnly
+                      placeholder="Calculated balance"
+                    />
+                  </div>
+                </div>
+
+                <div className="form-group-row">
+                  {/* Description Of Case */}
+                  <div className="form-group">
+                    <label htmlFor="madadDescription" className="form-label">
+                      Description Of Case <span className="required">*</span>
+                    </label>
+                    <textarea
+                      id="madadDescription"
+                      className={`form-textarea ${madadFormErrors.madadDescription ? "field-error-border" : ""}`}
+                      style={{ height: "42px" }}
+                      placeholder="Enter grievance description details with date & time"
+                      value={madadDescription}
+                      onChange={(e) => setMadadDescription(e.target.value)}
+                    />
+                    {madadFormErrors.madadDescription && (
+                      <span className="error-text">{madadFormErrors.madadDescription}</span>
+                    )}
+                  </div>
+
+                  {/* Case Date & Time */}
+                  <div className="form-group">
+                    <label htmlFor="madadCaseTime" className="form-label">
+                      Case Date & Time <span className="required">*</span>
+                    </label>
+                    <input
+                      type="datetime-local"
+                      id="madadCaseTime"
+                      className={`form-input ${madadFormErrors.madadCaseTime ? "field-error-border" : ""}`}
+                      value={madadCaseTime}
+                      onChange={(e) => setMadadCaseTime(e.target.value)}
+                    />
+                    {madadFormErrors.madadCaseTime && (
+                      <span className="error-text">{madadFormErrors.madadCaseTime}</span>
+                    )}
+                  </div>
+                </div>
+
+                <div className="form-group-row">
+                  {/* S&T Compliance Details */}
+                  <div className="form-group">
+                    <label htmlFor="madadComplianceDetails" className="form-label">
+                      S&T Compliance details <span className="required">*</span>
+                    </label>
+                    <textarea
+                      id="madadComplianceDetails"
+                      className={`form-textarea ${madadFormErrors.madadComplianceDetails ? "field-error-border" : ""}`}
+                      style={{ height: "42px" }}
+                      placeholder="Enter S&T action taken and compliance details"
+                      value={madadComplianceDetails}
+                      onChange={(e) => setMadadComplianceDetails(e.target.value)}
+                    />
+                    {madadFormErrors.madadComplianceDetails && (
+                      <span className="error-text">{madadFormErrors.madadComplianceDetails}</span>
+                    )}
+                  </div>
+
+                  {/* S&T Compliance Date & Time */}
+                  <div className="form-group">
+                    <label htmlFor="madadComplianceTime" className="form-label">
+                      S&T Compliance Date & Time <span className="required">*</span>
+                    </label>
+                    <input
+                      type="datetime-local"
+                      id="madadComplianceTime"
+                      className={`form-input ${madadFormErrors.madadComplianceTime ? "field-error-border" : ""}`}
+                      value={madadComplianceTime}
+                      onChange={(e) => setMadadComplianceTime(e.target.value)}
+                    />
+                    {madadFormErrors.madadComplianceTime && (
+                      <span className="error-text">{madadFormErrors.madadComplianceTime}</span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Remarks */}
+                <div className="form-group full-width">
+                  <label htmlFor="madadRemarks" className="form-label">Remarks</label>
+                  <textarea
+                    id="madadRemarks"
+                    className="form-textarea"
+                    style={{ height: "65px" }}
+                    placeholder="Enter additional remarks or observations"
+                    value={madadRemarks}
+                    onChange={(e) => setMadadRemarks(e.target.value)}
+                  />
+                </div>
+
+                {/* Save button with Loading State */}
+                <div style={{ display: "flex", justifyContent: "flex-end" }}>
+                  <button 
+                    type="submit" 
+                    className={`save-button ${madadSaving ? "save-button-loading" : ""}`}
+                    disabled={madadSaving}
+                  >
+                    {madadSaving ? (
+                      <>
+                        <span className="spinner"></span>
+                        <span>Saving...</span>
+                      </>
+                    ) : (
+                      "Save"
+                    )}
+                  </button>
+                </div>
+              </form>
+
+              {/* Logged cases registry section */}
+              <div className="logged-faults-section">
+                <h3>Logged Rail Madad Case Registry ({selectedDivision} Division)</h3>
+                <div className="fault-record-list">
+                  {savedMadadRecords.filter(r => r.division === selectedDivision).length > 0 ? (
+                    savedMadadRecords
+                      .filter(r => r.division === selectedDivision)
+                      .map((record) => (
+                        <div key={record.id} className="fault-record">
+                          <div className="fault-record-header">
+                            <span className="fault-record-title">Net Balance: {record.netBalance} cases</span>
+                            <span className="fault-record-duration">
+                              Last Bal: {record.balanceLast} | Recd: {record.received} | Comp: {record.complied}
+                            </span>
+                          </div>
+                          <div className="fault-record-grid">
+                            <div className="fault-record-item" style={{ gridColumn: "span 2" }}>
+                              <span className="fault-record-label">Case Details:</span>
+                              <span className="fault-record-value">{record.description} ({record.caseTime})</span>
+                            </div>
+                            <div className="fault-record-item" style={{ gridColumn: "span 2" }}>
+                              <span className="fault-record-label">Compliance:</span>
+                              <span className="fault-record-value">{record.complianceDetails} ({record.complianceTime})</span>
+                            </div>
+                            {record.remarks && (
+                              <div className="fault-record-item" style={{ gridColumn: "span 2" }}>
+                                <span className="fault-record-label">Remarks:</span>
+                                <span className="fault-record-value">{record.remarks}</span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      ))
+                  ) : (
+                    <div style={{ padding: "16px", fontSize: "13px", color: "#6B7280", textAlign: "center", border: "1px dashed #D1D5DB", borderRadius: "6px" }}>
+                      No Rail Madad cases registered for {selectedDivision} division today.
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Workspace footer */}
+              <div className="workspace-footer" style={{ marginTop: "12px" }}>
+                <div className="footer-system">
+                  <svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                  </svg>
+                  <span>SECR Rail Madad Integration Console Link</span>
+                </div>
+                <span>Telecom Desk SECR HQ Bilaspur</span>
+              </div>
+            </div>
+          ) : selectedCircuit.name === "Railway Board Video Phones" ? (
+            /* Railway Board Video Phone Test Form Workspace */
+            <div className="workspace-content">
+              {/* Workspace Title bar */}
+              <div className="workspace-title-section">
+                <div className="workspace-title-left">
+                  <h2>Railway Board Video Phone Test Form</h2>
+                  <div className="workspace-meta">
+                    <span>Code: {selectedCircuit.systemCode}</span>
+                    <span className="meta-divider">|</span>
+                    <span>Division: {selectedDivision}</span>
+                  </div>
+                </div>
+                
+                <div className="status-badge yellow">
+                  <span className="dot"></span>
+                  <span>Video Phone Console</span>
+                </div>
+              </div>
+
+              {/* Success Notification Alert */}
+              {vpFormSuccess && (
+                <div className="alert-banner">
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="3"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                  </svg>
+                  <span>✅ Railway Board Video Phone Test Saved Successfully</span>
+                </div>
+              )}
+
+              {/* Video Phone Test Form */}
+              <form className="fault-form" onSubmit={handleSaveVpRecord}>
+                <div className="form-group-row">
+                  {/* Video Phone in Chamber of PHOD */}
+                  <div className="form-group">
+                    <label htmlFor="vpPhodChamber" className="form-label">
+                      Video Phone in Chamber of PHOD <span className="required">*</span>
+                    </label>
+                    <select
+                      id="vpPhodChamber"
+                      className={`form-input ${vpFormErrors.vpPhodChamber ? "field-error-border" : ""}`}
+                      style={{ height: "42px", appearance: "auto" }}
+                      value={vpPhodChamber}
+                      onChange={(e) => {
+                        setVpPhodChamber(e.target.value);
+                        if (e.target.value !== "Other") setVpCustomPhod("");
+                      }}
+                    >
+                      <option value="">Select PHOD Chamber</option>
+                      {["PCSTE", "PCE", "PCEE", "PCCM", "PCME", "PCOM", "PCPO", "PCMM", "PCMD", "PFA", "DCCM", "PCSO", "PCSC", "Other"].map((chamber) => (
+                        <option key={chamber} value={chamber}>{chamber}</option>
+                      ))}
+                    </select>
+                    {vpFormErrors.vpPhodChamber && (
+                      <span className="error-text">{vpFormErrors.vpPhodChamber}</span>
+                    )}
+                  </div>
+
+                  {/* Tested with RB Date & Time */}
+                  <div className="form-group">
+                    <label htmlFor="vpTestingTime" className="form-label">
+                      Tested with RB Date & Time <span className="required">*</span>
+                    </label>
+                    <input
+                      type="datetime-local"
+                      id="vpTestingTime"
+                      className={`form-input ${vpFormErrors.vpTestingTime ? "field-error-border" : ""}`}
+                      value={vpTestingTime}
+                      onChange={(e) => setVpTestingTime(e.target.value)}
+                    />
+                    {vpFormErrors.vpTestingTime && (
+                      <span className="error-text">{vpFormErrors.vpTestingTime}</span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Manual Custom PHOD Chamber name (shown when PHOD Chamber is Other) */}
+                {vpPhodChamber === "Other" && (
+                  <div className="form-group full-width" style={{ animation: "fadeIn 0.15s ease-out" }}>
+                    <label htmlFor="vpCustomPhod" className="form-label">
+                      Custom Chamber / Region Name <span className="required">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      id="vpCustomPhod"
+                      className={`form-input ${vpFormErrors.vpCustomPhod ? "field-error-border" : ""}`}
+                      placeholder="Enter PHOD chamber or other region manually"
+                      value={vpCustomPhod}
+                      onChange={(e) => setVpCustomPhod(e.target.value)}
+                    />
+                    {vpFormErrors.vpCustomPhod && (
+                      <span className="error-text">{vpFormErrors.vpCustomPhod}</span>
+                    )}
+                  </div>
+                )}
+
+                <div className="form-group-row">
+                  {/* Video Clarity */}
+                  <div className="form-group">
+                    <label htmlFor="vpVideoClarity" className="form-label">
+                      Video Clarity <span className="required">*</span>
+                    </label>
+                    <select
+                      id="vpVideoClarity"
+                      className={`form-input ${vpFormErrors.vpVideoClarity ? "field-error-border" : ""}`}
+                      style={{ height: "42px", appearance: "auto" }}
+                      value={vpVideoClarity}
+                      onChange={(e) => setVpVideoClarity(e.target.value)}
+                    >
+                      <option value="">Select Video Quality</option>
+                      <option value="Excellent">Excellent</option>
+                      <option value="Good">Good</option>
+                      <option value="Satisfactory">Satisfactory</option>
+                      <option value="Poor">Poor</option>
+                      <option value="No Video">No Video</option>
+                    </select>
+                    {vpFormErrors.vpVideoClarity && (
+                      <span className="error-text">{vpFormErrors.vpVideoClarity}</span>
+                    )}
+                  </div>
+
+                  {/* Audio Clarity */}
+                  <div className="form-group">
+                    <label htmlFor="vpAudioClarity" className="form-label">
+                      Audio Clarity <span className="required">*</span>
+                    </label>
+                    <select
+                      id="vpAudioClarity"
+                      className={`form-input ${vpFormErrors.vpAudioClarity ? "field-error-border" : ""}`}
+                      style={{ height: "42px", appearance: "auto" }}
+                      value={vpAudioClarity}
+                      onChange={(e) => setVpAudioClarity(e.target.value)}
+                    >
+                      <option value="">Select Audio Quality</option>
+                      <option value="Excellent">Excellent</option>
+                      <option value="Good">Good</option>
+                      <option value="Satisfactory">Satisfactory</option>
+                      <option value="Poor">Poor</option>
+                      <option value="No Audio">No Audio</option>
+                    </select>
+                    {vpFormErrors.vpAudioClarity && (
+                      <span className="error-text">{vpFormErrors.vpAudioClarity}</span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Remarks */}
+                <div className="form-group full-width">
+                  <label htmlFor="vpRemarks" className="form-label">Remarks</label>
+                  <textarea
+                    id="vpRemarks"
+                    className="form-textarea"
+                    style={{ height: "65px" }}
+                    placeholder="Enter additional remarks or observations"
+                    value={vpRemarks}
+                    onChange={(e) => setVpRemarks(e.target.value)}
+                  />
+                </div>
+
+                {/* Save button with Loading State */}
+                <div style={{ display: "flex", justifyContent: "flex-end" }}>
+                  <button 
+                    type="submit" 
+                    className={`save-button ${vpSaving ? "save-button-loading" : ""}`}
+                    disabled={vpSaving}
+                  >
+                    {vpSaving ? (
+                      <>
+                        <span className="spinner"></span>
+                        <span>Saving...</span>
+                      </>
+                    ) : (
+                      "Save"
+                    )}
+                  </button>
+                </div>
+              </form>
+
+              {/* Logged Video Phone tests registry section */}
+              <div className="logged-faults-section">
+                <h3>Logged Video Phone Test Registry ({selectedDivision} Division)</h3>
+                <div className="fault-record-list">
+                  {savedVpRecords.filter(r => r.division === selectedDivision).length > 0 ? (
+                    savedVpRecords
+                      .filter(r => r.division === selectedDivision)
+                      .map((record) => (
+                        <div key={record.id} className="fault-record">
+                          <div className="fault-record-header">
+                            <span className="fault-record-title">Chamber: {record.phodChamber}</span>
+                            <span className="fault-record-duration">Tested with RB</span>
+                          </div>
+                          <div className="fault-record-grid">
+                            <div className="fault-record-item">
+                              <span className="fault-record-label">Testing Time:</span>
+                              <span className="fault-record-value">{record.testingTime}</span>
+                            </div>
+                            <div className="fault-record-item">
+                              <span className="fault-record-label">Video Clarity:</span>
+                              <span className="fault-record-value">{record.videoClarity}</span>
+                            </div>
+                            <div className="fault-record-item">
+                              <span className="fault-record-label">Audio Clarity:</span>
+                              <span className="fault-record-value">{record.audioClarity}</span>
+                            </div>
+                            {record.remarks && (
+                              <div className="fault-record-item" style={{ gridColumn: "span 2" }}>
+                                <span className="fault-record-label">Remarks:</span>
+                                <span className="fault-record-value">{record.remarks}</span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      ))
+                  ) : (
+                    <div style={{ padding: "16px", fontSize: "13px", color: "#6B7280", textAlign: "center", border: "1px dashed #D1D5DB", borderRadius: "6px" }}>
+                      No Video Phone test logs registered for {selectedDivision} division today.
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Workspace footer */}
+              <div className="workspace-footer" style={{ marginTop: "12px" }}>
+                <div className="footer-system">
+                  <svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                  </svg>
+                  <span>SECR Railway Board Video Phone console</span>
+                </div>
+                <span>Telecom Desk SECR HQ Bilaspur</span>
+              </div>
+            </div>
+          ) : selectedCircuit.name === "Cable Cut (OFC & Quad)" ? (
+            /* Cable Cut (OFC & Quad) Form Workspace */
+            <div className="workspace-content">
+              {/* Workspace Title bar */}
+              <div className="workspace-title-section">
+                <div className="workspace-title-left">
+                  <h2>Cable Cut (OFC & Quad) Monitoring Form</h2>
+                  <div className="workspace-meta">
+                    <span>Code: {selectedCircuit.systemCode}</span>
+                    <span className="meta-divider">|</span>
+                    <span>Division: {selectedDivision}</span>
+                  </div>
+                </div>
+                
+                <div className="status-badge red">
+                  <span className="dot"></span>
+                  <span>Cable Cut Console</span>
+                </div>
+              </div>
+
+              {/* Success Notification Alert */}
+              {ccFormSuccess && (
+                <div className="alert-banner">
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="3"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                  </svg>
+                  <span>✅ Cable Cut Record Saved Successfully</span>
+                </div>
+              )}
+
+              {/* Cable Cut Entry Form */}
+              <form className="fault-form" onSubmit={handleSaveCcRecord}>
+                <div className="form-group-row">
+                  {/* Section name */}
+                  <div className="form-group">
+                    <label htmlFor="ccSectionName" className="form-label">
+                      Section Name <span className="required">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      id="ccSectionName"
+                      className={`form-input ${ccFormErrors.ccSectionName ? "field-error-border" : ""}`}
+                      placeholder="Enter section name (e.g. BSP-CPH Section)"
+                      value={ccSectionName}
+                      onChange={(e) => setCcSectionName(e.target.value)}
+                    />
+                    {ccFormErrors.ccSectionName && (
+                      <span className="error-text">{ccFormErrors.ccSectionName}</span>
+                    )}
+                  </div>
+
+                  {/* Km.No */}
+                  <div className="form-group">
+                    <label htmlFor="ccKmNo" className="form-label">
+                      Km.No <span className="required">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      id="ccKmNo"
+                      className={`form-input ${ccFormErrors.ccKmNo ? "field-error-border" : ""}`}
+                      placeholder="Enter Kilometer number (e.g. 712/14)"
+                      value={ccKmNo}
+                      onChange={(e) => setCcKmNo(e.target.value)}
+                    />
+                    {ccFormErrors.ccKmNo && (
+                      <span className="error-text">{ccFormErrors.ccKmNo}</span>
+                    )}
+                  </div>
+                </div>
+
+                <div className="form-group-row">
+                  {/* Cable Type - Multi select */}
+                  <div className="form-group">
+                    <label className="form-label">
+                      Cable Type <span className="required">*</span>
+                    </label>
+                    <div className="multiselect-container" ref={ccCableTypesRef}>
+                      <button
+                        type="button"
+                        className={`multiselect-trigger ${ccCableTypesOpen ? "open" : ""}`}
+                        onClick={() => setCcCableTypesOpen(!ccCableTypesOpen)}
+                      >
+                        <span>
+                          {ccCableTypes.length === 0
+                            ? "Select Cable Type(s)..."
+                            : ccCableTypes.join(", ")}
+                        </span>
+                      </button>
+                      {ccCableTypesOpen && (
+                        <div className="multiselect-menu">
+                          {[
+                            "OFC (24 Core)",
+                            "OFC (6 Core)",
+                            "6 Quad Cable",
+                            "4 Quad Cable",
+                            "Signaling Cable",
+                            "Power Cable",
+                            "Other"
+                          ].map((option) => (
+                            <label key={option} className="multiselect-item">
+                              <input
+                                type="checkbox"
+                                checked={ccCableTypes.includes(option)}
+                                onChange={() => {
+                                  if (ccCableTypes.includes(option)) {
+                                    setCcCableTypes(ccCableTypes.filter((c) => c !== option));
+                                  } else {
+                                    setCcCableTypes([...ccCableTypes, option]);
+                                  }
+                                }}
+                              />
+                              <span>{option}</span>
+                            </label>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                    {ccFormErrors.ccCableTypes && (
+                      <span className="error-text">{ccFormErrors.ccCableTypes}</span>
+                    )}
+                  </div>
+
+                  {/* Cable Cut by Whom - Multi select */}
+                  <div className="form-group">
+                    <label className="form-label">
+                      Cable Cut by Whom <span className="required">*</span>
+                    </label>
+                    <div className="multiselect-container" ref={ccCutByWhomRef}>
+                      <button
+                        type="button"
+                        className={`multiselect-trigger ${ccCutByWhomOpen ? "open" : ""}`}
+                        onClick={() => setCcCutByWhomOpen(!ccCutByWhomOpen)}
+                      >
+                        <span>
+                          {ccCutByWhom.length === 0
+                            ? "Select Excavator(s)..."
+                            : ccCutByWhom.join(", ")}
+                        </span>
+                      </button>
+                      {ccCutByWhomOpen && (
+                        <div className="multiselect-menu">
+                          {[
+                            "Railway Contractor",
+                            "NHAI Contractor",
+                            "Piped Water Supplier",
+                            "Gas Pipeline Excavator",
+                            "Telecom Operator (Private)",
+                            "Electricity Board (State)",
+                            "Villagers / Digging",
+                            "Theft / Sabotage",
+                            "Other"
+                          ].map((option) => (
+                            <label key={option} className="multiselect-item">
+                              <input
+                                type="checkbox"
+                                checked={ccCutByWhom.includes(option)}
+                                onChange={() => {
+                                  if (ccCutByWhom.includes(option)) {
+                                    setCcCutByWhom(ccCutByWhom.filter((c) => c !== option));
+                                  } else {
+                                    setCcCutByWhom([...ccCutByWhom, option]);
+                                  }
+                                }}
+                              />
+                              <span>{option}</span>
+                            </label>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                    {ccFormErrors.ccCutByWhom && (
+                      <span className="error-text">{ccFormErrors.ccCutByWhom}</span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Custom Cable Type manual input */}
+                {ccCableTypes.includes("Other") && (
+                  <div className="form-group full-width" style={{ animation: "fadeIn 0.15s ease-out" }}>
+                    <label htmlFor="ccCustomCableType" className="form-label">
+                      Other Cable Type <span className="required">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      id="ccCustomCableType"
+                      className={`form-input ${ccFormErrors.ccCustomCableType ? "field-error-border" : ""}`}
+                      placeholder="Enter custom cable type description"
+                      value={ccCustomCableType}
+                      onChange={(e) => setCcCustomCableType(e.target.value)}
+                    />
+                    {ccFormErrors.ccCustomCableType && (
+                      <span className="error-text">{ccFormErrors.ccCustomCableType}</span>
+                    )}
+                  </div>
+                )}
+
+                {/* Custom Cable Cut By manual input */}
+                {ccCutByWhom.includes("Other") && (
+                  <div className="form-group full-width" style={{ animation: "fadeIn 0.15s ease-out" }}>
+                    <label htmlFor="ccCustomCutBy" className="form-label">
+                      Other Agency / Cut by Whom <span className="required">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      id="ccCustomCutBy"
+                      className={`form-input ${ccFormErrors.ccCustomCutBy ? "field-error-border" : ""}`}
+                      placeholder="Enter agency name manually"
+                      value={ccCustomCutBy}
+                      onChange={(e) => setCcCustomCutBy(e.target.value)}
+                    />
+                    {ccFormErrors.ccCustomCutBy && (
+                      <span className="error-text">{ccFormErrors.ccCustomCutBy}</span>
+                    )}
+                  </div>
+                )}
+
+                <div className="form-group-row">
+                  {/* Failure Date & Time */}
+                  <div className="form-group">
+                    <label htmlFor="ccFailureTime" className="form-label">
+                      Failure Date & Time <span className="required">*</span>
+                    </label>
+                    <input
+                      type="datetime-local"
+                      id="ccFailureTime"
+                      className={`form-input ${ccFormErrors.ccFailureTime ? "field-error-border" : ""}`}
+                      value={ccFailureTime}
+                      onChange={(e) => setCcFailureTime(e.target.value)}
+                    />
+                    {ccFormErrors.ccFailureTime && (
+                      <span className="error-text">{ccFormErrors.ccFailureTime}</span>
+                    )}
+                  </div>
+
+                  {/* Rectification Time (RT) */}
+                  <div className="form-group">
+                    <label htmlFor="ccRectificationTime" className="form-label">
+                      Rectification Time (RT) <span className="required">*</span>
+                    </label>
+                    <input
+                      type="datetime-local"
+                      id="ccRectificationTime"
+                      className={`form-input ${ccFormErrors.ccRectificationTime ? "field-error-border" : ""}`}
+                      value={ccRectificationTime}
+                      onChange={(e) => setCcRectificationTime(e.target.value)}
+                    />
+                    {ccFormErrors.ccRectificationTime && (
+                      <span className="error-text">{ccFormErrors.ccRectificationTime}</span>
+                    )}
+                  </div>
+                </div>
+
+                <div className="form-group-row">
+                  {/* Total duration (calculated, read-only) */}
+                  <div className="form-group">
+                    <label htmlFor="ccDuration" className="form-label">
+                      Total Duration (Calculated)
+                    </label>
+                    <input
+                      type="text"
+                      id="ccDuration"
+                      className="form-input"
+                      value={ccTotalDuration}
+                      readOnly
+                      placeholder="XX Hrs XX Min"
+                    />
+                  </div>
+
+                  {/* Reason of failure */}
+                  <div className="form-group">
+                    <label htmlFor="ccReason" className="form-label">
+                      Reason of Failure <span className="required">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      id="ccReason"
+                      className={`form-input ${ccFormErrors.ccReasonOfFailure ? "field-error-border" : ""}`}
+                      placeholder="Enter reason of cable cut (e.g. JCB digging)"
+                      value={ccReasonOfFailure}
+                      onChange={(e) => setCcReasonOfFailure(e.target.value)}
+                    />
+                    {ccFormErrors.ccReasonOfFailure && (
+                      <span className="error-text">{ccFormErrors.ccReasonOfFailure}</span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Remarks */}
+                <div className="form-group full-width">
+                  <label htmlFor="ccRemarks" className="form-label">Remarks</label>
+                  <textarea
+                    id="ccRemarks"
+                    className="form-textarea"
+                    style={{ height: "65px" }}
+                    placeholder="Enter observations, joint type, or restoration remarks"
+                    value={ccRemarks}
+                    onChange={(e) => setCcRemarks(e.target.value)}
+                  />
+                </div>
+
+                {/* Save button with Loading State */}
+                <div style={{ display: "flex", justifyContent: "flex-end" }}>
+                  <button 
+                    type="submit" 
+                    className={`save-button ${ccSaving ? "save-button-loading" : ""}`}
+                    disabled={ccSaving}
+                  >
+                    {ccSaving ? (
+                      <>
+                        <span className="spinner"></span>
+                        <span>Saving...</span>
+                      </>
+                    ) : (
+                      "Save"
+                    )}
+                  </button>
+                </div>
+              </form>
+
+              {/* Logged Cable Cuts registry section */}
+              <div className="logged-faults-section">
+                <h3>Logged Cable Cut Registry ({selectedDivision} Division)</h3>
+                <div className="fault-record-list">
+                  {savedCcRecords.filter(r => r.division === selectedDivision).length > 0 ? (
+                    savedCcRecords
+                      .filter(r => r.division === selectedDivision)
+                      .map((record) => (
+                        <div key={record.id} className="fault-record">
+                          <div className="fault-record-header">
+                            <span className="fault-record-title">{record.sectionName} (KM {record.kmNo})</span>
+                            <span className="fault-record-duration">{record.duration}</span>
+                          </div>
+                          <div className="fault-record-grid">
+                            <div className="fault-record-item">
+                              <span className="fault-record-label">Cable Types:</span>
+                              <span className="fault-record-value">{record.cableTypes}</span>
+                            </div>
+                            <div className="fault-record-item">
+                              <span className="fault-record-label">Cut by Whom:</span>
+                              <span className="fault-record-value">{record.cutByWhom}</span>
+                            </div>
+                            <div className="fault-record-item">
+                              <span className="fault-record-label">Failure Time:</span>
+                              <span className="fault-record-value">{record.failureTime}</span>
+                            </div>
+                            <div className="fault-record-item">
+                              <span className="fault-record-label">Restoration (RT):</span>
+                              <span className="fault-record-value">{record.rectificationTime}</span>
+                            </div>
+                            <div className="fault-record-item" style={{ gridColumn: "span 2" }}>
+                              <span className="fault-record-label">Reason:</span>
+                              <span className="fault-record-value">{record.reasonOfFailure}</span>
+                            </div>
+                            {record.remarks && (
+                              <div className="fault-record-item" style={{ gridColumn: "span 2" }}>
+                                <span className="fault-record-label">Remarks:</span>
+                                <span className="fault-record-value">{record.remarks}</span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      ))
+                  ) : (
+                    <div style={{ padding: "16px", fontSize: "13px", color: "#6B7280", textAlign: "center", border: "1px dashed #D1D5DB", borderRadius: "6px" }}>
+                      No Cable Cuts registered for {selectedDivision} division today.
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Workspace footer */}
+              <div className="workspace-footer" style={{ marginTop: "12px" }}>
+                <div className="footer-system">
+                  <svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                  </svg>
+                  <span>SECR Cable Integrity and OTDR Monitoring console</span>
                 </div>
                 <span>Telecom Desk SECR HQ Bilaspur</span>
               </div>
