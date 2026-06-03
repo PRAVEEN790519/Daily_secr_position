@@ -307,6 +307,52 @@ export default function Home() {
   const [ccFormSuccess, setCcFormSuccess] = useState<boolean>(false);
   const [ccSaving, setCcSaving] = useState<boolean>(false);
 
+  // Walkie-Talkie Testing form states
+  const [wtStationLobby, setWtStationLobby] = useState<string>("");
+  const [wtTotalToBeTested, setWtTotalToBeTested] = useState<string>("");
+  const [wtMakeModel, setWtMakeModel] = useState<string>("");
+  const [wtCustomMakeModel, setWtCustomMakeModel] = useState<string>("");
+  const [wtTestingDate, setWtTestingDate] = useState<string>("");
+  const [wtTotalTested, setWtTotalTested] = useState<string>("");
+  const [wtRemarks, setWtRemarks] = useState<string>("");
+  const [wtFormErrors, setWtFormErrors] = useState<Record<string, string>>({});
+  const [wtFormSuccess, setWtFormSuccess] = useState<boolean>(false);
+  const [wtSaving, setWtSaving] = useState<boolean>(false);
+
+  // Walkie-Talkie Repairing form states
+  const [wtrDate, setWtrDate] = useState<string>("");
+  const [wtrOpeningBalance, setWtrOpeningBalance] = useState<string>("");
+  const [wtrReceivedFromUser, setWtrReceivedFromUser] = useState<string>("");
+  const [wtrSentToFirm, setWtrSentToFirm] = useState<string>("");
+  const [wtrRepairedFromFirm, setWtrRepairedFromFirm] = useState<string>("");
+  const [wtrReturnedToUser, setWtrReturnedToUser] = useState<string>("");
+  const [wtrFaultTypes, setWtrFaultTypes] = useState<string[]>([]);
+  const [wtrFaultTypesOpen, setWtrFaultTypesOpen] = useState<boolean>(false);
+  const [wtrCustomFault, setWtrCustomFault] = useState<string>("");
+  const [wtrRepairStatus, setWtrRepairStatus] = useState<string>("");
+  const [wtrProposedCondemnation, setWtrProposedCondemnation] = useState<string>("");
+  const [wtrCondemned, setWtrCondemned] = useState<string>("");
+  const [wtrTotalCondemnedYear, setWtrTotalCondemnedYear] = useState<string>("");
+  const [wtrActionTaken, setWtrActionTaken] = useState<string>("");
+  const [wtrRemarks, setWtrRemarks] = useState<string>("");
+  const [wtrFormErrors, setWtrFormErrors] = useState<Record<string, string>>({});
+  const [wtrFormSuccess, setWtrFormSuccess] = useState<boolean>(false);
+  const [wtrSaving, setWtrSaving] = useState<boolean>(false);
+
+  // Low Insulation form states
+  const [liSectionName, setLiSectionName] = useState<string>("");
+  const [liKmNo, setLiKmNo] = useState<string>("");
+  const [liTotalFaults, setLiTotalFaults] = useState<string>("");
+  const [liFaultTime, setLiFaultTime] = useState<string>("");
+  const [liRectified, setLiRectified] = useState<string>("");
+  const [liRectifiedTime, setLiRectifiedTime] = useState<string>("");
+  const [liActionPlan, setLiActionPlan] = useState<string>("");
+  const [liTdc, setLiTdc] = useState<string>("");
+  const [liRemarks, setLiRemarks] = useState<string>("");
+  const [liFormErrors, setLiFormErrors] = useState<Record<string, string>>({});
+  const [liFormSuccess, setLiFormSuccess] = useState<boolean>(false);
+  const [liSaving, setLiSaving] = useState<boolean>(false);
+
   // Refs to handle click outside for dropdowns
   const divisionRef = useRef<HTMLDivElement>(null);
   const circuitRef = useRef<HTMLDivElement>(null);
@@ -317,6 +363,7 @@ export default function Home() {
   const netReasonsRef = useRef<HTMLDivElement>(null);
   const ccCableTypesRef = useRef<HTMLDivElement>(null);
   const ccCutByWhomRef = useRef<HTMLDivElement>(null);
+  const wtrFaultTypesRef = useRef<HTMLDivElement>(null);
 
   // Saved Logged Faults registry with dummy entries for Communication & Voice Circuits
   const [savedFaults, setSavedFaults] = useState<any[]>([
@@ -451,6 +498,61 @@ export default function Home() {
     }
   ]);
 
+  // Saved Logged Walkie-Talkie Tests
+  const [savedWtRecords, setSavedWtRecords] = useState<any[]>([
+    {
+      id: 1,
+      division: "Bilaspur",
+      stationLobby: "Bilaspur Lobby",
+      totalToBeTested: "50",
+      makeModel: "Motorola",
+      testingDate: "2026-06-02",
+      totalTested: "45",
+      balanceToTest: "5",
+      remarks: "Weekly testing done. 5 sets under repair at Bilaspur S&T workshop."
+    }
+  ]);
+
+  // Saved Logged Walkie-Talkie Repairing Records
+  const [savedWtrRecords, setSavedWtrRecords] = useState<any[]>([
+    {
+      id: 1,
+      division: "Bilaspur",
+      date: "2026-06-02",
+      openingBalance: "15",
+      receivedFromUser: "8",
+      sentToFirm: "5",
+      repairedFromFirm: "4",
+      returnedToUser: "6",
+      faultTypes: "Battery Fault, PTT Switch Fault",
+      repairStatus: "Under Repair",
+      proposedCondemnation: "2",
+      condemned: "1",
+      totalCondemnedYear: "12",
+      actionTaken: "Tested charger bases. Faulty cells isolated and sent to firm.",
+      pendingRepair: "16",
+      remarks: "Sufficient battery cells available in buffer."
+    }
+  ]);
+
+  // Saved Logged Low Insulation Records
+  const [savedLiRecords, setSavedLiRecords] = useState<any[]>([
+    {
+      id: 1,
+      division: "Bilaspur",
+      sectionName: "CPH-RIG Section",
+      kmNo: "732/18",
+      totalFaults: "6",
+      faultTime: "2026-06-02 08:30",
+      rectified: "4",
+      rectifiedTime: "2026-06-02 17:00",
+      balanceFaults: "2",
+      actionPlan: "Megger testing of quad pairs, replacement of joint kits.",
+      tdc: "2026-06-10",
+      remarks: "4 pairs rectified. Remaining 2 pairs are spare."
+    }
+  ]);
+
   // Close dropdowns on clicking outside
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -480,6 +582,9 @@ export default function Home() {
       }
       if (ccCutByWhomRef.current && !ccCutByWhomRef.current.contains(event.target as Node)) {
         setCcCutByWhomOpen(false);
+      }
+      if (wtrFaultTypesRef.current && !wtrFaultTypesRef.current.contains(event.target as Node)) {
+        setWtrFaultTypesOpen(false);
       }
     }
     document.addEventListener("mousedown", handleClickOutside);
@@ -582,6 +687,52 @@ export default function Home() {
     setCcFormErrors({});
     setCcFormSuccess(false);
     setCcSaving(false);
+
+    // Clear Walkie-Talkie Testing states when switching circuits
+    setWtStationLobby("");
+    setWtTotalToBeTested("");
+    setWtMakeModel("");
+    setWtCustomMakeModel("");
+    setWtTestingDate("");
+    setWtTotalTested("");
+    setWtRemarks("");
+    setWtFormErrors({});
+    setWtFormSuccess(false);
+    setWtSaving(false);
+
+    // Clear Walkie-Talkie Repairing states when switching circuits
+    setWtrDate("");
+    setWtrOpeningBalance("");
+    setWtrReceivedFromUser("");
+    setWtrSentToFirm("");
+    setWtrRepairedFromFirm("");
+    setWtrReturnedToUser("");
+    setWtrFaultTypes([]);
+    setWtrFaultTypesOpen(false);
+    setWtrCustomFault("");
+    setWtrRepairStatus("");
+    setWtrProposedCondemnation("");
+    setWtrCondemned("");
+    setWtrTotalCondemnedYear("");
+    setWtrActionTaken("");
+    setWtrRemarks("");
+    setWtrFormErrors({});
+    setWtrFormSuccess(false);
+    setWtrSaving(false);
+
+    // Clear Low Insulation states when switching circuits
+    setLiSectionName("");
+    setLiKmNo("");
+    setLiTotalFaults("");
+    setLiFaultTime("");
+    setLiRectified("");
+    setLiRectifiedTime("");
+    setLiActionPlan("");
+    setLiTdc("");
+    setLiRemarks("");
+    setLiFormErrors({});
+    setLiFormSuccess(false);
+    setLiSaving(false);
   };
 
 
@@ -1212,6 +1363,354 @@ export default function Home() {
 
       // Auto hide success banner after 5 seconds
       setTimeout(() => setCcFormSuccess(false), 5000);
+    }, 1200);
+  };
+
+  // Walkie-Talkie Testing Auto-calculated balance
+  const wtBalanceToTest = useMemo(() => {
+    if (!wtTotalToBeTested || !wtTotalTested) return "";
+    const toTest = parseInt(wtTotalToBeTested, 10);
+    const tested = parseInt(wtTotalTested, 10);
+    if (isNaN(toTest) || isNaN(tested)) return "";
+    return Math.max(0, toTest - tested).toString();
+  }, [wtTotalToBeTested, wtTotalTested]);
+
+  // Handle Save Walkie-Talkie Testing Form
+  const handleSaveWtRecord = (e: React.FormEvent) => {
+    e.preventDefault();
+    const errors: Record<string, string> = {};
+
+    if (!wtStationLobby.trim()) errors.wtStationLobby = "Station / Lobby is required";
+    
+    if (!wtTotalToBeTested.trim()) {
+      errors.wtTotalToBeTested = "Total walkie-talkies to be tested is required";
+    } else {
+      const val = parseInt(wtTotalToBeTested, 10);
+      if (isNaN(val) || val < 0) {
+        errors.wtTotalToBeTested = "Must be a valid positive number";
+      }
+    }
+
+    if (!wtMakeModel) {
+      errors.wtMakeModel = "Make / Model is required";
+    } else if (wtMakeModel === "Other" && !wtCustomMakeModel.trim()) {
+      errors.wtCustomMakeModel = "Custom Make / Model description is required";
+    }
+
+    if (!wtTestingDate) {
+      errors.wtTestingDate = "Date of testing is required";
+    }
+
+    if (!wtTotalTested.trim()) {
+      errors.wtTotalTested = "Total walkie-talkies tested is required";
+    } else {
+      const val = parseInt(wtTotalTested, 10);
+      if (isNaN(val) || val < 0) {
+        errors.wtTotalTested = "Must be a valid positive number";
+      } else {
+        const toTestVal = parseInt(wtTotalToBeTested, 10);
+        if (!isNaN(toTestVal) && val > toTestVal) {
+          errors.wtTotalTested = "Total tested cannot exceed total to be tested";
+        }
+      }
+    }
+
+    if (Object.keys(errors).length > 0) {
+      setWtFormErrors(errors);
+      return;
+    }
+
+    setWtFormErrors({});
+    setWtSaving(true);
+
+    // Simulate loading state (1.2 seconds)
+    setTimeout(() => {
+      // Date formatter for display: YYYY-MM-DD
+      const formatDate = (dateStr: string) => {
+        const d = new Date(dateStr);
+        if (isNaN(d.getTime())) return dateStr;
+        const day = String(d.getDate()).padStart(2, "0");
+        const month = String(d.getMonth() + 1).padStart(2, "0");
+        const year = d.getFullYear();
+        return `${year}-${month}-${day}`;
+      };
+
+      const newWtRecord = {
+        id: Date.now(),
+        division: selectedDivision,
+        stationLobby: wtStationLobby.trim(),
+        totalToBeTested: wtTotalToBeTested.trim(),
+        makeModel: wtMakeModel === "Other" ? `Other: ${wtCustomMakeModel.trim()}` : wtMakeModel,
+        testingDate: formatDate(wtTestingDate),
+        totalTested: wtTotalTested.trim(),
+        balanceToTest: wtBalanceToTest,
+        remarks: wtRemarks.trim()
+      };
+
+      setSavedWtRecords(prev => [newWtRecord, ...prev]);
+      setWtSaving(false);
+
+      // Reset form fields
+      setWtStationLobby("");
+      setWtTotalToBeTested("");
+      setWtMakeModel("");
+      setWtCustomMakeModel("");
+      setWtTestingDate("");
+      setWtTotalTested("");
+      setWtRemarks("");
+      setWtFormSuccess(true);
+
+      // Auto hide success banner after 5 seconds
+      setTimeout(() => setWtFormSuccess(false), 5000);
+    }, 1200);
+  };
+
+  // Walkie-Talkie Repairing Auto-calculated Pending Repair Sets
+  const wtrPendingRepair = useMemo(() => {
+    const ob = parseInt(wtrOpeningBalance, 10);
+    const recv = parseInt(wtrReceivedFromUser, 10);
+    const ret = parseInt(wtrReturnedToUser, 10);
+    const cond = parseInt(wtrCondemned, 10);
+    if (isNaN(ob) || isNaN(recv) || isNaN(ret) || isNaN(cond)) return "";
+    return Math.max(0, ob + recv - ret - cond).toString();
+  }, [wtrOpeningBalance, wtrReceivedFromUser, wtrReturnedToUser, wtrCondemned]);
+
+  // Handle Save Walkie-Talkie Repairing Form
+  const handleSaveWtrRecord = (e: React.FormEvent) => {
+    e.preventDefault();
+    const errors: Record<string, string> = {};
+
+    if (!wtrDate) errors.wtrDate = "Date is required";
+
+    const validateNonNegative = (val: string, fieldName: string) => {
+      if (!val.trim()) {
+        errors[fieldName] = "This field is required";
+      } else {
+        const num = parseInt(val, 10);
+        if (isNaN(num) || num < 0) {
+          errors[fieldName] = "Must be a valid positive number or 0";
+        }
+      }
+    };
+
+    validateNonNegative(wtrOpeningBalance, "wtrOpeningBalance");
+    validateNonNegative(wtrReceivedFromUser, "wtrReceivedFromUser");
+    validateNonNegative(wtrSentToFirm, "wtrSentToFirm");
+    validateNonNegative(wtrRepairedFromFirm, "wtrRepairedFromFirm");
+    validateNonNegative(wtrReturnedToUser, "wtrReturnedToUser");
+    validateNonNegative(wtrProposedCondemnation, "wtrProposedCondemnation");
+    validateNonNegative(wtrCondemned, "wtrCondemned");
+    validateNonNegative(wtrTotalCondemnedYear, "wtrTotalCondemnedYear");
+
+    if (wtrFaultTypes.length === 0) {
+      errors.wtrFaultTypes = "Select at least one fault type";
+    } else if (wtrFaultTypes.includes("Other") && !wtrCustomFault.trim()) {
+      errors.wtrCustomFault = "Fault description is required when 'Other' is selected";
+    }
+
+    if (!wtrRepairStatus) {
+      errors.wtrRepairStatus = "Repair Status is required";
+    }
+
+    // Logic consistency: Returned + Condemned <= Opening + Received
+    const ob = parseInt(wtrOpeningBalance, 10) || 0;
+    const recv = parseInt(wtrReceivedFromUser, 10) || 0;
+    const ret = parseInt(wtrReturnedToUser, 10) || 0;
+    const cond = parseInt(wtrCondemned, 10) || 0;
+    if (ob >= 0 && recv >= 0 && ret >= 0 && cond >= 0) {
+      if (ret + cond > ob + recv) {
+        errors.wtrReturnedToUser = "Returned sets + Condemned sets cannot exceed total defective sets (Opening + Received)";
+      }
+    }
+
+    if (Object.keys(errors).length > 0) {
+      setWtrFormErrors(errors);
+      return;
+    }
+
+    setWtrFormErrors({});
+    setWtrSaving(true);
+
+    // Simulate loading state (1.2 seconds)
+    setTimeout(() => {
+      const formatDate = (dateStr: string) => {
+        const d = new Date(dateStr);
+        if (isNaN(d.getTime())) return dateStr;
+        const day = String(d.getDate()).padStart(2, "0");
+        const month = String(d.getMonth() + 1).padStart(2, "0");
+        const year = d.getFullYear();
+        return `${year}-${month}-${day}`;
+      };
+
+      const newWtrRecord = {
+        id: Date.now(),
+        division: selectedDivision,
+        date: formatDate(wtrDate),
+        openingBalance: wtrOpeningBalance.trim(),
+        receivedFromUser: wtrReceivedFromUser.trim(),
+        sentToFirm: wtrSentToFirm.trim(),
+        repairedFromFirm: wtrRepairedFromFirm.trim(),
+        returnedToUser: wtrReturnedToUser.trim(),
+        faultTypes: wtrFaultTypes.map(f => f === "Other" ? `Other: ${wtrCustomFault.trim()}` : f).join(", "),
+        repairStatus: wtrRepairStatus,
+        proposedCondemnation: wtrProposedCondemnation.trim(),
+        condemned: wtrCondemned.trim(),
+        totalCondemnedYear: wtrTotalCondemnedYear.trim(),
+        actionTaken: wtrActionTaken.trim(),
+        pendingRepair: wtrPendingRepair,
+        remarks: wtrRemarks.trim()
+      };
+
+      setSavedWtrRecords(prev => [newWtrRecord, ...prev]);
+      setWtrSaving(false);
+
+      // Reset form fields
+      setWtrDate("");
+      setWtrOpeningBalance("");
+      setWtrReceivedFromUser("");
+      setWtrSentToFirm("");
+      setWtrRepairedFromFirm("");
+      setWtrReturnedToUser("");
+      setWtrFaultTypes([]);
+      setWtrCustomFault("");
+      setWtrRepairStatus("");
+      setWtrProposedCondemnation("");
+      setWtrCondemned("");
+      setWtrTotalCondemnedYear("");
+      setWtrActionTaken("");
+      setWtrRemarks("");
+      setWtrFormSuccess(true);
+
+      // Auto hide success banner after 5 seconds
+      setTimeout(() => setWtrFormSuccess(false), 5000);
+    }, 1200);
+  };
+
+  // Low Insulation Auto-calculated Balance faults
+  const liBalanceFaults = useMemo(() => {
+    if (!liTotalFaults || !liRectified) return "";
+    const total = parseInt(liTotalFaults, 10);
+    const rect = parseInt(liRectified, 10);
+    if (isNaN(total) || isNaN(rect)) return "";
+    return Math.max(0, total - rect).toString();
+  }, [liTotalFaults, liRectified]);
+
+  // Handle Save Low Insulation Form
+  const handleSaveLiRecord = (e: React.FormEvent) => {
+    e.preventDefault();
+    const errors: Record<string, string> = {};
+
+    if (!liSectionName.trim()) errors.liSectionName = "Section name is required";
+    if (!liKmNo.trim()) errors.liKmNo = "KM Number is required";
+
+    if (!liTotalFaults.trim()) {
+      errors.liTotalFaults = "Total number of insulation faults is required";
+    } else {
+      const val = parseInt(liTotalFaults, 10);
+      if (isNaN(val) || val < 0) {
+        errors.liTotalFaults = "Must be a valid positive number";
+      }
+    }
+
+    if (!liFaultTime) {
+      errors.liFaultTime = "Fault Date & Time is required";
+    }
+
+    if (!liRectified.trim()) {
+      errors.liRectified = "Rectified faults count is required";
+    } else {
+      const val = parseInt(liRectified, 10);
+      if (isNaN(val) || val < 0) {
+        errors.liRectified = "Must be a valid positive number";
+      } else {
+        const totalVal = parseInt(liTotalFaults, 10);
+        if (!isNaN(totalVal) && val > totalVal) {
+          errors.liRectified = "Rectified faults cannot exceed total faults";
+        }
+      }
+    }
+
+    if (liRectified && parseInt(liRectified, 10) > 0 && !liRectifiedTime) {
+      errors.liRectifiedTime = "Rectified Date & Time is required when some faults are rectified";
+    }
+
+    if (liFaultTime && liRectifiedTime) {
+      const start = new Date(liFaultTime);
+      const end = new Date(liRectifiedTime);
+      if (end.getTime() < start.getTime()) {
+        errors.liRectifiedTime = "Rectified Date & Time cannot be earlier than Fault Date & Time";
+      }
+    }
+
+    if (!liActionPlan.trim()) errors.liActionPlan = "Action Plan is required";
+    if (!liTdc) errors.liTdc = "Target Date of Completion (TDC) is required";
+
+    if (Object.keys(errors).length > 0) {
+      setLiFormErrors(errors);
+      return;
+    }
+
+    setLiFormErrors({});
+    setLiSaving(true);
+
+    // Simulate loading state (1.2 seconds)
+    setTimeout(() => {
+      // Formatter for datetime picker: DD-MM-YYYY HH:MM
+      const formatDatetime = (dateStr: string) => {
+        if (!dateStr) return "";
+        const d = new Date(dateStr);
+        if (isNaN(d.getTime())) return dateStr;
+        const day = String(d.getDate()).padStart(2, "0");
+        const month = String(d.getMonth() + 1).padStart(2, "0");
+        const year = d.getFullYear();
+        const hour = String(d.getHours()).padStart(2, "0");
+        const minute = String(d.getMinutes()).padStart(2, "0");
+        return `${day}-${month}-${year} ${hour}:${minute}`;
+      };
+
+      // Formatter for date picker: YYYY-MM-DD
+      const formatDate = (dateStr: string) => {
+        if (!dateStr) return "";
+        const d = new Date(dateStr);
+        if (isNaN(d.getTime())) return dateStr;
+        const day = String(d.getDate()).padStart(2, "0");
+        const month = String(d.getMonth() + 1).padStart(2, "0");
+        const year = d.getFullYear();
+        return `${year}-${month}-${day}`;
+      };
+
+      const newLiRecord = {
+        id: Date.now(),
+        division: selectedDivision,
+        sectionName: liSectionName.trim(),
+        kmNo: liKmNo.trim(),
+        totalFaults: liTotalFaults.trim(),
+        faultTime: formatDatetime(liFaultTime),
+        rectified: liRectified.trim(),
+        rectifiedTime: formatDatetime(liRectifiedTime),
+        balanceFaults: liBalanceFaults,
+        actionPlan: liActionPlan.trim(),
+        tdc: formatDate(liTdc),
+        remarks: liRemarks.trim()
+      };
+
+      setSavedLiRecords(prev => [newLiRecord, ...prev]);
+      setLiSaving(false);
+
+      // Reset form fields
+      setLiSectionName("");
+      setLiKmNo("");
+      setLiTotalFaults("");
+      setLiFaultTime("");
+      setLiRectified("");
+      setLiRectifiedTime("");
+      setLiActionPlan("");
+      setLiTdc("");
+      setLiRemarks("");
+      setLiFormSuccess(true);
+
+      // Auto hide success banner after 5 seconds
+      setTimeout(() => setLiFormSuccess(false), 5000);
     }, 1200);
   };
 
@@ -3476,6 +3975,1070 @@ export default function Home() {
                     <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
                   </svg>
                   <span>SECR Cable Integrity and OTDR Monitoring console</span>
+                </div>
+                <span>Telecom Desk SECR HQ Bilaspur</span>
+              </div>
+            </div>
+          ) : selectedCircuit.name === "Walkie-Talkie Testing" ? (
+            /* Walkie-Talkie Testing Form Workspace */
+            <div className="workspace-content">
+              {/* Workspace Title bar */}
+              <div className="workspace-title-section">
+                <div className="workspace-title-left">
+                  <h2>Walkie-Talkie Testing Form</h2>
+                  <div className="workspace-meta">
+                    <span>Code: {selectedCircuit.systemCode}</span>
+                    <span className="meta-divider">|</span>
+                    <span>Division: {selectedDivision}</span>
+                  </div>
+                </div>
+                
+                <div className="status-badge blue">
+                  <span className="dot"></span>
+                  <span>VHF Testing Console</span>
+                </div>
+              </div>
+
+              {/* Success Notification Alert */}
+              {wtFormSuccess && (
+                <div className="alert-banner">
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="3"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                  </svg>
+                  <span>✅ Walkie-Talkie Testing Record Saved Successfully</span>
+                </div>
+              )}
+
+              {/* Walkie-Talkie Testing Form */}
+              <form className="fault-form" onSubmit={handleSaveWtRecord}>
+                <div className="form-group-row">
+                  {/* Station / Lobby */}
+                  <div className="form-group">
+                    <label htmlFor="wtStationLobby" className="form-label">
+                      Station / Lobby <span className="required">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      id="wtStationLobby"
+                      className={`form-input ${wtFormErrors.wtStationLobby ? "field-error-border" : ""}`}
+                      placeholder="Enter Station or Lobby name (e.g. BSP Lobby)"
+                      value={wtStationLobby}
+                      onChange={(e) => setWtStationLobby(e.target.value)}
+                    />
+                    {wtFormErrors.wtStationLobby && (
+                      <span className="error-text">{wtFormErrors.wtStationLobby}</span>
+                    )}
+                  </div>
+
+                  {/* Make / Model */}
+                  <div className="form-group">
+                    <label htmlFor="wtMakeModel" className="form-label">
+                      Make / Model <span className="required">*</span>
+                    </label>
+                    <select
+                      id="wtMakeModel"
+                      className={`form-input ${wtFormErrors.wtMakeModel ? "field-error-border" : ""}`}
+                      style={{ height: "42px", appearance: "auto" }}
+                      value={wtMakeModel}
+                      onChange={(e) => {
+                        setWtMakeModel(e.target.value);
+                        if (e.target.value !== "Other") setWtCustomMakeModel("");
+                      }}
+                    >
+                      <option value="">Select Make/Model</option>
+                      {["Motorola", "Sanchar", "Alnico", "RD Solution", "Convey", "Other"].map((make) => (
+                        <option key={make} value={make}>{make}</option>
+                      ))}
+                    </select>
+                    {wtFormErrors.wtMakeModel && (
+                      <span className="error-text">{wtFormErrors.wtMakeModel}</span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Custom Make/Model Input (Shown when 'Other' is selected) */}
+                {wtMakeModel === "Other" && (
+                  <div className="form-group full-width" style={{ animation: "fadeIn 0.15s ease-out" }}>
+                    <label htmlFor="wtCustomMakeModel" className="form-label">
+                      Other Make / Model Details <span className="required">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      id="wtCustomMakeModel"
+                      className={`form-input ${wtFormErrors.wtCustomMakeModel ? "field-error-border" : ""}`}
+                      placeholder="Specify custom manufacturer/model name manually"
+                      value={wtCustomMakeModel}
+                      onChange={(e) => setWtCustomMakeModel(e.target.value)}
+                    />
+                    {wtFormErrors.wtCustomMakeModel && (
+                      <span className="error-text">{wtFormErrors.wtCustomMakeModel}</span>
+                    )}
+                  </div>
+                )}
+
+                <div className="form-group-row">
+                  {/* Total to be tested */}
+                  <div className="form-group">
+                    <label htmlFor="wtTotalToBeTested" className="form-label">
+                      Total walkie-talkies to be tested <span className="required">*</span>
+                    </label>
+                    <input
+                      type="number"
+                      id="wtTotalToBeTested"
+                      min="0"
+                      className={`form-input ${wtFormErrors.wtTotalToBeTested ? "field-error-border" : ""}`}
+                      placeholder="Total count to be tested"
+                      value={wtTotalToBeTested}
+                      onChange={(e) => setWtTotalToBeTested(e.target.value)}
+                    />
+                    {wtFormErrors.wtTotalToBeTested && (
+                      <span className="error-text">{wtFormErrors.wtTotalToBeTested}</span>
+                    )}
+                  </div>
+
+                  {/* Total tested */}
+                  <div className="form-group">
+                    <label htmlFor="wtTotalTested" className="form-label">
+                      Total walkie-talkies tested <span className="required">*</span>
+                    </label>
+                    <input
+                      type="number"
+                      id="wtTotalTested"
+                      min="0"
+                      className={`form-input ${wtFormErrors.wtTotalTested ? "field-error-border" : ""}`}
+                      placeholder="Total count tested"
+                      value={wtTotalTested}
+                      onChange={(e) => setWtTotalTested(e.target.value)}
+                    />
+                    {wtFormErrors.wtTotalTested && (
+                      <span className="error-text">{wtFormErrors.wtTotalTested}</span>
+                    )}
+                  </div>
+                </div>
+
+                <div className="form-group-row">
+                  {/* Date of testing */}
+                  <div className="form-group">
+                    <label htmlFor="wtTestingDate" className="form-label">
+                      Date of Testing <span className="required">*</span>
+                    </label>
+                    <input
+                      type="date"
+                      id="wtTestingDate"
+                      className={`form-input ${wtFormErrors.wtTestingDate ? "field-error-border" : ""}`}
+                      value={wtTestingDate}
+                      onChange={(e) => setWtTestingDate(e.target.value)}
+                    />
+                    {wtFormErrors.wtTestingDate && (
+                      <span className="error-text">{wtFormErrors.wtTestingDate}</span>
+                    )}
+                  </div>
+
+                  {/* Balance number of walkie-talkies to be tested */}
+                  <div className="form-group">
+                    <label htmlFor="wtBalanceToTest" className="form-label">
+                      Balance walkie-talkies to be tested (Calculated)
+                    </label>
+                    <input
+                      type="text"
+                      id="wtBalanceToTest"
+                      className="form-input"
+                      value={wtBalanceToTest}
+                      readOnly
+                      placeholder="0"
+                      style={{ backgroundColor: "#F3F4F6" }}
+                    />
+                  </div>
+                </div>
+
+                {/* Remarks */}
+                <div className="form-group full-width">
+                  <label htmlFor="wtRemarks" className="form-label">Remarks</label>
+                  <textarea
+                    id="wtRemarks"
+                    className="form-textarea"
+                    style={{ height: "65px" }}
+                    placeholder="Enter any additional details, issues faced, or test observations"
+                    value={wtRemarks}
+                    onChange={(e) => setWtRemarks(e.target.value)}
+                  />
+                </div>
+
+                {/* Submit button with Loading State */}
+                <div style={{ display: "flex", justifyContent: "flex-end" }}>
+                  <button 
+                    type="submit" 
+                    className={`save-button ${wtSaving ? "save-button-loading" : ""}`}
+                    disabled={wtSaving}
+                  >
+                    {wtSaving ? (
+                      <>
+                        <span className="spinner"></span>
+                        <span>Saving...</span>
+                      </>
+                    ) : (
+                      "Save"
+                    )}
+                  </button>
+                </div>
+              </form>
+
+              {/* Logged Walkie-Talkie Registry Section */}
+              <div className="logged-faults-section">
+                <h3>Logged Walkie-Talkie Testing Registry ({selectedDivision} Division)</h3>
+                <div className="fault-record-list">
+                  {savedWtRecords.filter(r => r.division === selectedDivision).length > 0 ? (
+                    savedWtRecords
+                      .filter(r => r.division === selectedDivision)
+                      .map((record) => (
+                        <div key={record.id} className="fault-record">
+                          <div className="fault-record-header">
+                            <span className="fault-record-title">{record.stationLobby}</span>
+                            <span className="fault-record-duration" style={{ backgroundColor: "#EFF6FF", color: "#1D4ED8", border: "1px solid #BFDBFE" }}>
+                              Balance to test: {record.balanceToTest}
+                            </span>
+                          </div>
+                          <div className="fault-record-grid">
+                            <div className="fault-record-item">
+                              <span className="fault-record-label">Make/Model:</span>
+                              <span className="fault-record-value">{record.makeModel}</span>
+                            </div>
+                            <div className="fault-record-item">
+                              <span className="fault-record-label">Date of Testing:</span>
+                              <span className="fault-record-value">{record.testingDate}</span>
+                            </div>
+                            <div className="fault-record-item">
+                              <span className="fault-record-label">Total to be Tested:</span>
+                              <span className="fault-record-value">{record.totalToBeTested}</span>
+                            </div>
+                            <div className="fault-record-item">
+                              <span className="fault-record-label">Total Tested:</span>
+                              <span className="fault-record-value">{record.totalTested}</span>
+                            </div>
+                            {record.remarks && (
+                              <div className="fault-record-item" style={{ gridColumn: "span 2" }}>
+                                <span className="fault-record-label">Remarks:</span>
+                                <span className="fault-record-value">{record.remarks}</span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      ))
+                  ) : (
+                    <div style={{ padding: "16px", fontSize: "13px", color: "#6B7280", textAlign: "center", border: "1px dashed #D1D5DB", borderRadius: "6px" }}>
+                      No Walkie-Talkie tests registered for {selectedDivision} division today.
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Workspace footer */}
+              <div className="workspace-footer" style={{ marginTop: "12px" }}>
+                <div className="footer-system">
+                  <svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                  </svg>
+                  <span>SECR Walkie-Talkie Testing & VHF Diagnostics console</span>
+                </div>
+                <span>Telecom Desk SECR HQ Bilaspur</span>
+              </div>
+            </div>
+          ) : selectedCircuit.name === "Walkie-Talkie Repairing" ? (
+            /* Walkie-Talkie Repairing Form Workspace */
+            <div className="workspace-content">
+              {/* Workspace Title bar */}
+              <div className="workspace-title-section">
+                <div className="workspace-title-left">
+                  <h2>Walkie-Talkie Repairing Form</h2>
+                  <div className="workspace-meta">
+                    <span>Code: {selectedCircuit.systemCode}</span>
+                    <span className="meta-divider">|</span>
+                    <span>Division: {selectedDivision}</span>
+                  </div>
+                </div>
+                
+                <div className="status-badge red">
+                  <span className="dot"></span>
+                  <span>VHF Repairing Console</span>
+                </div>
+              </div>
+
+              {/* Success Notification Alert */}
+              {wtrFormSuccess && (
+                <div className="alert-banner">
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="3"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                  </svg>
+                  <span>✅ Walkie-Talkie Repairing Record Saved Successfully</span>
+                </div>
+              )}
+
+              {/* Walkie-Talkie Repairing Form */}
+              <form className="fault-form" onSubmit={handleSaveWtrRecord}>
+                <div className="form-group-row">
+                  {/* Date */}
+                  <div className="form-group">
+                    <label htmlFor="wtrDate" className="form-label">
+                      Date <span className="required">*</span>
+                    </label>
+                    <input
+                      type="date"
+                      id="wtrDate"
+                      className={`form-input ${wtrFormErrors.wtrDate ? "field-error-border" : ""}`}
+                      value={wtrDate}
+                      onChange={(e) => setWtrDate(e.target.value)}
+                    />
+                    {wtrFormErrors.wtrDate && (
+                      <span className="error-text">{wtrFormErrors.wtrDate}</span>
+                    )}
+                  </div>
+
+                  {/* Opening Balance of Defective Sets */}
+                  <div className="form-group">
+                    <label htmlFor="wtrOpeningBalance" className="form-label">
+                      Opening Balance of Defective Sets <span className="required">*</span>
+                    </label>
+                    <input
+                      type="number"
+                      id="wtrOpeningBalance"
+                      min="0"
+                      className={`form-input ${wtrFormErrors.wtrOpeningBalance ? "field-error-border" : ""}`}
+                      placeholder="Enter opening balance"
+                      value={wtrOpeningBalance}
+                      onChange={(e) => setWtrOpeningBalance(e.target.value)}
+                    />
+                    {wtrFormErrors.wtrOpeningBalance && (
+                      <span className="error-text">{wtrFormErrors.wtrOpeningBalance}</span>
+                    )}
+                  </div>
+                </div>
+
+                <div className="form-group-row">
+                  {/* Defective Sets Received from User Department */}
+                  <div className="form-group">
+                    <label htmlFor="wtrReceivedFromUser" className="form-label">
+                      Defective Sets Received from User Dept <span className="required">*</span>
+                    </label>
+                    <input
+                      type="number"
+                      id="wtrReceivedFromUser"
+                      min="0"
+                      className={`form-input ${wtrFormErrors.wtrReceivedFromUser ? "field-error-border" : ""}`}
+                      placeholder="Received from user department"
+                      value={wtrReceivedFromUser}
+                      onChange={(e) => setWtrReceivedFromUser(e.target.value)}
+                    />
+                    {wtrFormErrors.wtrReceivedFromUser && (
+                      <span className="error-text">{wtrFormErrors.wtrReceivedFromUser}</span>
+                    )}
+                  </div>
+
+                  {/* Sets Sent to Firm for Repair */}
+                  <div className="form-group">
+                    <label htmlFor="wtrSentToFirm" className="form-label">
+                      Sets Sent to Firm for Repair <span className="required">*</span>
+                    </label>
+                    <input
+                      type="number"
+                      id="wtrSentToFirm"
+                      min="0"
+                      className={`form-input ${wtrFormErrors.wtrSentToFirm ? "field-error-border" : ""}`}
+                      placeholder="Sent to firm for repair"
+                      value={wtrSentToFirm}
+                      onChange={(e) => setWtrSentToFirm(e.target.value)}
+                    />
+                    {wtrFormErrors.wtrSentToFirm && (
+                      <span className="error-text">{wtrFormErrors.wtrSentToFirm}</span>
+                    )}
+                  </div>
+                </div>
+
+                <div className="form-group-row">
+                  {/* Repaired Sets Received from Firm */}
+                  <div className="form-group">
+                    <label htmlFor="wtrRepairedFromFirm" className="form-label">
+                      Repaired Sets Received from Firm <span className="required">*</span>
+                    </label>
+                    <input
+                      type="number"
+                      id="wtrRepairedFromFirm"
+                      min="0"
+                      className={`form-input ${wtrFormErrors.wtrRepairedFromFirm ? "field-error-border" : ""}`}
+                      placeholder="Repaired sets received from firm"
+                      value={wtrRepairedFromFirm}
+                      onChange={(e) => setWtrRepairedFromFirm(e.target.value)}
+                    />
+                    {wtrFormErrors.wtrRepairedFromFirm && (
+                      <span className="error-text">{wtrFormErrors.wtrRepairedFromFirm}</span>
+                    )}
+                  </div>
+
+                  {/* Sets Returned to User Department */}
+                  <div className="form-group">
+                    <label htmlFor="wtrReturnedToUser" className="form-label">
+                      Sets Returned to User Department <span className="required">*</span>
+                    </label>
+                    <input
+                      type="number"
+                      id="wtrReturnedToUser"
+                      min="0"
+                      className={`form-input ${wtrFormErrors.wtrReturnedToUser ? "field-error-border" : ""}`}
+                      placeholder="Returned to user department"
+                      value={wtrReturnedToUser}
+                      onChange={(e) => setWtrReturnedToUser(e.target.value)}
+                    />
+                    {wtrFormErrors.wtrReturnedToUser && (
+                      <span className="error-text">{wtrFormErrors.wtrReturnedToUser}</span>
+                    )}
+                  </div>
+                </div>
+
+                <div className="form-group-row">
+                  {/* Pending Repair Sets (Auto calculated, read-only) */}
+                  <div className="form-group">
+                    <label htmlFor="wtrPendingRepair" className="form-label">
+                      Pending Repair Sets (Calculated)
+                    </label>
+                    <input
+                      type="text"
+                      id="wtrPendingRepair"
+                      className="form-input"
+                      value={wtrPendingRepair}
+                      readOnly
+                      placeholder="0"
+                      style={{ backgroundColor: "#F3F4F6" }}
+                    />
+                  </div>
+
+                  {/* Sets Proposed for Condemnation */}
+                  <div className="form-group">
+                    <label htmlFor="wtrProposedCondemnation" className="form-label">
+                      Sets Proposed for Condemnation <span className="required">*</span>
+                    </label>
+                    <input
+                      type="number"
+                      id="wtrProposedCondemnation"
+                      min="0"
+                      className={`form-input ${wtrFormErrors.wtrProposedCondemnation ? "field-error-border" : ""}`}
+                      placeholder="Proposed for condemnation"
+                      value={wtrProposedCondemnation}
+                      onChange={(e) => setWtrProposedCondemnation(e.target.value)}
+                    />
+                    {wtrFormErrors.wtrProposedCondemnation && (
+                      <span className="error-text">{wtrFormErrors.wtrProposedCondemnation}</span>
+                    )}
+                  </div>
+                </div>
+
+                <div className="form-group-row">
+                  {/* Sets Condemned */}
+                  <div className="form-group">
+                    <label htmlFor="wtrCondemned" className="form-label">
+                      Sets Condemned <span className="required">*</span>
+                    </label>
+                    <input
+                      type="number"
+                      id="wtrCondemned"
+                      min="0"
+                      className={`form-input ${wtrFormErrors.wtrCondemned ? "field-error-border" : ""}`}
+                      placeholder="Sets condemned"
+                      value={wtrCondemned}
+                      onChange={(e) => setWtrCondemned(e.target.value)}
+                    />
+                    {wtrFormErrors.wtrCondemned && (
+                      <span className="error-text">{wtrFormErrors.wtrCondemned}</span>
+                    )}
+                  </div>
+
+                  {/* Total Sets Condemned This Year */}
+                  <div className="form-group">
+                    <label htmlFor="wtrTotalCondemnedYear" className="form-label">
+                      Total Sets Condemned This Year <span className="required">*</span>
+                    </label>
+                    <input
+                      type="number"
+                      id="wtrTotalCondemnedYear"
+                      min="0"
+                      className={`form-input ${wtrFormErrors.wtrTotalCondemnedYear ? "field-error-border" : ""}`}
+                      placeholder="Total condemned this year"
+                      value={wtrTotalCondemnedYear}
+                      onChange={(e) => setWtrTotalCondemnedYear(e.target.value)}
+                    />
+                    {wtrFormErrors.wtrTotalCondemnedYear && (
+                      <span className="error-text">{wtrFormErrors.wtrTotalCondemnedYear}</span>
+                    )}
+                  </div>
+                </div>
+
+                <div className="form-group-row">
+                  {/* Fault Type - Multi select dropdown */}
+                  <div className="form-group">
+                    <label className="form-label">
+                      Fault Type <span className="required">*</span>
+                    </label>
+                    <div className="multiselect-container" ref={wtrFaultTypesRef}>
+                      <button
+                        type="button"
+                        className={`multiselect-trigger ${wtrFaultTypesOpen ? "open" : ""}`}
+                        onClick={() => setWtrFaultTypesOpen(!wtrFaultTypesOpen)}
+                      >
+                        <span>
+                          {wtrFaultTypes.length === 0
+                            ? "Select Fault Type(s)..."
+                            : wtrFaultTypes.join(", ")}
+                        </span>
+                      </button>
+                      {wtrFaultTypesOpen && (
+                        <div className="multiselect-menu">
+                          {[
+                            "Battery Fault",
+                            "Antenna Fault",
+                            "Speaker Fault",
+                            "Microphone Fault",
+                            "PTT Switch Fault",
+                            "Charging Fault",
+                            "Display Fault",
+                            "Software Fault",
+                            "Physical Damage",
+                            "Other"
+                          ].map((option) => (
+                            <label key={option} className="multiselect-item">
+                              <input
+                                type="checkbox"
+                                checked={wtrFaultTypes.includes(option)}
+                                onChange={() => {
+                                  if (wtrFaultTypes.includes(option)) {
+                                    setWtrFaultTypes(wtrFaultTypes.filter((c) => c !== option));
+                                  } else {
+                                    setWtrFaultTypes([...wtrFaultTypes, option]);
+                                  }
+                                }}
+                              />
+                              <span>{option}</span>
+                            </label>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                    {wtrFormErrors.wtrFaultTypes && (
+                      <span className="error-text">{wtrFormErrors.wtrFaultTypes}</span>
+                    )}
+                  </div>
+
+                  {/* Repair Status */}
+                  <div className="form-group">
+                    <label htmlFor="wtrRepairStatus" className="form-label">
+                      Repair Status <span className="required">*</span>
+                    </label>
+                    <select
+                      id="wtrRepairStatus"
+                      className={`form-input ${wtrFormErrors.wtrRepairStatus ? "field-error-border" : ""}`}
+                      style={{ height: "42px", appearance: "auto" }}
+                      value={wtrRepairStatus}
+                      onChange={(e) => setWtrRepairStatus(e.target.value)}
+                    >
+                      <option value="">Select Status</option>
+                      {["Pending", "Sent for Repair", "Under Repair", "Repaired", "Returned to User", "Condemned"].map((status) => (
+                        <option key={status} value={status}>{status}</option>
+                      ))}
+                    </select>
+                    {wtrFormErrors.wtrRepairStatus && (
+                      <span className="error-text">{wtrFormErrors.wtrRepairStatus}</span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Conditional Text input for Other Fault description */}
+                {wtrFaultTypes.includes("Other") && (
+                  <div className="form-group full-width" style={{ animation: "fadeIn 0.15s ease-out" }}>
+                    <label htmlFor="wtrCustomFault" className="form-label">
+                      Other Fault Description <span className="required">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      id="wtrCustomFault"
+                      className={`form-input ${wtrFormErrors.wtrCustomFault ? "field-error-border" : ""}`}
+                      placeholder="Specify other fault description manually"
+                      value={wtrCustomFault}
+                      onChange={(e) => setWtrCustomFault(e.target.value)}
+                    />
+                    {wtrFormErrors.wtrCustomFault && (
+                      <span className="error-text">{wtrFormErrors.wtrCustomFault}</span>
+                    )}
+                  </div>
+                )}
+
+                {/* Action Taken */}
+                <div className="form-group full-width">
+                  <label htmlFor="wtrActionTaken" className="form-label">Action Taken</label>
+                  <textarea
+                    id="wtrActionTaken"
+                    className="form-textarea"
+                    style={{ height: "65px" }}
+                    placeholder="Describe action taken to repair defective sets"
+                    value={wtrActionTaken}
+                    onChange={(e) => setWtrActionTaken(e.target.value)}
+                  />
+                </div>
+
+                {/* Remarks */}
+                <div className="form-group full-width">
+                  <label htmlFor="wtrRemarks" className="form-label">Remarks</label>
+                  <textarea
+                    id="wtrRemarks"
+                    className="form-textarea"
+                    style={{ height: "65px" }}
+                    placeholder="Enter any additional observations or comments"
+                    value={wtrRemarks}
+                    onChange={(e) => setWtrRemarks(e.target.value)}
+                  />
+                </div>
+
+                {/* Save button with Loading State */}
+                <div style={{ display: "flex", justifyContent: "flex-end" }}>
+                  <button 
+                    type="submit" 
+                    className={`save-button ${wtrSaving ? "save-button-loading" : ""}`}
+                    disabled={wtrSaving}
+                  >
+                    {wtrSaving ? (
+                      <>
+                        <span className="spinner"></span>
+                        <span>Saving...</span>
+                      </>
+                    ) : (
+                      "Save"
+                    )}
+                  </button>
+                </div>
+              </form>
+
+              {/* Logged Walkie-Talkie Repairing Registry Section */}
+              <div className="logged-faults-section">
+                <h3>Logged Walkie-Talkie Repairing Registry ({selectedDivision} Division)</h3>
+                <div className="fault-record-list">
+                  {savedWtrRecords.filter(r => r.division === selectedDivision).length > 0 ? (
+                    savedWtrRecords
+                      .filter(r => r.division === selectedDivision)
+                      .map((record) => (
+                        <div key={record.id} className="fault-record">
+                          <div className="fault-record-header">
+                            <span className="fault-record-title">Log Date: {record.date}</span>
+                            <span className="fault-record-duration" style={{ backgroundColor: "#FEE2E2", color: "#991B1B", border: "1px solid #FCA5A5" }}>
+                              Pending sets: {record.pendingRepair}
+                            </span>
+                          </div>
+                          <div className="fault-record-grid">
+                            <div className="fault-record-item">
+                              <span className="fault-record-label">Opening Defective Balance:</span>
+                              <span className="fault-record-value">{record.openingBalance}</span>
+                            </div>
+                            <div className="fault-record-item">
+                              <span className="fault-record-label">Received from User:</span>
+                              <span className="fault-record-value">{record.receivedFromUser}</span>
+                            </div>
+                            <div className="fault-record-item">
+                              <span className="fault-record-label">Sent to Firm:</span>
+                              <span className="fault-record-value">{record.sentToFirm}</span>
+                            </div>
+                            <div className="fault-record-item">
+                              <span className="fault-record-label">Repaired from Firm:</span>
+                              <span className="fault-record-value">{record.repairedFromFirm}</span>
+                            </div>
+                            <div className="fault-record-item">
+                              <span className="fault-record-label">Returned to User:</span>
+                              <span className="fault-record-value">{record.returnedToUser}</span>
+                            </div>
+                            <div className="fault-record-item">
+                              <span className="fault-record-label">Proposed/Condemned (This Year):</span>
+                              <span className="fault-record-value">{record.proposedCondemnation} / {record.condemned} ({record.totalCondemnedYear})</span>
+                            </div>
+                            <div className="fault-record-item">
+                              <span className="fault-record-label">Fault Types:</span>
+                              <span className="fault-record-value">{record.faultTypes}</span>
+                            </div>
+                            <div className="fault-record-item">
+                              <span className="fault-record-label">Repair Status:</span>
+                              <span className="fault-record-value" style={{ fontWeight: "bold" }}>{record.repairStatus}</span>
+                            </div>
+                            {record.actionTaken && (
+                              <div className="fault-record-item" style={{ gridColumn: "span 2" }}>
+                                <span className="fault-record-label">Action Taken:</span>
+                                <span className="fault-record-value">{record.actionTaken}</span>
+                              </div>
+                            )}
+                            {record.remarks && (
+                              <div className="fault-record-item" style={{ gridColumn: "span 2" }}>
+                                <span className="fault-record-label">Remarks:</span>
+                                <span className="fault-record-value">{record.remarks}</span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      ))
+                  ) : (
+                    <div style={{ padding: "16px", fontSize: "13px", color: "#6B7280", textAlign: "center", border: "1px dashed #D1D5DB", borderRadius: "6px" }}>
+                      No Walkie-Talkie repairs registered for {selectedDivision} division today.
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Workspace footer */}
+              <div className="workspace-footer" style={{ marginTop: "12px" }}>
+                <div className="footer-system">
+                  <svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                  </svg>
+                  <span>SECR Walkie-Talkie Repairing & Workshop Operations console</span>
+                </div>
+                <span>Telecom Desk SECR HQ Bilaspur</span>
+              </div>
+            </div>
+          ) : selectedCircuit.name === "Low Insulation" ? (
+            /* Low Insulation Form Workspace */
+            <div className="workspace-content">
+              {/* Workspace Title bar */}
+              <div className="workspace-title-section">
+                <div className="workspace-title-left">
+                  <h2>Low Insulation Monitoring Form</h2>
+                  <div className="workspace-meta">
+                    <span>Code: {selectedCircuit.systemCode}</span>
+                    <span className="meta-divider">|</span>
+                    <span>Division: {selectedDivision}</span>
+                  </div>
+                </div>
+                
+                <div className="status-badge yellow">
+                  <span className="dot"></span>
+                  <span>Insulation Console</span>
+                </div>
+              </div>
+
+              {/* Success Notification Alert */}
+              {liFormSuccess && (
+                <div className="alert-banner">
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="3"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                  </svg>
+                  <span>✅ Low Insulation Record Saved Successfully</span>
+                </div>
+              )}
+
+              {/* Low Insulation Form */}
+              <form className="fault-form" onSubmit={handleSaveLiRecord}>
+                <div className="form-group-row">
+                  {/* Section name */}
+                  <div className="form-group">
+                    <label htmlFor="liSectionName" className="form-label">
+                      Section Name <span className="required">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      id="liSectionName"
+                      className={`form-input ${liFormErrors.liSectionName ? "field-error-border" : ""}`}
+                      placeholder="Enter section name (e.g. CPH-RIG Section)"
+                      value={liSectionName}
+                      onChange={(e) => setLiSectionName(e.target.value)}
+                    />
+                    {liFormErrors.liSectionName && (
+                      <span className="error-text">{liFormErrors.liSectionName}</span>
+                    )}
+                  </div>
+
+                  {/* Km.No */}
+                  <div className="form-group">
+                    <label htmlFor="liKmNo" className="form-label">
+                      Km.No <span className="required">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      id="liKmNo"
+                      className={`form-input ${liFormErrors.liKmNo ? "field-error-border" : ""}`}
+                      placeholder="Enter Kilometer number (e.g. 732/18)"
+                      value={liKmNo}
+                      onChange={(e) => setLiKmNo(e.target.value)}
+                    />
+                    {liFormErrors.liKmNo && (
+                      <span className="error-text">{liFormErrors.liKmNo}</span>
+                    )}
+                  </div>
+                </div>
+
+                <div className="form-group-row">
+                  {/* Total no. of insulation Fault */}
+                  <div className="form-group">
+                    <label htmlFor="liTotalFaults" className="form-label">
+                      Total no. of Insulation Faults <span className="required">*</span>
+                    </label>
+                    <input
+                      type="number"
+                      id="liTotalFaults"
+                      min="0"
+                      className={`form-input ${liFormErrors.liTotalFaults ? "field-error-border" : ""}`}
+                      placeholder="Total count of insulation faults"
+                      value={liTotalFaults}
+                      onChange={(e) => setLiTotalFaults(e.target.value)}
+                    />
+                    {liFormErrors.liTotalFaults && (
+                      <span className="error-text">{liFormErrors.liTotalFaults}</span>
+                    )}
+                  </div>
+
+                  {/* Fault Date & Time */}
+                  <div className="form-group">
+                    <label htmlFor="liFaultTime" className="form-label">
+                      Fault Date & Time <span className="required">*</span>
+                    </label>
+                    <input
+                      type="datetime-local"
+                      id="liFaultTime"
+                      className={`form-input ${liFormErrors.liFaultTime ? "field-error-border" : ""}`}
+                      value={liFaultTime}
+                      onChange={(e) => setLiFaultTime(e.target.value)}
+                    />
+                    {liFormErrors.liFaultTime && (
+                      <span className="error-text">{liFormErrors.liFaultTime}</span>
+                    )}
+                  </div>
+                </div>
+
+                <div className="form-group-row">
+                  {/* Low Insulation Rectified */}
+                  <div className="form-group">
+                    <label htmlFor="liRectified" className="form-label">
+                      Low Insulation Rectified <span className="required">*</span>
+                    </label>
+                    <input
+                      type="number"
+                      id="liRectified"
+                      min="0"
+                      className={`form-input ${liFormErrors.liRectified ? "field-error-border" : ""}`}
+                      placeholder="Rectified faults count"
+                      value={liRectified}
+                      onChange={(e) => setLiRectified(e.target.value)}
+                    />
+                    {liFormErrors.liRectified && (
+                      <span className="error-text">{liFormErrors.liRectified}</span>
+                    )}
+                  </div>
+
+                  {/* Low Insulation Rectified Date & Time */}
+                  <div className="form-group">
+                    <label htmlFor="liRectifiedTime" className="form-label">
+                      Low Insulation Rectified Date & Time
+                    </label>
+                    <input
+                      type="datetime-local"
+                      id="liRectifiedTime"
+                      className={`form-input ${liFormErrors.liRectifiedTime ? "field-error-border" : ""}`}
+                      value={liRectifiedTime}
+                      onChange={(e) => setLiRectifiedTime(e.target.value)}
+                    />
+                    {liFormErrors.liRectifiedTime && (
+                      <span className="error-text">{liFormErrors.liRectifiedTime}</span>
+                    )}
+                  </div>
+                </div>
+
+                <div className="form-group-row">
+                  {/* Balance low insulation fault to be rectified */}
+                  <div className="form-group">
+                    <label htmlFor="liBalanceFaults" className="form-label">
+                      Balance low insulation faults to be rectified (Calculated)
+                    </label>
+                    <input
+                      type="text"
+                      id="liBalanceFaults"
+                      className="form-input"
+                      value={liBalanceFaults}
+                      readOnly
+                      placeholder="0"
+                      style={{ backgroundColor: "#F3F4F6" }}
+                    />
+                  </div>
+
+                  {/* Target Date of Completion (TDC) */}
+                  <div className="form-group">
+                    <label htmlFor="liTdc" className="form-label">
+                      Target Date of Completion (TDC) <span className="required">*</span>
+                    </label>
+                    <input
+                      type="date"
+                      id="liTdc"
+                      className={`form-input ${liFormErrors.liTdc ? "field-error-border" : ""}`}
+                      value={liTdc}
+                      onChange={(e) => setLiTdc(e.target.value)}
+                    />
+                    {liFormErrors.liTdc && (
+                      <span className="error-text">{liFormErrors.liTdc}</span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Action Plan */}
+                <div className="form-group full-width">
+                  <label htmlFor="liActionPlan" className="form-label">
+                    Action Plan to Rectify Low Insulation <span className="required">*</span>
+                  </label>
+                  <textarea
+                    id="liActionPlan"
+                    className="form-textarea"
+                    style={{ height: "65px" }}
+                    placeholder="Enter action plan (e.g. cable meggering, conductor pair shifting, joint card replacements)"
+                    value={liActionPlan}
+                    onChange={(e) => setLiActionPlan(e.target.value)}
+                  />
+                  {liFormErrors.liActionPlan && (
+                    <span className="error-text">{liFormErrors.liActionPlan}</span>
+                  )}
+                </div>
+
+                {/* Remarks */}
+                <div className="form-group full-width">
+                  <label htmlFor="liRemarks" className="form-label">Remarks</label>
+                  <textarea
+                    id="liRemarks"
+                    className="form-textarea"
+                    style={{ height: "65px" }}
+                    placeholder="Enter observations, cable quad details, or testing measurements"
+                    value={liRemarks}
+                    onChange={(e) => setLiRemarks(e.target.value)}
+                  />
+                </div>
+
+                {/* Save button with Loading State */}
+                <div style={{ display: "flex", justifyContent: "flex-end" }}>
+                  <button 
+                    type="submit" 
+                    className={`save-button ${liSaving ? "save-button-loading" : ""}`}
+                    disabled={liSaving}
+                  >
+                    {liSaving ? (
+                      <>
+                        <span className="spinner"></span>
+                        <span>Saving...</span>
+                      </>
+                    ) : (
+                      "Save"
+                    )}
+                  </button>
+                </div>
+              </form>
+
+              {/* Logged Low Insulation Registry Section */}
+              <div className="logged-faults-section">
+                <h3>Logged Low Insulation Registry ({selectedDivision} Division)</h3>
+                <div className="fault-record-list">
+                  {savedLiRecords.filter(r => r.division === selectedDivision).length > 0 ? (
+                    savedLiRecords
+                      .filter(r => r.division === selectedDivision)
+                      .map((record) => (
+                        <div key={record.id} className="fault-record">
+                          <div className="fault-record-header">
+                            <span className="fault-record-title">{record.sectionName} (KM {record.kmNo})</span>
+                            <span className="fault-record-duration" style={{ backgroundColor: "#FEF3C7", color: "#92400E", border: "1px solid #FCD34D" }}>
+                              Balance faults: {record.balanceFaults}
+                            </span>
+                          </div>
+                          <div className="fault-record-grid">
+                            <div className="fault-record-item">
+                              <span className="fault-record-label">Total Faults:</span>
+                              <span className="fault-record-value">{record.totalFaults} ({record.faultTime})</span>
+                            </div>
+                            <div className="fault-record-item">
+                              <span className="fault-record-label">Rectified Faults:</span>
+                              <span className="fault-record-value">{record.rectified} {record.rectifiedTime ? `(${record.rectifiedTime})` : ""}</span>
+                            </div>
+                            <div className="fault-record-item" style={{ gridColumn: "span 2" }}>
+                              <span className="fault-record-label">Target Date of Completion (TDC):</span>
+                              <span className="fault-record-value" style={{ fontWeight: "bold", color: "#B45309" }}>{record.tdc}</span>
+                            </div>
+                            <div className="fault-record-item" style={{ gridColumn: "span 2" }}>
+                              <span className="fault-record-label">Action Plan:</span>
+                              <span className="fault-record-value">{record.actionPlan}</span>
+                            </div>
+                            {record.remarks && (
+                              <div className="fault-record-item" style={{ gridColumn: "span 2" }}>
+                                <span className="fault-record-label">Remarks:</span>
+                                <span className="fault-record-value">{record.remarks}</span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      ))
+                  ) : (
+                    <div style={{ padding: "16px", fontSize: "13px", color: "#6B7280", textAlign: "center", border: "1px dashed #D1D5DB", borderRadius: "6px" }}>
+                      No Low Insulation faults registered for {selectedDivision} division today.
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Workspace footer */}
+              <div className="workspace-footer" style={{ marginTop: "12px" }}>
+                <div className="footer-system">
+                  <svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                  </svg>
+                  <span>SECR Cable Insulation Resistance monitoring console</span>
                 </div>
                 <span>Telecom Desk SECR HQ Bilaspur</span>
               </div>
