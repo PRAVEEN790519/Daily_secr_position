@@ -2301,7 +2301,7 @@ export default function Home() {
 
               {/* Fault Entry Form */}
               <form className="fault-form" onSubmit={handleSaveFault}>
-                {selectedCircuit?.name === "Control Failure & Telephone Failure" || selectedCircuit?.name === "FOIS (VSAT)" || selectedCircuit?.name === "Hotline" || selectedCircuit?.name === "Video Conferencing with Divisions" || selectedCircuit?.name === "CFTM Conference" ? (
+                {selectedCircuit?.name === "Control & ICMS Position" || selectedCircuit?.name === "FOIS (VSAT)" || selectedCircuit?.name === "Hotline" || selectedCircuit?.name === "Video Conferencing with Divisions" || selectedCircuit?.name === "CFTM Conference" ? (
                   <>
                     {/* Row 1: ICMS Entry No. & Major Section */}
                     <div className="form-group-row">
@@ -2527,7 +2527,7 @@ export default function Home() {
                                     "Switch failure",
                                     "Other"
                                   ]
-                                : selectedCircuit?.name === "Control Failure & Telephone Failure" || selectedCircuit?.name === "FOIS (VSAT)"
+                                : selectedCircuit?.name === "Control & ICMS Position" || selectedCircuit?.name === "FOIS (VSAT)"
                                 ? [
                                     "Control Failure",
                                     "Telephone Failure",
@@ -2753,7 +2753,7 @@ export default function Home() {
                                     "Switch failure",
                                     "Other"
                                   ]
-                                : (selectedCircuit?.name === "Control Failure & Telephone Failure" || selectedCircuit?.name === "FOIS (VSAT)")
+                                : (selectedCircuit?.name === "Control & ICMS Position" || selectedCircuit?.name === "FOIS (VSAT)")
                                 ? [
                                     "Control Failure",
                                     "Telephone Failure",
