@@ -209,6 +209,7 @@ export default function Home() {
   const [selectedDivision, setSelectedDivision] = useState<string>("Bilaspur");
   const [divisionDropdownOpen, setDivisionDropdownOpen] = useState<boolean>(false);
   const [selectedCircuit, setSelectedCircuit] = useState<Circuit | null>(null);
+  const [showSidebarOnMobile, setShowSidebarOnMobile] = useState<boolean>(true);
   const [openDropdownCategory, setOpenDropdownCategory] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [liveTime, setLiveTime] = useState<string>("");
@@ -634,6 +635,7 @@ export default function Home() {
   // Handle circuit selection
   const handleSelectCircuit = (circuit: Circuit) => {
     setSelectedCircuit(circuit);
+    setShowSidebarOnMobile(false);
     setLogInput("");
     setSaveSuccess(false);
     if (circuit.category === "Exchange") {
@@ -1858,7 +1860,7 @@ export default function Home() {
       {/* MAIN CONTENT SECTION */}
       <div className="dashboard-content">
         {/* LEFT PANEL */}
-        <aside className="left-panel">
+        <aside className={`left-panel ${(!selectedCircuit || showSidebarOnMobile) ? "mobile-show" : "mobile-hide"}`}>
           <h2 className="panel-title">Name of Circuit</h2>
           
           <div className="categories-dropdown-list" ref={circuitRef} style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
@@ -1958,7 +1960,32 @@ export default function Home() {
         </aside>
 
         {/* RIGHT PANEL */}
-        <main className="right-panel">
+        <main className={`right-panel ${(selectedCircuit && !showSidebarOnMobile) ? "mobile-show" : "mobile-hide"}`}>
+          {selectedCircuit && (
+            <div className="mobile-back-container">
+              <button
+                type="button"
+                className="mobile-back-button"
+                onClick={() => setShowSidebarOnMobile(true)}
+                aria-label="Back to Circuit List"
+              >
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <line x1="19" y1="12" x2="5" y2="12"></line>
+                  <polyline points="12 19 5 12 12 5"></polyline>
+                </svg>
+                <span>View Circuit List</span>
+              </button>
+            </div>
+          )}
           {!selectedCircuit ? (
             /* Empty State Placeholder View */
             <div className="empty-state">
