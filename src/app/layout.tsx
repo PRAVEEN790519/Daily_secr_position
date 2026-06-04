@@ -8,7 +8,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "DAILY SECR POSITION - Railway Telecom Operations Dashboard",
+  title: "Daily Telecom Position - Railway Telecom Operations Dashboard",
   description: "South East Central Railway Telecom Operations and Circuit Monitoring Console",
 };
 

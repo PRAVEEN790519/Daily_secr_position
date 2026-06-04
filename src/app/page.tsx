@@ -1798,12 +1798,12 @@ export default function Home() {
           <div className="secr-logo" title="South East Central Railway">SECR</div>
           <div className="logo-text">
             <span className="logo-title">South East Central Railway</span>
-            <span className="logo-sub">Telecom Department Operations</span>
+            {/* <span className="logo-sub">Telecom Department Operations</span> */}
           </div>
         </div>
 
         <div className="header-center">
-          <h1>Daily SECR Position</h1>
+          <h1>Daily Telecom Position</h1>
         </div>
 
         <div className="header-right">
