@@ -205,6 +205,64 @@ const isStandardFaultCircuit = (circuit: Circuit) => {
   );
 };
 
+const HIERARCHICAL_DATA: Record<string, {
+  majorSections: Record<string, {
+    sections: Record<string, string[]>
+  }>
+}> = {
+  "Bilaspur": {
+    majorSections: {
+      "Bilaspur - Raigarh (BSP-RIG)": {
+        sections: {
+          "Bilaspur - Champa (BSP-CPH)": ["Bilaspur (BSP)", "Gadhwa Road (GTW)", "Akaltara (AKT)", "Naila (NIA)", "Champa Junction (CPH)"],
+          "Champa - Raigarh (CPH-RIG)": ["Baradwar (BUA)", "Sakti (SKT)", "Kharsia (KHS)", "Raigarh (RIG)"]
+        }
+      },
+      "Bilaspur - Katni (BSP-KTE)": {
+        sections: {
+          "Bilaspur - Anuppur (BSP-APR)": ["Pendra Road (PND)", "Jaithari (JTI)", "Anuppur Junction (APR)"],
+          "Anuppur - Shahdol (APR-SDL)": ["Amlai (AAL)", "Burhar (BUH)", "Shahdol (SDL)"]
+        }
+      },
+      "Champa - Korba (CPH-KRBA)": {
+        sections: {
+          "Champa - Korba (CPH-KRBA)": ["Korba (KRBA)", "Gevra Road (GAD)"]
+        }
+      }
+    }
+  },
+  "Raipur": {
+    majorSections: {
+      "Raipur - Dongargarh (R-DGG)": {
+        sections: {
+          "Raipur - Durg": ["Raipur (R)", "Bhilai (BPHB)", "Durg (DURG)"],
+          "Durg - Dongargarh": ["Dongargarh (DGG)"]
+        }
+      },
+      "Raipur - Bhatapara (R-BYT)": {
+        sections: {
+          "Raipur - Bhatapara": ["Tilda (TLD)", "Bhatapara (BYT)"]
+        }
+      }
+    }
+  },
+  "Nagpur": {
+    majorSections: {
+      "Gondia - Nagpur (G-NGP)": {
+        sections: {
+          "Gondia - Bhandara Road": ["Gondia (G)", "Bhandara Road (BRD)"],
+          "Bhandara Road - Nagpur": ["Nagpur (NGP)"]
+        }
+      },
+      "Gondia - Balaghat (G-BTC)": {
+        sections: {
+          "Gondia - Balaghat": ["Balaghat (BTC)"]
+        }
+      }
+    }
+  }
+};
+
 export default function Home() {
   const [selectedDivision, setSelectedDivision] = useState<string>("Bilaspur");
   const [divisionDropdownOpen, setDivisionDropdownOpen] = useState<boolean>(false);
@@ -213,6 +271,101 @@ export default function Home() {
   const [openDropdownCategory, setOpenDropdownCategory] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [liveTime, setLiveTime] = useState<string>("");
+
+  // States for hierarchical Major Section, Section, Station/Location
+  const [formMajorSection, setFormMajorSection] = useState<string>("");
+  const [formSection, setFormSection] = useState<string>("");
+  const [formStationLocation, setFormStationLocation] = useState<string>("");
+
+  // Helper to render hierarchical fields in forms
+  const renderHierarchicalFields = (errors: Record<string, string>) => {
+    return (
+      <>
+        <div className="form-group-row">
+          <div className="form-group">
+            <label htmlFor="formMajorSection" className="form-label">
+              Major Section <span className="required">*</span>
+            </label>
+            <select
+              id="formMajorSection"
+              className={`form-input ${errors.formMajorSection ? "field-error-border" : ""}`}
+              style={{ height: "42px", appearance: "auto" }}
+              value={formMajorSection}
+              onChange={(e) => {
+                setFormMajorSection(e.target.value);
+                setFormSection("");
+                setFormStationLocation("");
+              }}
+            >
+              <option value="">Select Major Section</option>
+              {selectedDivision && HIERARCHICAL_DATA[selectedDivision] && Object.keys(HIERARCHICAL_DATA[selectedDivision].majorSections).map((mSec) => (
+                <option key={mSec} value={mSec}>{mSec}</option>
+              ))}
+            </select>
+            {errors.formMajorSection && (
+              <span className="error-text">{errors.formMajorSection}</span>
+            )}
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="formSection" className="form-label">
+              Section <span className="required">*</span>
+            </label>
+            <select
+              id="formSection"
+              className={`form-input ${errors.formSection ? "field-error-border" : ""}`}
+              style={{ height: "42px", appearance: "auto" }}
+              value={formSection}
+              onChange={(e) => {
+                setFormSection(e.target.value);
+                setFormStationLocation("");
+              }}
+              disabled={!formMajorSection}
+            >
+              <option value="">Select Section</option>
+              {formMajorSection && selectedDivision && HIERARCHICAL_DATA[selectedDivision]?.majorSections[formMajorSection] && 
+                Object.keys(HIERARCHICAL_DATA[selectedDivision].majorSections[formMajorSection].sections).map((sec) => (
+                  <option key={sec} value={sec}>{sec}</option>
+                ))
+              }
+            </select>
+            {errors.formSection && (
+              <span className="error-text">{errors.formSection}</span>
+            )}
+          </div>
+        </div>
+
+        <div className="form-group-row">
+          <div className="form-group">
+            <label htmlFor="formStationLocation" className="form-label">
+              Station/Location <span className="required">*</span>
+            </label>
+            <select
+              id="formStationLocation"
+              className={`form-input ${errors.formStationLocation ? "field-error-border" : ""}`}
+              style={{ height: "42px", appearance: "auto" }}
+              value={formStationLocation}
+              onChange={(e) => setFormStationLocation(e.target.value)}
+              disabled={!formSection}
+            >
+              <option value="">Select Station/Location</option>
+              {formSection && formMajorSection && selectedDivision && HIERARCHICAL_DATA[selectedDivision]?.majorSections[formMajorSection]?.sections[formSection] &&
+                HIERARCHICAL_DATA[selectedDivision].majorSections[formMajorSection].sections[formSection].map((stn) => (
+                  <option key={stn} value={stn}>{stn}</option>
+                ))
+              }
+            </select>
+            {errors.formStationLocation && (
+              <span className="error-text">{errors.formStationLocation}</span>
+            )}
+          </div>
+          <div className="form-group"></div>
+        </div>
+      </>
+    );
+  };
+
+
 
   // Track operational logs updated by the user dynamically in state
   const [userLogs, setUserLogs] = useState<Record<string, string[]>>({});
@@ -562,9 +715,6 @@ export default function Home() {
       if (divisionRef.current && !divisionRef.current.contains(event.target as Node)) {
         setDivisionDropdownOpen(false);
       }
-      if (circuitRef.current && !circuitRef.current.contains(event.target as Node)) {
-        setOpenDropdownCategory(null);
-      }
       if (reasonsRef.current && !reasonsRef.current.contains(event.target as Node)) {
         setReasonsDropdownOpen(false);
       }
@@ -651,6 +801,11 @@ export default function Home() {
     setCustomReason("");
     setRemarks("");
     setFormErrors({});
+
+    // Reset hierarchical fields
+    setFormMajorSection("");
+    setFormSection("");
+    setFormStationLocation("");
 
     // Clear Rail Madad form inputs when switching circuits
     setMadadBalanceLast("");
@@ -785,6 +940,17 @@ export default function Home() {
   // Save new log entry
   const handleSaveLog = (e: React.FormEvent) => {
     e.preventDefault();
+    const errors: Record<string, string> = {};
+    if (!formMajorSection) errors.formMajorSection = "Major Section is required";
+    if (!formSection) errors.formSection = "Section is required";
+    if (!formStationLocation) errors.formStationLocation = "Station/Location is required";
+
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors);
+      return;
+    }
+    setFormErrors({});
+
     if (!selectedCircuit || !logInput.trim()) return;
 
     const logKey = `${selectedDivision}_${selectedCircuit.id}`;
@@ -792,7 +958,7 @@ export default function Home() {
       hour: "2-digit",
       minute: "2-digit",
       hour12: true,
-    })} - ${logInput.trim()}`;
+    })} - [${formMajorSection} / ${formSection} / ${formStationLocation}] - ${logInput.trim()}`;
 
     setUserLogs((prev) => ({
       ...prev,
@@ -800,6 +966,9 @@ export default function Home() {
     }));
 
     setLogInput("");
+    setFormMajorSection("");
+    setFormSection("");
+    setFormStationLocation("");
     setSaveSuccess(true);
     setTimeout(() => setSaveSuccess(false), 2000);
   };
@@ -851,6 +1020,10 @@ export default function Home() {
       errors.customReason = "Custom failure reason is required";
     }
 
+    if (!formMajorSection) errors.formMajorSection = "Major Section is required";
+    if (!formSection) errors.formSection = "Section is required";
+    if (!formStationLocation) errors.formStationLocation = "Station/Location is required";
+
     if (failureTime && rectificationTime) {
       const start = new Date(failureTime);
       const end = new Date(rectificationTime);
@@ -888,7 +1061,10 @@ export default function Home() {
       rectificationTime: formatDate(rectificationTime),
       duration: totalDuration,
       reasons: selectedReasons.map(r => r === "Other" ? `Other: ${customReason.trim()}` : r).join(", "),
-      remarks: remarks.trim()
+      remarks: remarks.trim(),
+      majorSection: formMajorSection,
+      section: formSection,
+      stationLocation: formStationLocation
     };
 
     setSavedFaults(prev => [newFault, ...prev]);
@@ -902,6 +1078,9 @@ export default function Home() {
     setSelectedReasons([]);
     setCustomReason("");
     setRemarks("");
+    setFormMajorSection("");
+    setFormSection("");
+    setFormStationLocation("");
     setFaultFormSuccess(true);
     setTimeout(() => setFaultFormSuccess(false), 4000);
   };
@@ -966,6 +1145,10 @@ export default function Home() {
       errors.exchCustomReason = "Custom failure reason is required";
     }
 
+    if (!formMajorSection) errors.formMajorSection = "Major Section is required";
+    if (!formSection) errors.formSection = "Section is required";
+    if (!formStationLocation) errors.formStationLocation = "Station/Location is required";
+
     if (exchFailureTime && exchRectificationTime) {
       const start = new Date(exchFailureTime);
       const end = new Date(exchRectificationTime);
@@ -1005,7 +1188,10 @@ export default function Home() {
         rectificationTime: formatDate(exchRectificationTime),
         duration: exchTotalDuration,
         reasons: exchSelectedReasons.map(r => r === "Other" ? `Other: ${exchCustomReason.trim()}` : r).join(", "),
-        remarks: exchRemarks.trim()
+        remarks: exchRemarks.trim(),
+        majorSection: formMajorSection,
+        section: formSection,
+        stationLocation: formStationLocation
       };
 
       setSavedExchFaults(prev => [newExchFault, ...prev]);
@@ -1021,6 +1207,9 @@ export default function Home() {
       setExchSelectedReasons([]);
       setExchCustomReason("");
       setExchRemarks("");
+      setFormMajorSection("");
+      setFormSection("");
+      setFormStationLocation("");
       setExchFormSuccess(true);
 
       // Success alert stays active for 5 seconds
@@ -1090,6 +1279,10 @@ export default function Home() {
       errors.netCustomReason = "Custom failure reason is required";
     }
 
+    if (!formMajorSection) errors.formMajorSection = "Major Section is required";
+    if (!formSection) errors.formSection = "Section is required";
+    if (!formStationLocation) errors.formStationLocation = "Station/Location is required";
+
     // Number validations
     if (netDnSpeed && isNaN(Number(netDnSpeed))) {
       errors.netDnSpeed = "Download Link Speed must be numeric";
@@ -1141,7 +1334,10 @@ export default function Home() {
         rectificationTime: formatDate(netRectificationTime),
         duration: netTotalDuration,
         reasons: netSelectedReasons.map(r => r === "Other" ? `Other: ${netCustomReason.trim()}` : r).join(", "),
-        remarks: netRemarks.trim()
+        remarks: netRemarks.trim(),
+        majorSection: formMajorSection,
+        section: formSection,
+        stationLocation: formStationLocation
       };
 
       setSavedNetRecords(prev => [newNetRecord, ...prev]);
@@ -1161,6 +1357,9 @@ export default function Home() {
       setNetSelectedReasons([]);
       setNetCustomReason("");
       setNetRemarks("");
+      setFormMajorSection("");
+      setFormSection("");
+      setFormStationLocation("");
       setNetFormSuccess(true);
 
       // Auto hide success banner after 5 seconds
@@ -1201,6 +1400,10 @@ export default function Home() {
     if (!madadComplianceDetails.trim()) errors.madadComplianceDetails = "S&T Compliance Details are required";
     if (!madadComplianceTime) errors.madadComplianceTime = "S&T Compliance Date & Time is required";
 
+    if (!formMajorSection) errors.formMajorSection = "Major Section is required";
+    if (!formSection) errors.formSection = "Section is required";
+    if (!formStationLocation) errors.formStationLocation = "Station/Location is required";
+
     if (Object.keys(errors).length > 0) {
       setMadadFormErrors(errors);
       return;
@@ -1234,7 +1437,10 @@ export default function Home() {
         caseTime: formatDate(madadCaseTime),
         complianceDetails: madadComplianceDetails.trim(),
         complianceTime: formatDate(madadComplianceTime),
-        remarks: madadRemarks.trim()
+        remarks: madadRemarks.trim(),
+        majorSection: formMajorSection,
+        section: formSection,
+        stationLocation: formStationLocation
       };
 
       setSavedMadadRecords(prev => [newMadadRecord, ...prev]);
@@ -1250,6 +1456,9 @@ export default function Home() {
       setMadadComplianceDetails("");
       setMadadComplianceTime("");
       setMadadRemarks("");
+      setFormMajorSection("");
+      setFormSection("");
+      setFormStationLocation("");
       setMadadFormSuccess(true);
 
       // Auto hide success banner after 5 seconds
@@ -1273,6 +1482,10 @@ export default function Home() {
     if (!vpTestingTime) errors.vpTestingTime = "Tested with RB Date & Time is required";
     if (!vpVideoClarity) errors.vpVideoClarity = "Video Clarity is required";
     if (!vpAudioClarity) errors.vpAudioClarity = "Audio Clarity is required";
+
+    if (!formMajorSection) errors.formMajorSection = "Major Section is required";
+    if (!formSection) errors.formSection = "Section is required";
+    if (!formStationLocation) errors.formStationLocation = "Station/Location is required";
 
     if (Object.keys(errors).length > 0) {
       setVpFormErrors(errors);
@@ -1303,7 +1516,10 @@ export default function Home() {
         testingTime: formatDate(vpTestingTime),
         videoClarity: vpVideoClarity,
         audioClarity: vpAudioClarity,
-        remarks: vpRemarks.trim()
+        remarks: vpRemarks.trim(),
+        majorSection: formMajorSection,
+        section: formSection,
+        stationLocation: formStationLocation
       };
 
       setSavedVpRecords(prev => [newVpRecord, ...prev]);
@@ -1317,6 +1533,9 @@ export default function Home() {
       setVpVideoClarity("");
       setVpAudioClarity("");
       setVpRemarks("");
+      setFormMajorSection("");
+      setFormSection("");
+      setFormStationLocation("");
       setVpFormSuccess(true);
 
       // Auto hide success banner after 5 seconds
@@ -1364,6 +1583,10 @@ export default function Home() {
     if (!ccRectificationTime) errors.ccRectificationTime = "Rectification Time (RT) is required";
     if (!ccReasonOfFailure.trim()) errors.ccReasonOfFailure = "Reason of failure is required";
 
+    if (!formMajorSection) errors.formMajorSection = "Major Section is required";
+    if (!formSection) errors.formSection = "Section is required";
+    if (!formStationLocation) errors.formStationLocation = "Station/Location is required";
+
     if (ccFailureTime && ccRectificationTime) {
       const start = new Date(ccFailureTime);
       const end = new Date(ccRectificationTime);
@@ -1405,7 +1628,10 @@ export default function Home() {
         rectificationTime: formatDate(ccRectificationTime),
         duration: ccTotalDuration,
         reasonOfFailure: ccReasonOfFailure.trim(),
-        remarks: ccRemarks.trim()
+        remarks: ccRemarks.trim(),
+        majorSection: formMajorSection,
+        section: formSection,
+        stationLocation: formStationLocation
       };
 
       setSavedCcRecords(prev => [newCcRecord, ...prev]);
@@ -1422,6 +1648,9 @@ export default function Home() {
       setCcRectificationTime("");
       setCcReasonOfFailure("");
       setCcRemarks("");
+      setFormMajorSection("");
+      setFormSection("");
+      setFormStationLocation("");
       setCcFormSuccess(true);
 
       // Auto hide success banner after 5 seconds
@@ -1482,6 +1711,10 @@ export default function Home() {
       }
     }
 
+    if (!formMajorSection) errors.formMajorSection = "Major Section is required";
+    if (!formSection) errors.formSection = "Section is required";
+    if (!formStationLocation) errors.formStationLocation = "Station/Location is required";
+
     if (Object.keys(errors).length > 0) {
       setWtFormErrors(errors);
       return;
@@ -1512,7 +1745,10 @@ export default function Home() {
         testingDate: formatDate(wtTestingDate),
         totalTested: wtTotalTested.trim(),
         balanceToTest: wtBalanceToTest,
-        remarks: wtRemarks.trim()
+        remarks: wtRemarks.trim(),
+        majorSection: formMajorSection,
+        section: formSection,
+        stationLocation: formStationLocation
       };
 
       setSavedWtRecords(prev => [newWtRecord, ...prev]);
@@ -1527,6 +1763,9 @@ export default function Home() {
       setWtTestingDate("");
       setWtTotalTested("");
       setWtRemarks("");
+      setFormMajorSection("");
+      setFormSection("");
+      setFormStationLocation("");
       setWtFormSuccess(true);
 
       // Auto hide success banner after 5 seconds
@@ -1585,6 +1824,10 @@ export default function Home() {
       errors.wtrRepairStatus = "Repair Status is required";
     }
 
+    if (!formMajorSection) errors.formMajorSection = "Major Section is required";
+    if (!formSection) errors.formSection = "Section is required";
+    if (!formStationLocation) errors.formStationLocation = "Station/Location is required";
+
     // Logic consistency: Returned + Condemned <= Opening + Received
     const ob = parseInt(wtrOpeningBalance, 10) || 0;
     const recv = parseInt(wtrReceivedFromUser, 10) || 0;
@@ -1632,7 +1875,10 @@ export default function Home() {
         totalCondemnedYear: wtrTotalCondemnedYear.trim(),
         actionTaken: wtrActionTaken.trim(),
         pendingRepair: wtrPendingRepair,
-        remarks: wtrRemarks.trim()
+        remarks: wtrRemarks.trim(),
+        majorSection: formMajorSection,
+        section: formSection,
+        stationLocation: formStationLocation
       };
 
       setSavedWtrRecords(prev => [newWtrRecord, ...prev]);
@@ -1654,6 +1900,9 @@ export default function Home() {
       setWtrTotalCondemnedYear("");
       setWtrActionTaken("");
       setWtrRemarks("");
+      setFormMajorSection("");
+      setFormSection("");
+      setFormStationLocation("");
       setWtrFormSuccess(true);
 
       // Auto hide success banner after 5 seconds
@@ -1724,6 +1973,10 @@ export default function Home() {
     if (!liActionPlan.trim()) errors.liActionPlan = "Action Plan is required";
     if (!liTdc) errors.liTdc = "Target Date of Completion (TDC) is required";
 
+    if (!formMajorSection) errors.formMajorSection = "Major Section is required";
+    if (!formSection) errors.formSection = "Section is required";
+    if (!formStationLocation) errors.formStationLocation = "Station/Location is required";
+
     if (Object.keys(errors).length > 0) {
       setLiFormErrors(errors);
       return;
@@ -1771,7 +2024,10 @@ export default function Home() {
         balanceFaults: liBalanceFaults,
         actionPlan: liActionPlan.trim(),
         tdc: formatDate(liTdc),
-        remarks: liRemarks.trim()
+        remarks: liRemarks.trim(),
+        majorSection: formMajorSection,
+        section: formSection,
+        stationLocation: formStationLocation
       };
 
       setSavedLiRecords(prev => [newLiRecord, ...prev]);
@@ -1788,6 +2044,9 @@ export default function Home() {
       setLiActionPlan("");
       setLiTdc("");
       setLiRemarks("");
+      setFormMajorSection("");
+      setFormSection("");
+      setFormStationLocation("");
       setLiFormSuccess(true);
 
       // Auto hide success banner after 5 seconds
@@ -1849,6 +2108,9 @@ export default function Home() {
                       setSelectedDivision(division);
                       setDivisionDropdownOpen(false);
                       setSaveSuccess(false);
+                      setFormMajorSection("");
+                      setFormSection("");
+                      setFormStationLocation("");
                     }}
                   >
                     {division}
@@ -2002,11 +2264,6 @@ export default function Home() {
                 <div className="workspace-title-left">
                   <h2>{selectedCircuit.name}</h2>
                 </div>
-                
-                <div className="status-badge yellow">
-                  <span className="dot"></span>
-                  <span>Fault Console</span>
-                </div>
               </div>
 
               {/* Success Notification Alert */}
@@ -2030,6 +2287,7 @@ export default function Home() {
 
               {/* Fault Entry Form */}
               <form className="fault-form" onSubmit={handleSaveFault}>
+                {renderHierarchicalFields(formErrors)}
                 <div className="form-group-row">
                   {/* ICMS Entry No./Docket No. */}
                   <div className="form-group">
@@ -2336,11 +2594,6 @@ export default function Home() {
                 <div className="workspace-title-left">
                   <h2>{exchangeName}</h2>
                 </div>
-                
-                <div className="status-badge yellow">
-                  <span className="dot"></span>
-                  <span>Exchange Console</span>
-                </div>
               </div>
 
               {/* Success Notification Alert */}
@@ -2364,6 +2617,7 @@ export default function Home() {
 
               {/* Exchange Fault Entry Form */}
               <form className="fault-form" onSubmit={handleSaveExchFault}>
+                {renderHierarchicalFields(exchFormErrors)}
                 <div className="form-group-row">
                   {/* ICMS Entry No./Docket No. */}
                   <div className="form-group">
@@ -2718,11 +2972,6 @@ export default function Home() {
                 <div className="workspace-title-left">
                   <h2>Railnet / Internet</h2>
                 </div>
-                
-                <div className="status-badge yellow">
-                  <span className="dot"></span>
-                  <span>Railnet Console</span>
-                </div>
               </div>
 
               {/* Success Notification Alert */}
@@ -2746,6 +2995,7 @@ export default function Home() {
 
               {/* Railnet / Internet Monitoring Form */}
               <form className="fault-form" onSubmit={handleSaveNetRecord}>
+                {renderHierarchicalFields(netFormErrors)}
                 <div className="form-group-row">
                   {/* ICMS Entry No./Docket No. */}
                   <div className="form-group">
@@ -3185,11 +3435,6 @@ export default function Home() {
                 <div className="workspace-title-left">
                   <h2>Rail Madad Case Entry</h2>
                 </div>
-                
-                <div className="status-badge yellow">
-                  <span className="dot"></span>
-                  <span>Rail Madad Console</span>
-                </div>
               </div>
 
               {/* Success Notification Alert */}
@@ -3213,6 +3458,7 @@ export default function Home() {
 
               {/* Rail Madad Case Entry Form */}
               <form className="fault-form" onSubmit={handleSaveMadadRecord}>
+                {renderHierarchicalFields(madadFormErrors)}
                 <div className="form-group-row">
                   {/* ICMS Entry No./Docket No. */}
                   <div className="form-group">
@@ -3467,11 +3713,6 @@ export default function Home() {
                 <div className="workspace-title-left">
                   <h2>Railway Board Video Phone Test</h2>
                 </div>
-                
-                <div className="status-badge yellow">
-                  <span className="dot"></span>
-                  <span>Video Phone Console</span>
-                </div>
               </div>
 
               {/* Success Notification Alert */}
@@ -3495,6 +3736,7 @@ export default function Home() {
 
               {/* Video Phone Test Form */}
               <form className="fault-form" onSubmit={handleSaveVpRecord}>
+                {renderHierarchicalFields(vpFormErrors)}
                 <div className="form-group-row">
                   {/* ICMS Entry No./Docket No. */}
                   <div className="form-group">
@@ -3710,11 +3952,6 @@ export default function Home() {
                 <div className="workspace-title-left">
                   <h2>Cable Cut (OFC & Quad)</h2>
                 </div>
-                
-                <div className="status-badge red">
-                  <span className="dot"></span>
-                  <span>Cable Cut Console</span>
-                </div>
               </div>
 
               {/* Success Notification Alert */}
@@ -3738,6 +3975,7 @@ export default function Home() {
 
               {/* Cable Cut Entry Form */}
               <form className="fault-form" onSubmit={handleSaveCcRecord}>
+                {renderHierarchicalFields(ccFormErrors)}
                 <div className="form-group-row">
                   {/* ICMS Entry No./Docket No. */}
                   <div className="form-group">
@@ -4102,11 +4340,6 @@ export default function Home() {
                 <div className="workspace-title-left">
                   <h2>Walkie-Talkie Testing</h2>
                 </div>
-                
-                <div className="status-badge blue">
-                  <span className="dot"></span>
-                  <span>VHF Testing Console</span>
-                </div>
               </div>
 
               {/* Success Notification Alert */}
@@ -4130,6 +4363,7 @@ export default function Home() {
 
               {/* Walkie-Talkie Testing Form */}
               <form className="fault-form" onSubmit={handleSaveWtRecord}>
+                {renderHierarchicalFields(wtFormErrors)}
                 <div className="form-group-row">
                   {/* ICMS Entry No./Docket No. */}
                   <div className="form-group">
@@ -4365,11 +4599,6 @@ export default function Home() {
                 <div className="workspace-title-left">
                   <h2>Walkie-Talkie Repairing</h2>
                 </div>
-                
-                <div className="status-badge red">
-                  <span className="dot"></span>
-                  <span>VHF Repairing Console</span>
-                </div>
               </div>
 
               {/* Success Notification Alert */}
@@ -4393,6 +4622,7 @@ export default function Home() {
 
               {/* Walkie-Talkie Repairing Form */}
               <form className="fault-form" onSubmit={handleSaveWtrRecord}>
+                {renderHierarchicalFields(wtrFormErrors)}
                 <div className="form-group-row">
                   {/* ICMS Entry No./Docket No. */}
                   <div className="form-group">
@@ -4808,11 +5038,6 @@ export default function Home() {
                 <div className="workspace-title-left">
                   <h2>Low Insulation</h2>
                 </div>
-                
-                <div className="status-badge yellow">
-                  <span className="dot"></span>
-                  <span>Insulation Console</span>
-                </div>
               </div>
 
               {/* Success Notification Alert */}
@@ -4836,6 +5061,7 @@ export default function Home() {
 
               {/* Low Insulation Form */}
               <form className="fault-form" onSubmit={handleSaveLiRecord}>
+                {renderHierarchicalFields(liFormErrors)}
                 <div className="form-group-row">
                   {/* ICMS Entry No./Docket No. */}
                   <div className="form-group">
@@ -5208,6 +5434,7 @@ export default function Home() {
               {/* Interactive Daily Log entry form */}
               <div className="detail-card">
                 <form className="status-editor-container" onSubmit={handleSaveLog}>
+                  {renderHierarchicalFields(formErrors)}
                   <label htmlFor="log-text">Log New Telecom Position / Status Update</label>
                   <textarea
                     id="log-text"
