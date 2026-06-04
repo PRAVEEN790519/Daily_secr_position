@@ -277,6 +277,30 @@ export default function Home() {
   const [formSection, setFormSection] = useState<string>("");
   const [formStationLocation, setFormStationLocation] = useState<string>("");
 
+  const handleMajorSectionChange = (val: string) => {
+    setFormMajorSection(val);
+    setFormSection("");
+    setFormStationLocation("");
+  };
+
+  const handleSectionChange = (val: string) => {
+    setFormSection(val);
+    setFormStationLocation("");
+  };
+
+  const handleStationLocationChange = (val: string) => {
+    setFormStationLocation(val);
+    if (val && formMajorSection && selectedDivision && HIERARCHICAL_DATA[selectedDivision]?.majorSections[formMajorSection]) {
+      const sectionsObj = HIERARCHICAL_DATA[selectedDivision].majorSections[formMajorSection].sections;
+      for (const [secName, stations] of Object.entries(sectionsObj)) {
+        if (stations.includes(val)) {
+          setFormSection(secName);
+          break;
+        }
+      }
+    }
+  };
+
   // Helper to render hierarchical fields in forms
   const renderHierarchicalFields = (errors: Record<string, string>) => {
     return (
@@ -291,11 +315,7 @@ export default function Home() {
               className={`form-input ${errors.formMajorSection ? "field-error-border" : ""}`}
               style={{ height: "42px", appearance: "auto" }}
               value={formMajorSection}
-              onChange={(e) => {
-                setFormMajorSection(e.target.value);
-                setFormSection("");
-                setFormStationLocation("");
-              }}
+              onChange={(e) => handleMajorSectionChange(e.target.value)}
             >
               <option value="">Select Major Section</option>
               {selectedDivision && HIERARCHICAL_DATA[selectedDivision] && Object.keys(HIERARCHICAL_DATA[selectedDivision].majorSections).map((mSec) => (
@@ -316,10 +336,7 @@ export default function Home() {
               className={`form-input ${errors.formSection ? "field-error-border" : ""}`}
               style={{ height: "42px", appearance: "auto" }}
               value={formSection}
-              onChange={(e) => {
-                setFormSection(e.target.value);
-                setFormStationLocation("");
-              }}
+              onChange={(e) => handleSectionChange(e.target.value)}
               disabled={!formMajorSection}
             >
               <option value="">Select Section</option>
@@ -345,15 +362,22 @@ export default function Home() {
               className={`form-input ${errors.formStationLocation ? "field-error-border" : ""}`}
               style={{ height: "42px", appearance: "auto" }}
               value={formStationLocation}
-              onChange={(e) => setFormStationLocation(e.target.value)}
-              disabled={!formSection}
+              onChange={(e) => handleStationLocationChange(e.target.value)}
+              disabled={!formMajorSection}
             >
               <option value="">Select Station/Location</option>
-              {formSection && formMajorSection && selectedDivision && HIERARCHICAL_DATA[selectedDivision]?.majorSections[formMajorSection]?.sections[formSection] &&
-                HIERARCHICAL_DATA[selectedDivision].majorSections[formMajorSection].sections[formSection].map((stn) => (
-                  <option key={stn} value={stn}>{stn}</option>
-                ))
-              }
+              {formMajorSection && selectedDivision && HIERARCHICAL_DATA[selectedDivision]?.majorSections[formMajorSection] && (() => {
+                const sectionsObj = HIERARCHICAL_DATA[selectedDivision].majorSections[formMajorSection].sections;
+                if (formSection) {
+                  return sectionsObj[formSection]?.map((stn) => (
+                    <option key={stn} value={stn}>{stn}</option>
+                  ));
+                } else {
+                  return Object.values(sectionsObj).flat().map((stn) => (
+                    <option key={stn} value={stn}>{stn}</option>
+                  ));
+                }
+              })()}
             </select>
             {errors.formStationLocation && (
               <span className="error-text">{errors.formStationLocation}</span>
@@ -807,6 +831,41 @@ export default function Home() {
     setFormMajorSection("");
     setFormSection("");
     setFormStationLocation("");
+
+    // Clear Exchange states when switching circuits
+    if (circuit.category === "Exchange") {
+      setExchangeName(circuit.name.endsWith("Exchange") ? circuit.name : `${circuit.name} Exchange`);
+    } else {
+      setExchangeName("");
+    }
+    setFaultName("");
+    setCustomFaultName("");
+    setExchFailureTime("");
+    setExchRectificationTime("");
+    setExchSelectedReasons([]);
+    setExchCustomReason("");
+    setExchRemarks("");
+    setExchFormErrors({});
+    setExchFormSuccess(false);
+    setExchSaving(false);
+
+    // Clear Railnet states when switching circuits
+    setNetLocation("");
+    setNetBandwidth("");
+    setNetTestingTime("");
+    setNetDnSpeed("");
+    setNetUpSpeed("");
+    setNetFaultNature("");
+    setNetCustomFaultNature("");
+    setNetAuditReport("");
+    setNetFailureTime("");
+    setNetRectificationTime("");
+    setNetSelectedReasons([]);
+    setNetCustomReason("");
+    setNetRemarks("");
+    setNetFormErrors({});
+    setNetFormSuccess(false);
+    setNetSaving(false);
 
     // Clear Rail Madad form inputs when switching circuits
     setMadadBalanceLast("");
@@ -2333,39 +2392,32 @@ export default function Home() {
                           className={`form-input ${formErrors.formMajorSection ? "field-error-border" : ""}`}
                           style={{ height: "42px", appearance: "auto" }}
                           value={formMajorSection}
-                          onChange={(e) => {
-                            setFormMajorSection(e.target.value);
-                            setFormSection("");
-                            setFormStationLocation("");
-                          }}
+                          onChange={(e) => handleMajorSectionChange(e.target.value)}
                         >
-                          <option value="">Select Major Section</option>
-                          {selectedDivision && HIERARCHICAL_DATA[selectedDivision] && Object.keys(HIERARCHICAL_DATA[selectedDivision].majorSections).map((mSec) => (
-                            <option key={mSec} value={mSec}>{mSec}</option>
-                          ))}
-                        </select>
-                        {formErrors.formMajorSection && (
-                          <span className="error-text">{formErrors.formMajorSection}</span>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Row 2: Section & Station/Location */}
-                    <div className="form-group-row">
-                      {/* Section */}
-                      <div className="form-group">
-                        <label htmlFor="formSection" className="form-label">
-                          Section <span className="required">*</span>
-                        </label>
-                        <select
-                          id="formSection"
-                          className={`form-input ${formErrors.formSection ? "field-error-border" : ""}`}
-                          style={{ height: "42px", appearance: "auto" }}
-                          value={formSection}
-                          onChange={(e) => {
-                            setFormSection(e.target.value);
-                            setFormStationLocation("");
-                          }}
+                           <option value="">Select Major Section</option>
+                           {selectedDivision && HIERARCHICAL_DATA[selectedDivision] && Object.keys(HIERARCHICAL_DATA[selectedDivision].majorSections).map((mSec) => (
+                             <option key={mSec} value={mSec}>{mSec}</option>
+                           ))}
+                         </select>
+                         {formErrors.formMajorSection && (
+                           <span className="error-text">{formErrors.formMajorSection}</span>
+                         )}
+                       </div>
+                     </div>
+ 
+                     {/* Row 2: Section & Station/Location */}
+                     <div className="form-group-row">
+                       {/* Section */}
+                       <div className="form-group">
+                         <label htmlFor="formSection" className="form-label">
+                           Section <span className="required">*</span>
+                         </label>
+                         <select
+                           id="formSection"
+                           className={`form-input ${formErrors.formSection ? "field-error-border" : ""}`}
+                           style={{ height: "42px", appearance: "auto" }}
+                           value={formSection}
+                           onChange={(e) => handleSectionChange(e.target.value)}
                           disabled={!formMajorSection}
                         >
                           <option value="">Select Section</option>
@@ -2390,15 +2442,22 @@ export default function Home() {
                           className={`form-input ${formErrors.formStationLocation ? "field-error-border" : ""}`}
                           style={{ height: "42px", appearance: "auto" }}
                           value={formStationLocation}
-                          onChange={(e) => setFormStationLocation(e.target.value)}
-                          disabled={!formSection}
+                          onChange={(e) => handleStationLocationChange(e.target.value)}
+                          disabled={!formMajorSection}
                         >
                           <option value="">Select Station/Location</option>
-                          {formSection && formMajorSection && selectedDivision && HIERARCHICAL_DATA[selectedDivision]?.majorSections[formMajorSection]?.sections[formSection] &&
-                            HIERARCHICAL_DATA[selectedDivision].majorSections[formMajorSection].sections[formSection].map((stn) => (
-                              <option key={stn} value={stn}>{stn}</option>
-                            ))
-                          }
+                          {formMajorSection && selectedDivision && HIERARCHICAL_DATA[selectedDivision]?.majorSections[formMajorSection] && (() => {
+                            const sectionsObj = HIERARCHICAL_DATA[selectedDivision].majorSections[formMajorSection].sections;
+                            if (formSection) {
+                              return sectionsObj[formSection]?.map((stn) => (
+                                <option key={stn} value={stn}>{stn}</option>
+                              ));
+                            } else {
+                              return Object.values(sectionsObj).flat().map((stn) => (
+                                <option key={stn} value={stn}>{stn}</option>
+                              ));
+                            }
+                          })()}
                         </select>
                         {formErrors.formStationLocation && (
                           <span className="error-text">{formErrors.formStationLocation}</span>
@@ -4096,11 +4155,7 @@ export default function Home() {
                       className={`form-input ${vpFormErrors.formMajorSection ? "field-error-border" : ""}`}
                       style={{ height: "42px", appearance: "auto" }}
                       value={formMajorSection}
-                      onChange={(e) => {
-                        setFormMajorSection(e.target.value);
-                        setFormSection("");
-                        setFormStationLocation("");
-                      }}
+                      onChange={(e) => handleMajorSectionChange(e.target.value)}
                     >
                       <option value="">Select Major Section</option>
                       {selectedDivision && HIERARCHICAL_DATA[selectedDivision] && Object.keys(HIERARCHICAL_DATA[selectedDivision].majorSections).map((mSec) => (
@@ -4125,10 +4180,7 @@ export default function Home() {
                       className={`form-input ${vpFormErrors.formSection ? "field-error-border" : ""}`}
                       style={{ height: "42px", appearance: "auto" }}
                       value={formSection}
-                      onChange={(e) => {
-                        setFormSection(e.target.value);
-                        setFormStationLocation("");
-                      }}
+                      onChange={(e) => handleSectionChange(e.target.value)}
                       disabled={!formMajorSection}
                     >
                       <option value="">Select Section</option>
@@ -4153,15 +4205,22 @@ export default function Home() {
                       className={`form-input ${vpFormErrors.formStationLocation ? "field-error-border" : ""}`}
                       style={{ height: "42px", appearance: "auto" }}
                       value={formStationLocation}
-                      onChange={(e) => setFormStationLocation(e.target.value)}
-                      disabled={!formSection}
+                      onChange={(e) => handleStationLocationChange(e.target.value)}
+                      disabled={!formMajorSection}
                     >
                       <option value="">Select Station/Location</option>
-                      {formSection && formMajorSection && selectedDivision && HIERARCHICAL_DATA[selectedDivision]?.majorSections[formMajorSection]?.sections[formSection] &&
-                        HIERARCHICAL_DATA[selectedDivision].majorSections[formMajorSection].sections[formSection].map((stn) => (
-                          <option key={stn} value={stn}>{stn}</option>
-                        ))
-                      }
+                      {formMajorSection && selectedDivision && HIERARCHICAL_DATA[selectedDivision]?.majorSections[formMajorSection] && (() => {
+                        const sectionsObj = HIERARCHICAL_DATA[selectedDivision].majorSections[formMajorSection].sections;
+                        if (formSection) {
+                          return sectionsObj[formSection]?.map((stn) => (
+                            <option key={stn} value={stn}>{stn}</option>
+                          ));
+                        } else {
+                          return Object.values(sectionsObj).flat().map((stn) => (
+                            <option key={stn} value={stn}>{stn}</option>
+                          ));
+                        }
+                      })()}
                     </select>
                     {vpFormErrors.formStationLocation && (
                       <span className="error-text">{vpFormErrors.formStationLocation}</span>
