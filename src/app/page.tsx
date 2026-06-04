@@ -411,6 +411,7 @@ export default function Home() {
   const [netUpSpeed, setNetUpSpeed] = useState<string>("");
   const [netFaultNature, setNetFaultNature] = useState<string>("");
   const [netCustomFaultNature, setNetCustomFaultNature] = useState<string>("");
+  const [netAuditReport, setNetAuditReport] = useState<string>("");
   const [netFailureTime, setNetFailureTime] = useState<string>("");
   const [netRectificationTime, setNetRectificationTime] = useState<string>("");
   const [netSelectedReasons, setNetSelectedReasons] = useState<string[]>([]);
@@ -1218,20 +1219,27 @@ export default function Home() {
   };
 
   // Mock List of SECR Locations for Railnet
-  const LOCATIONS_LIST = [
-    "Bilaspur HQ",
-    "Raipur Division",
-    "Nagpur Division",
-    "Durg Station",
-    "Gondia Station",
-    "Dongargarh Station",
-    "Champa Station",
-    "Korba Station",
-    "Anuppur Station",
-    "Shahdol Station",
-    "Usalapur Station",
-    "Bhatapara Station"
-  ];
+  // Mock List of SECR Locations for Railnet
+  const LOCATIONS_LIST = useMemo(() => {
+    const list = [
+      "Bilaspur HQ",
+      "Raipur Division",
+      "Nagpur Division",
+      "Durg Station",
+      "Gondia Station",
+      "Dongargarh Station",
+      "Champa Station",
+      "Korba Station",
+      "Anuppur Station",
+      "Shahdol Station",
+      "Usalapur Station",
+      "Bhatapara Station"
+    ];
+    if (selectedCircuit?.name === "Railnet / Internet") {
+      list.push("Others");
+    }
+    return list;
+  }, [selectedCircuit]);
 
   // Filter locations based on search query
   const filteredLocations = useMemo(() => {
@@ -1239,7 +1247,7 @@ export default function Home() {
     return LOCATIONS_LIST.filter(loc => 
       loc.toLowerCase().includes(netLocSearchQuery.toLowerCase())
     );
-  }, [netLocSearchQuery]);
+  }, [netLocSearchQuery, LOCATIONS_LIST]);
 
   // Railnet Auto-calculated duration
   const netTotalDuration = useMemo(() => {
@@ -1265,12 +1273,23 @@ export default function Home() {
     if (!icmsEntryNo.trim()) {
       errors.icmsEntryNo = "ICMS Entry No./Docket No. is required";
     }
-    if (!netLocation) errors.netLocation = "Location is required";
+    if (!netLocation) {
+      errors.netLocation = selectedCircuit?.name === "Railnet / Internet"
+        ? "Location/Station is required"
+        : "Location is required";
+    }
     if (!netBandwidth.trim()) errors.netBandwidth = "Bandwidth is required";
-    if (!netTestingTime) errors.netTestingTime = "Testing Time is required";
+    if (!netTestingTime) {
+      errors.netTestingTime = selectedCircuit?.name === "Railnet / Internet"
+        ? "Last Testing Time is required"
+        : "Testing Time is required";
+    }
     if (!netFaultNature) errors.netFaultNature = "Nature of Fault is required";
     if (netFaultNature === "Other" && !netCustomFaultNature.trim()) {
       errors.netCustomFaultNature = "Fault details are required";
+    }
+    if (selectedCircuit?.name === "Railnet / Internet" && !netAuditReport.trim()) {
+      errors.netAuditReport = "Audit Report is required";
     }
     if (!netFailureTime) errors.netFailureTime = "Failure Date & Time is required";
     if (!netRectificationTime) errors.netRectificationTime = "Rectification Time is required";
@@ -1330,6 +1349,7 @@ export default function Home() {
         dnSpeed: netDnSpeed ? `${netDnSpeed} Mbps` : "-",
         upSpeed: netUpSpeed ? `${netUpSpeed} Mbps` : "-",
         faultNature: netFaultNature === "Other" ? `Other: ${netCustomFaultNature.trim()}` : netFaultNature,
+        auditReport: selectedCircuit?.name === "Railnet / Internet" ? netAuditReport.trim() : undefined,
         failureTime: formatDate(netFailureTime),
         rectificationTime: formatDate(netRectificationTime),
         duration: netTotalDuration,
@@ -1352,6 +1372,7 @@ export default function Home() {
       setNetUpSpeed("");
       setNetFaultNature("");
       setNetCustomFaultNature("");
+      setNetAuditReport("");
       setNetFailureTime("");
       setNetRectificationTime("");
       setNetSelectedReasons([]);
@@ -3022,7 +3043,7 @@ export default function Home() {
                   {/* Location - Searchable Dropdown */}
                   <div className="form-group">
                     <label className="form-label">
-                      Location <span className="required">*</span>
+                      {selectedCircuit?.name === "Railnet / Internet" ? "Location/Station" : "Location"} <span className="required">*</span>
                     </label>
                     <div className="multiselect-container" ref={netLocRef}>
                       <button
@@ -3030,7 +3051,7 @@ export default function Home() {
                         className={`multiselect-trigger ${netLocDropdownOpen ? "open" : ""}`}
                         onClick={() => setNetLocDropdownOpen(!netLocDropdownOpen)}
                       >
-                        <span>{netLocation ? netLocation : "Select Location"}</span>
+                        <span>{netLocation ? netLocation : selectedCircuit?.name === "Railnet / Internet" ? "Select Location/Station" : "Select Location"}</span>
                       </button>
                       {netLocDropdownOpen && (
                         <div className="multiselect-menu">
@@ -3051,7 +3072,7 @@ export default function Home() {
                             </span>
                             <input
                               type="text"
-                              placeholder="Filter location..."
+                              placeholder={selectedCircuit?.name === "Railnet / Internet" ? "Filter location/station..." : "Filter location..."}
                               className="circuit-dropdown-search"
                               value={netLocSearchQuery}
                               onChange={(e) => setNetLocSearchQuery(e.target.value)}
@@ -3118,7 +3139,7 @@ export default function Home() {
                   {/* Testing Time */}
                   <div className="form-group">
                     <label htmlFor="netTestingTime" className="form-label">
-                      Testing Time <span className="required">*</span>
+                      {selectedCircuit?.name === "Railnet / Internet" ? "Last Testing Time" : "Testing Time"} <span className="required">*</span>
                     </label>
                     <input
                       type="datetime-local"
@@ -3181,6 +3202,30 @@ export default function Home() {
                     {netFormErrors.netCustomFaultNature && (
                       <span className="error-text">{netFormErrors.netCustomFaultNature}</span>
                     )}
+                  </div>
+                )}
+
+                {/* Audit Report textbox (only for Railnet / Internet) */}
+                {selectedCircuit?.name === "Railnet / Internet" && (
+                  <div className="form-group-row">
+                    <div className="form-group">
+                      <label htmlFor="netAuditReport" className="form-label">
+                        Audit Report <span className="required">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        id="netAuditReport"
+                        className={`form-input ${netFormErrors.netAuditReport ? "field-error-border" : ""}`}
+                        placeholder="Enter Audit Report details"
+                        value={netAuditReport}
+                        onChange={(e) => setNetAuditReport(e.target.value)}
+                      />
+                      {netFormErrors.netAuditReport && (
+                        <span className="error-text">{netFormErrors.netAuditReport}</span>
+                      )}
+                    </div>
+                    {/* Placeholder space to maintain clean alignment */}
+                    <div className="form-group"></div>
                   </div>
                 )}
 
@@ -3382,6 +3427,7 @@ export default function Home() {
                         dnSpeed: "100 Mbps",
                         upSpeed: "100 Mbps",
                         faultNature: "None",
+                        auditReport: selectedCircuit?.name === "Railnet / Internet" ? "None" : undefined,
                         failureTime: formatDate(nowStr),
                         rectificationTime: formatDate(nowStr),
                         duration: "0 Hrs 0 Min",
@@ -3396,6 +3442,7 @@ export default function Home() {
                       setNetUpSpeed("");
                       setNetFaultNature("");
                       setNetCustomFaultNature("");
+                      setNetAuditReport("");
                       setNetFailureTime("");
                       setNetRectificationTime("");
                       setNetSelectedReasons([]);
