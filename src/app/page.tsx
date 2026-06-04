@@ -31,7 +31,7 @@ const generateCircuitDatabase = (): Circuit[] => {
     {
       category: "Communication & Voice Circuits",
       items: [
-        { name: "Control Failure & Telephone Failure", badge: "CFTF", code: "ICMS-01", desc: "Integrated Coaching Management System & Control Office Application status tracking." },
+        { name: "Control & ICMS Position", badge: "CFTF", code: "ICMS-01", desc: "Integrated Coaching Management System & Control Office Application status tracking." },
         { name: "FOIS (VSAT)", badge: "FOIS", code: "FOIS-02", desc: "Freight Operations Information System terminal connectivity and central host communications." },
         { name: "Hotline", badge: "HOTLINE", code: "HOT-03", desc: "Direct voice hotline linking General Manager to CRB." },
         { name: "Video Conferencing with Divisions", badge: "VC-D", code: "VC-04", desc: "Daily video conference link connecting HQ to divisional heads." },
@@ -372,7 +372,7 @@ export default function Home() {
   const [logInput, setLogInput] = useState<string>("");
   const [saveSuccess, setSaveSuccess] = useState<boolean>(false);
 
-  // Fault Entry Form states (Control Failure & Telephone Failure)
+  // Fault Entry Form states (Control & ICMS Position)
   const [icmsEntryNo, setIcmsEntryNo] = useState<string>("");
   const [faultySection, setFaultySection] = useState<string>("");
   const [circuitFailed, setCircuitFailed] = useState<string>("");
@@ -525,7 +525,7 @@ export default function Home() {
   const [savedFaults, setSavedFaults] = useState<any[]>([
     {
       id: 1,
-      circuitId: 1, // Control Failure & Telephone Failure
+      circuitId: 1, // Control & ICMS Position
       division: "Bilaspur",
       icmsEntryNo: "ICMS-2026-00412",
       faultySection: "BSP-CPH Section",
@@ -995,7 +995,7 @@ export default function Home() {
   const handleSaveFault = (e: React.FormEvent) => {
     e.preventDefault();
     const errors: Record<string, string> = {};
-    const isIcmsCom = selectedCircuit?.name === "Control Failure & Telephone Failure";
+    const isIcmsCom = selectedCircuit?.name === "Control & ICMS Position";
     const isFoisVsat = selectedCircuit?.name === "FOIS (VSAT)";
     const isHotline = selectedCircuit?.name === "Hotline";
     const isVcDiv = selectedCircuit?.name === "Video Conferencing with Divisions";
@@ -2331,7 +2331,7 @@ export default function Home() {
                   {/* Faulty Station/ Section / Location/station */}
                   <div className="form-group">
                     <label htmlFor="faultySection" className="form-label">
-                      {selectedCircuit?.name === "Control Failure & Telephone Failure"
+                      {selectedCircuit?.name === "Control & ICMS Position"
                         ? "Faulty Station/ Section"
                         : selectedCircuit?.name === "FOIS (VSAT)"
                         ? "Location/station"
@@ -2346,7 +2346,7 @@ export default function Home() {
                       id="faultySection"
                       className={`form-input ${formErrors.faultySection ? "field-error-border" : ""}`}
                       placeholder={
-                        selectedCircuit?.name === "Control Failure & Telephone Failure"
+                        selectedCircuit?.name === "Control & ICMS Position"
                           ? "Enter faulty station/section name"
                           : selectedCircuit?.name === "FOIS (VSAT)"
                           ? "Enter location/station name"
@@ -2460,7 +2460,7 @@ export default function Home() {
                         <div className="multiselect-menu">
                           {(selectedCircuit?.name === "Hotline"
                             ? [
-                                "Control Failure",
+                                "Control & ICMS Position",
                                 "Telephone Failure",
                                 "Cable Cut",
                                 "Link Failure",
@@ -2473,7 +2473,7 @@ export default function Home() {
                               ]
                             : selectedCircuit?.name === "Video Conferencing with Divisions"
                             ? [
-                                "Control Failure",
+                                "Control & ICMS Position",
                                 "Telephone Failure",
                                 "Cable Cut",
                                 "Link Failure",
@@ -2486,7 +2486,7 @@ export default function Home() {
                                 "Other"
                               ]
                             : [
-                                "Control Failure",
+                                "Control & ICMS Position",
                                 "Telephone Failure",
                                 "Cable Cut",
                                 "Link Failure",
@@ -2574,7 +2574,7 @@ export default function Home() {
                         id: Date.now(),
                         circuitId: selectedCircuit?.id,
                         division: selectedDivision,
-                        icmsEntryNo: selectedCircuit?.name === "Control Failure & Telephone Failure" ? "None" : undefined,
+                        icmsEntryNo: selectedCircuit?.name === "Control & ICMS Position" ? "None" : undefined,
                         faultySection: "None",
                         circuitFailed: selectedCircuit?.name || "All Circuits OK",
                         failureTime: formatDate(nowStr),
