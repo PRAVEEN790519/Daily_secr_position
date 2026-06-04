@@ -735,6 +735,17 @@ export default function Home() {
     setLiSaving(false);
   };
 
+  // Switch to the next circuit in the list when All OK is triggered
+  const moveToNextCircuit = () => {
+    if (!selectedCircuit) return;
+    const currentIndex = CIRCUITS_DATABASE.findIndex((c) => c.id === selectedCircuit.id);
+    if (currentIndex !== -1 && currentIndex < CIRCUITS_DATABASE.length - 1) {
+      const nextCircuit = CIRCUITS_DATABASE[currentIndex + 1];
+      handleSelectCircuit(nextCircuit);
+      setOpenDropdownCategory(nextCircuit.category);
+    }
+  };
+
 
   // Get active status details for the current selection
   const activeStatus = useMemo(() => {
@@ -809,7 +820,10 @@ export default function Home() {
   const handleSaveFault = (e: React.FormEvent) => {
     e.preventDefault();
     const errors: Record<string, string> = {};
-    if (!faultySection.trim()) errors.faultySection = "Faulty Section is required";
+    const isIcmsCom = selectedCircuit?.name === "ICMS & COM Position";
+    if (!faultySection.trim()) {
+      errors.faultySection = isIcmsCom ? "Faulty Station/ Section is required" : "Faulty Section is required";
+    }
     if (!circuitFailed.trim()) errors.circuitFailed = "Failed Circuit Name is required";
     if (!failureTime) errors.failureTime = "Failure Date & Time is required";
     if (!rectificationTime) errors.rectificationTime = "Rectification Time is required";
@@ -1931,16 +1945,16 @@ export default function Home() {
               {/* Fault Entry Form */}
               <form className="fault-form" onSubmit={handleSaveFault}>
                 <div className="form-group-row">
-                  {/* Faulty Section */}
+                  {/* Faulty Station/ Section */}
                   <div className="form-group">
                     <label htmlFor="faultySection" className="form-label">
-                      Faulty Section <span className="required">*</span>
+                      {selectedCircuit?.name === "ICMS & COM Position" ? "Faulty Station/ Section" : "Faulty Section"} <span className="required">*</span>
                     </label>
                     <input
                       type="text"
                       id="faultySection"
                       className={`form-input ${formErrors.faultySection ? "field-error-border" : ""}`}
-                      placeholder="Enter faulty section name"
+                      placeholder={selectedCircuit?.name === "ICMS & COM Position" ? "Enter faulty station/section name" : "Enter faulty section name"}
                       value={faultySection}
                       onChange={(e) => setFaultySection(e.target.value)}
                     />
@@ -2108,78 +2122,55 @@ export default function Home() {
                 </div>
 
                 {/* Save button */}
-                <div style={{ display: "flex", justifyContent: "flex-end" }}>
+                <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", gap: "12px" }}>
+                  <button
+                    type="button"
+                    className="all-ok-button"
+                    onClick={() => {
+                      const nowStr = new Date().toISOString().slice(0, 16);
+                      const formatDate = (dateStr: string) => {
+                        const d = new Date(dateStr);
+                        const day = String(d.getDate()).padStart(2, "0");
+                        const month = String(d.getMonth() + 1).padStart(2, "0");
+                        const year = d.getFullYear();
+                        const hour = String(d.getHours()).padStart(2, "0");
+                        const minute = String(d.getMinutes()).padStart(2, "0");
+                        return `${day}-${month}-${year} ${hour}:${minute}`;
+                      };
+                      const newFault = {
+                        id: Date.now(),
+                        circuitId: selectedCircuit?.id,
+                        division: selectedDivision,
+                        faultySection: "None",
+                        circuitFailed: selectedCircuit?.name || "All Circuits OK",
+                        failureTime: formatDate(nowStr),
+                        rectificationTime: formatDate(nowStr),
+                        duration: "0 Hrs 0 Min",
+                        reasons: "Link Failure",
+                        remarks: "All circuits tested OK. No faults reported."
+                      };
+                      setSavedFaults(prev => [newFault, ...prev]);
+                      setFaultySection("");
+                      setCircuitFailed("");
+                      setFailureTime("");
+                      setRectificationTime("");
+                      setSelectedReasons([]);
+                      setCustomReason("");
+                      setRemarks("");
+                      moveToNextCircuit();
+                    }}
+                  >
+                    All OK
+                  </button>
                   <button type="submit" className="save-button">
                     Save
                   </button>
                 </div>
               </form>
 
-              {/* Logged faults section */}
-              <div className="logged-faults-section">
-                <h3>Logged Fault Registry ({selectedDivision} Division)</h3>
-                <div className="fault-record-list">
-                  {filteredFaults.length > 0 ? (
-                    filteredFaults.map((fault) => (
-                        <div key={fault.id} className="fault-record">
-                          <div className="fault-record-header">
-                            <span className="fault-record-title">{fault.circuitFailed}</span>
-                            <span className="fault-record-duration">{fault.duration}</span>
-                          </div>
-                          <div className="fault-record-grid">
-                            <div className="fault-record-item">
-                              <span className="fault-record-label">Section:</span>
-                              <span className="fault-record-value">{fault.faultySection}</span>
-                            </div>
-                            <div className="fault-record-item">
-                              <span className="fault-record-label">Reasons:</span>
-                              <span className="fault-record-value">{fault.reasons}</span>
-                            </div>
-                            <div className="fault-record-item">
-                              <span className="fault-record-label">Failure Time:</span>
-                              <span className="fault-record-value">{fault.failureTime}</span>
-                            </div>
-                            <div className="fault-record-item">
-                              <span className="fault-record-label">Rectification:</span>
-                              <span className="fault-record-value">{fault.rectificationTime}</span>
-                            </div>
-                            {fault.remarks && (
-                              <div className="fault-record-item" style={{ gridColumn: "span 2" }}>
-                                <span className="fault-record-label">Remarks:</span>
-                                <span className="fault-record-value">{fault.remarks}</span>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      ))
-                  ) : (
-                    <div style={{ padding: "16px", fontSize: "13px", color: "#6B7280", textAlign: "center", border: "1px dashed #D1D5DB", borderRadius: "6px" }}>
-                      No faults registered for {selectedDivision} division today.
-                    </div>
-                  )}
-                </div>
-              </div>
 
-              {/* Workspace footer */}
-              <div className="workspace-footer" style={{ marginTop: "12px" }}>
-                <div className="footer-system">
-                  <svg
-                    width="14"
-                    height="14"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-                    <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-                  </svg>
-                  <span>SECR-HQ Fault Console Link</span>
-                </div>
-                <span>Telecom Desk SECR HQ Bilaspur</span>
-              </div>
+
+
             </div>
           ) : selectedCircuit.category === "Exchange" ? (
             /* Exchange Fault Entry Form Workspace */
@@ -2487,7 +2478,46 @@ export default function Home() {
                 </div>
 
                 {/* Save button with Loading State */}
-                <div style={{ display: "flex", justifyContent: "flex-end" }}>
+                <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", gap: "12px" }}>
+                  <button
+                    type="button"
+                    className="all-ok-button"
+                    onClick={() => {
+                      const nowStr = new Date().toISOString().slice(0, 16);
+                      const formatDate = (dateStr: string) => {
+                        const d = new Date(dateStr);
+                        const day = String(d.getDate()).padStart(2, "0");
+                        const month = String(d.getMonth() + 1).padStart(2, "0");
+                        const year = d.getFullYear();
+                        const hour = String(d.getHours()).padStart(2, "0");
+                        const minute = String(d.getMinutes()).padStart(2, "0");
+                        return `${day}-${month}-${year} ${hour}:${minute}`;
+                      };
+                      const newExchFault = {
+                        id: Date.now(),
+                        division: selectedDivision,
+                        exchangeName: selectedCircuit?.name || "BSP Exchange",
+                        faultName: "None",
+                        failureTime: formatDate(nowStr),
+                        rectificationTime: formatDate(nowStr),
+                        duration: "0 Hrs 0 Min",
+                        reasons: "Link Failure",
+                        remarks: "All exchange systems functioning normally."
+                      };
+                      setSavedExchFaults(prev => [newExchFault, ...prev]);
+                      setExchangeName("");
+                      setFaultName("");
+                      setCustomFaultName("");
+                      setExchFailureTime("");
+                      setExchRectificationTime("");
+                      setExchSelectedReasons([]);
+                      setExchCustomReason("");
+                      setExchRemarks("");
+                      moveToNextCircuit();
+                    }}
+                  >
+                    All OK
+                  </button>
                   <button 
                     type="submit" 
                     className={`save-button ${exchSaving ? "save-button-loading" : ""}`}
@@ -2505,69 +2535,9 @@ export default function Home() {
                 </div>
               </form>
 
-              {/* Logged faults section */}
-              <div className="logged-faults-section">
-                <h3>Logged Exchange Fault Registry ({selectedDivision} Division)</h3>
-                <div className="fault-record-list">
-                  {savedExchFaults.filter(f => f.division === selectedDivision).length > 0 ? (
-                    savedExchFaults
-                      .filter(f => f.division === selectedDivision)
-                      .map((fault) => (
-                        <div key={fault.id} className="fault-record">
-                          <div className="fault-record-header">
-                            <span className="fault-record-title">{fault.exchangeName} - {fault.faultName}</span>
-                            <span className="fault-record-duration">{fault.duration}</span>
-                          </div>
-                          <div className="fault-record-grid">
-                            <div className="fault-record-item">
-                              <span className="fault-record-label">Reasons:</span>
-                              <span className="fault-record-value">{fault.reasons}</span>
-                            </div>
-                            <div className="fault-record-item">
-                              <span className="fault-record-label">Failure Time:</span>
-                              <span className="fault-record-value">{fault.failureTime}</span>
-                            </div>
-                            <div className="fault-record-item">
-                              <span className="fault-record-label">Rectification:</span>
-                              <span className="fault-record-value">{fault.rectificationTime}</span>
-                            </div>
-                            {fault.remarks && (
-                              <div className="fault-record-item" style={{ gridColumn: "span 2" }}>
-                                <span className="fault-record-label">Remarks:</span>
-                                <span className="fault-record-value">{fault.remarks}</span>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      ))
-                  ) : (
-                    <div style={{ padding: "16px", fontSize: "13px", color: "#6B7280", textAlign: "center", border: "1px dashed #D1D5DB", borderRadius: "6px" }}>
-                      No exchange faults registered for {selectedDivision} division today.
-                    </div>
-                  )}
-                </div>
-              </div>
 
-              {/* Workspace footer */}
-              <div className="workspace-footer" style={{ marginTop: "12px" }}>
-                <div className="footer-system">
-                  <svg
-                    width="14"
-                    height="14"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-                    <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-                  </svg>
-                  <span>SECR Exchange Monitoring Console Link</span>
-                </div>
-                <span>Telecom Desk SECR HQ Bilaspur</span>
-              </div>
+
+
             </div>
           ) : selectedCircuit.name === "Railnet / Internet" ? (
             /* Railnet / Internet Monitoring Form Workspace */
@@ -2952,7 +2922,54 @@ export default function Home() {
                 </div>
 
                 {/* Save button with Loading State */}
-                <div style={{ display: "flex", justifyContent: "flex-end" }}>
+                <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", gap: "12px" }}>
+                  <button
+                    type="button"
+                    className="all-ok-button"
+                    onClick={() => {
+                      const nowStr = new Date().toISOString().slice(0, 16);
+                      const formatDate = (dateStr: string) => {
+                        const d = new Date(dateStr);
+                        const day = String(d.getDate()).padStart(2, "0");
+                        const month = String(d.getMonth() + 1).padStart(2, "0");
+                        const year = d.getFullYear();
+                        const hour = String(d.getHours()).padStart(2, "0");
+                        const minute = String(d.getMinutes()).padStart(2, "0");
+                        return `${day}-${month}-${year} ${hour}:${minute}`;
+                      };
+                      const newNetRecord = {
+                        id: Date.now(),
+                        division: selectedDivision,
+                        location: "Bilaspur HQ",
+                        bandwidth: "100 Mbps",
+                        testingTime: formatDate(nowStr),
+                        dnSpeed: "100 Mbps",
+                        upSpeed: "100 Mbps",
+                        faultNature: "None",
+                        failureTime: formatDate(nowStr),
+                        rectificationTime: formatDate(nowStr),
+                        duration: "0 Hrs 0 Min",
+                        reasons: "Link Failure",
+                        remarks: "All link parameters healthy. Zero packet loss."
+                      };
+                      setSavedNetRecords(prev => [newNetRecord, ...prev]);
+                      setNetLocation("");
+                      setNetBandwidth("");
+                      setNetTestingTime("");
+                      setNetDnSpeed("");
+                      setNetUpSpeed("");
+                      setNetFaultNature("");
+                      setNetCustomFaultNature("");
+                      setNetFailureTime("");
+                      setNetRectificationTime("");
+                      setNetSelectedReasons([]);
+                      setNetCustomReason("");
+                      setNetRemarks("");
+                      moveToNextCircuit();
+                    }}
+                  >
+                    All OK
+                  </button>
                   <button 
                     type="submit" 
                     className={`save-button ${netSaving ? "save-button-loading" : ""}`}
@@ -2970,81 +2987,9 @@ export default function Home() {
                 </div>
               </form>
 
-              {/* Logged faults registry list */}
-              <div className="logged-faults-section">
-                <h3>Logged Railnet & Internet Registry ({selectedDivision} Division)</h3>
-                <div className="fault-record-list">
-                  {savedNetRecords.filter(f => f.division === selectedDivision).length > 0 ? (
-                    savedNetRecords
-                      .filter(f => f.division === selectedDivision)
-                      .map((record) => (
-                        <div key={record.id} className="fault-record">
-                          <div className="fault-record-header">
-                            <span className="fault-record-title">{record.location} - {record.faultNature}</span>
-                            <span className="fault-record-duration">{record.duration}</span>
-                          </div>
-                          <div className="fault-record-grid">
-                            <div className="fault-record-item">
-                              <span className="fault-record-label">Bandwidth:</span>
-                              <span className="fault-record-value">{record.bandwidth}</span>
-                            </div>
-                            <div className="fault-record-item">
-                              <span className="fault-record-label">Speeds (Dn/Up):</span>
-                              <span className="fault-record-value">{record.dnSpeed} / {record.upSpeed}</span>
-                            </div>
-                            <div className="fault-record-item">
-                              <span className="fault-record-label">Testing Time:</span>
-                              <span className="fault-record-value">{record.testingTime}</span>
-                            </div>
-                            <div className="fault-record-item">
-                              <span className="fault-record-label">Reasons:</span>
-                              <span className="fault-record-value">{record.reasons}</span>
-                            </div>
-                            <div className="fault-record-item">
-                              <span className="fault-record-label">Failure Time:</span>
-                              <span className="fault-record-value">{record.failureTime}</span>
-                            </div>
-                            <div className="fault-record-item">
-                              <span className="fault-record-label">Rectification:</span>
-                              <span className="fault-record-value">{record.rectificationTime}</span>
-                            </div>
-                            {record.remarks && (
-                              <div className="fault-record-item" style={{ gridColumn: "span 2" }}>
-                                <span className="fault-record-label">Remarks:</span>
-                                <span className="fault-record-value">{record.remarks}</span>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      ))
-                  ) : (
-                    <div style={{ padding: "16px", fontSize: "13px", color: "#6B7280", textAlign: "center", border: "1px dashed #D1D5DB", borderRadius: "6px" }}>
-                      No Railnet/Internet records registered for {selectedDivision} division today.
-                    </div>
-                  )}
-                </div>
-              </div>
 
-              {/* Workspace footer */}
-              <div className="workspace-footer" style={{ marginTop: "12px" }}>
-                <div className="footer-system">
-                  <svg
-                    width="14"
-                    height="14"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-                    <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-                  </svg>
-                  <span>SECR Railnet Monitoring Link</span>
-                </div>
-                <span>Telecom Desk SECR HQ Bilaspur</span>
-              </div>
+
+
             </div>
           ) : selectedCircuit.name === "Rail Madad" ? (
             /* Rail Madad Monitoring & Case Entry Form Workspace */
@@ -3248,7 +3193,48 @@ export default function Home() {
                 </div>
 
                 {/* Save button with Loading State */}
-                <div style={{ display: "flex", justifyContent: "flex-end" }}>
+                <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", gap: "12px" }}>
+                  <button
+                    type="button"
+                    className="all-ok-button"
+                    onClick={() => {
+                      const nowStr = new Date().toISOString().slice(0, 16);
+                      const formatDate = (dateStr: string) => {
+                        const d = new Date(dateStr);
+                        const day = String(d.getDate()).padStart(2, "0");
+                        const month = String(d.getMonth() + 1).padStart(2, "0");
+                        const year = d.getFullYear();
+                        const hour = String(d.getHours()).padStart(2, "0");
+                        const minute = String(d.getMinutes()).padStart(2, "0");
+                        return `${day}-${month}-${year} ${hour}:${minute}`;
+                      };
+                      const newMadadRecord = {
+                        id: Date.now(),
+                        division: selectedDivision,
+                        balanceLast: "0",
+                        received: "0",
+                        complied: "0",
+                        netBalance: 0,
+                        description: "No grievances received today.",
+                        caseTime: formatDate(nowStr),
+                        complianceDetails: "All previous complaints cleared.",
+                        complianceTime: formatDate(nowStr),
+                        remarks: "Zero pending items."
+                      };
+                      setSavedMadadRecords(prev => [newMadadRecord, ...prev]);
+                      setMadadBalanceLast("");
+                      setMadadReceived("");
+                      setMadadComplied("");
+                      setMadadDescription("");
+                      setMadadCaseTime("");
+                      setMadadComplianceDetails("");
+                      setMadadComplianceTime("");
+                      setMadadRemarks("");
+                      moveToNextCircuit();
+                    }}
+                  >
+                    All OK
+                  </button>
                   <button 
                     type="submit" 
                     className={`save-button ${madadSaving ? "save-button-loading" : ""}`}
@@ -3266,67 +3252,9 @@ export default function Home() {
                 </div>
               </form>
 
-              {/* Logged cases registry section */}
-              <div className="logged-faults-section">
-                <h3>Logged Rail Madad Case Registry ({selectedDivision} Division)</h3>
-                <div className="fault-record-list">
-                  {savedMadadRecords.filter(r => r.division === selectedDivision).length > 0 ? (
-                    savedMadadRecords
-                      .filter(r => r.division === selectedDivision)
-                      .map((record) => (
-                        <div key={record.id} className="fault-record">
-                          <div className="fault-record-header">
-                            <span className="fault-record-title">Net Balance: {record.netBalance} cases</span>
-                            <span className="fault-record-duration">
-                              Last Bal: {record.balanceLast} | Recd: {record.received} | Comp: {record.complied}
-                            </span>
-                          </div>
-                          <div className="fault-record-grid">
-                            <div className="fault-record-item" style={{ gridColumn: "span 2" }}>
-                              <span className="fault-record-label">Case Details:</span>
-                              <span className="fault-record-value">{record.description} ({record.caseTime})</span>
-                            </div>
-                            <div className="fault-record-item" style={{ gridColumn: "span 2" }}>
-                              <span className="fault-record-label">Compliance:</span>
-                              <span className="fault-record-value">{record.complianceDetails} ({record.complianceTime})</span>
-                            </div>
-                            {record.remarks && (
-                              <div className="fault-record-item" style={{ gridColumn: "span 2" }}>
-                                <span className="fault-record-label">Remarks:</span>
-                                <span className="fault-record-value">{record.remarks}</span>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      ))
-                  ) : (
-                    <div style={{ padding: "16px", fontSize: "13px", color: "#6B7280", textAlign: "center", border: "1px dashed #D1D5DB", borderRadius: "6px" }}>
-                      No Rail Madad cases registered for {selectedDivision} division today.
-                    </div>
-                  )}
-                </div>
-              </div>
 
-              {/* Workspace footer */}
-              <div className="workspace-footer" style={{ marginTop: "12px" }}>
-                <div className="footer-system">
-                  <svg
-                    width="14"
-                    height="14"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-                    <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-                  </svg>
-                  <span>SECR Rail Madad Integration Console Link</span>
-                </div>
-                <span>Telecom Desk SECR HQ Bilaspur</span>
-              </div>
+
+
             </div>
           ) : selectedCircuit.name === "Railway Board Video Phones" ? (
             /* Railway Board Video Phone Test Form Workspace */
@@ -3497,7 +3425,42 @@ export default function Home() {
                 </div>
 
                 {/* Save button with Loading State */}
-                <div style={{ display: "flex", justifyContent: "flex-end" }}>
+                <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", gap: "12px" }}>
+                  <button
+                    type="button"
+                    className="all-ok-button"
+                    onClick={() => {
+                      const nowStr = new Date().toISOString().slice(0, 16);
+                      const formatDate = (dateStr: string) => {
+                        const d = new Date(dateStr);
+                        const day = String(d.getDate()).padStart(2, "0");
+                        const month = String(d.getMonth() + 1).padStart(2, "0");
+                        const year = d.getFullYear();
+                        const hour = String(d.getHours()).padStart(2, "0");
+                        const minute = String(d.getMinutes()).padStart(2, "0");
+                        return `${day}-${month}-${year} ${hour}:${minute}`;
+                      };
+                      const newVpRecord = {
+                        id: Date.now(),
+                        division: selectedDivision,
+                        phodChamber: "PCSTE",
+                        testingTime: formatDate(nowStr),
+                        videoClarity: "Excellent",
+                        audioClarity: "Excellent",
+                        remarks: "SIP trunk status checked. Audio and video quality tested normal."
+                      };
+                      setSavedVpRecords(prev => [newVpRecord, ...prev]);
+                      setVpPhodChamber("");
+                      setVpCustomPhod("");
+                      setVpTestingTime("");
+                      setVpVideoClarity("");
+                      setVpAudioClarity("");
+                      setVpRemarks("");
+                      moveToNextCircuit();
+                    }}
+                  >
+                    All OK
+                  </button>
                   <button 
                     type="submit" 
                     className={`save-button ${vpSaving ? "save-button-loading" : ""}`}
@@ -3515,69 +3478,9 @@ export default function Home() {
                 </div>
               </form>
 
-              {/* Logged Video Phone tests registry section */}
-              <div className="logged-faults-section">
-                <h3>Logged Video Phone Test Registry ({selectedDivision} Division)</h3>
-                <div className="fault-record-list">
-                  {savedVpRecords.filter(r => r.division === selectedDivision).length > 0 ? (
-                    savedVpRecords
-                      .filter(r => r.division === selectedDivision)
-                      .map((record) => (
-                        <div key={record.id} className="fault-record">
-                          <div className="fault-record-header">
-                            <span className="fault-record-title">Chamber: {record.phodChamber}</span>
-                            <span className="fault-record-duration">Tested with RB</span>
-                          </div>
-                          <div className="fault-record-grid">
-                            <div className="fault-record-item">
-                              <span className="fault-record-label">Testing Time:</span>
-                              <span className="fault-record-value">{record.testingTime}</span>
-                            </div>
-                            <div className="fault-record-item">
-                              <span className="fault-record-label">Video Clarity:</span>
-                              <span className="fault-record-value">{record.videoClarity}</span>
-                            </div>
-                            <div className="fault-record-item">
-                              <span className="fault-record-label">Audio Clarity:</span>
-                              <span className="fault-record-value">{record.audioClarity}</span>
-                            </div>
-                            {record.remarks && (
-                              <div className="fault-record-item" style={{ gridColumn: "span 2" }}>
-                                <span className="fault-record-label">Remarks:</span>
-                                <span className="fault-record-value">{record.remarks}</span>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      ))
-                  ) : (
-                    <div style={{ padding: "16px", fontSize: "13px", color: "#6B7280", textAlign: "center", border: "1px dashed #D1D5DB", borderRadius: "6px" }}>
-                      No Video Phone test logs registered for {selectedDivision} division today.
-                    </div>
-                  )}
-                </div>
-              </div>
 
-              {/* Workspace footer */}
-              <div className="workspace-footer" style={{ marginTop: "12px" }}>
-                <div className="footer-system">
-                  <svg
-                    width="14"
-                    height="14"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-                    <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-                  </svg>
-                  <span>SECR Railway Board Video Phone console</span>
-                </div>
-                <span>Telecom Desk SECR HQ Bilaspur</span>
-              </div>
+
+
             </div>
           ) : selectedCircuit.name === "Cable Cut (OFC & Quad)" ? (
             /* Cable Cut (OFC & Quad) Form Workspace */
@@ -3889,7 +3792,50 @@ export default function Home() {
                 </div>
 
                 {/* Save button with Loading State */}
-                <div style={{ display: "flex", justifyContent: "flex-end" }}>
+                <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", gap: "12px" }}>
+                  <button
+                    type="button"
+                    className="all-ok-button"
+                    onClick={() => {
+                      const nowStr = new Date().toISOString().slice(0, 16);
+                      const formatDate = (dateStr: string) => {
+                        const d = new Date(dateStr);
+                        const day = String(d.getDate()).padStart(2, "0");
+                        const month = String(d.getMonth() + 1).padStart(2, "0");
+                        const year = d.getFullYear();
+                        const hour = String(d.getHours()).padStart(2, "0");
+                        const minute = String(d.getMinutes()).padStart(2, "0");
+                        return `${day}-${month}-${year} ${hour}:${minute}`;
+                      };
+                      const newCcRecord = {
+                        id: Date.now(),
+                        division: selectedDivision,
+                        sectionName: "All Sections OK",
+                        kmNo: "None",
+                        cableTypes: "OFC (24 Core)",
+                        cutByWhom: "Railway Contractor",
+                        failureTime: formatDate(nowStr),
+                        rectificationTime: formatDate(nowStr),
+                        duration: "0 Hrs 0 Min",
+                        reasonOfFailure: "No cable cuts reported.",
+                        remarks: "All cable infrastructure normal."
+                      };
+                      setSavedCcRecords(prev => [newCcRecord, ...prev]);
+                      setCcSectionName("");
+                      setCcKmNo("");
+                      setCcCableTypes([]);
+                      setCcCustomCableType("");
+                      setCcCutByWhom([]);
+                      setCcCustomCutBy("");
+                      setCcFailureTime("");
+                      setCcRectificationTime("");
+                      setCcReasonOfFailure("");
+                      setCcRemarks("");
+                      moveToNextCircuit();
+                    }}
+                  >
+                    All OK
+                  </button>
                   <button 
                     type="submit" 
                     className={`save-button ${ccSaving ? "save-button-loading" : ""}`}
@@ -3907,77 +3853,9 @@ export default function Home() {
                 </div>
               </form>
 
-              {/* Logged Cable Cuts registry section */}
-              <div className="logged-faults-section">
-                <h3>Logged Cable Cut Registry ({selectedDivision} Division)</h3>
-                <div className="fault-record-list">
-                  {savedCcRecords.filter(r => r.division === selectedDivision).length > 0 ? (
-                    savedCcRecords
-                      .filter(r => r.division === selectedDivision)
-                      .map((record) => (
-                        <div key={record.id} className="fault-record">
-                          <div className="fault-record-header">
-                            <span className="fault-record-title">{record.sectionName} (KM {record.kmNo})</span>
-                            <span className="fault-record-duration">{record.duration}</span>
-                          </div>
-                          <div className="fault-record-grid">
-                            <div className="fault-record-item">
-                              <span className="fault-record-label">Cable Types:</span>
-                              <span className="fault-record-value">{record.cableTypes}</span>
-                            </div>
-                            <div className="fault-record-item">
-                              <span className="fault-record-label">Cut by Whom:</span>
-                              <span className="fault-record-value">{record.cutByWhom}</span>
-                            </div>
-                            <div className="fault-record-item">
-                              <span className="fault-record-label">Failure Time:</span>
-                              <span className="fault-record-value">{record.failureTime}</span>
-                            </div>
-                            <div className="fault-record-item">
-                              <span className="fault-record-label">Restoration (RT):</span>
-                              <span className="fault-record-value">{record.rectificationTime}</span>
-                            </div>
-                            <div className="fault-record-item" style={{ gridColumn: "span 2" }}>
-                              <span className="fault-record-label">Reason:</span>
-                              <span className="fault-record-value">{record.reasonOfFailure}</span>
-                            </div>
-                            {record.remarks && (
-                              <div className="fault-record-item" style={{ gridColumn: "span 2" }}>
-                                <span className="fault-record-label">Remarks:</span>
-                                <span className="fault-record-value">{record.remarks}</span>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      ))
-                  ) : (
-                    <div style={{ padding: "16px", fontSize: "13px", color: "#6B7280", textAlign: "center", border: "1px dashed #D1D5DB", borderRadius: "6px" }}>
-                      No Cable Cuts registered for {selectedDivision} division today.
-                    </div>
-                  )}
-                </div>
-              </div>
 
-              {/* Workspace footer */}
-              <div className="workspace-footer" style={{ marginTop: "12px" }}>
-                <div className="footer-system">
-                  <svg
-                    width="14"
-                    height="14"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-                    <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-                  </svg>
-                  <span>SECR Cable Integrity and OTDR Monitoring console</span>
-                </div>
-                <span>Telecom Desk SECR HQ Bilaspur</span>
-              </div>
+
+
             </div>
           ) : selectedCircuit.name === "Walkie-Talkie Testing" ? (
             /* Walkie-Talkie Testing Form Workspace */
@@ -4174,7 +4052,36 @@ export default function Home() {
                 </div>
 
                 {/* Submit button with Loading State */}
-                <div style={{ display: "flex", justifyContent: "flex-end" }}>
+                <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", gap: "12px" }}>
+                  <button
+                    type="button"
+                    className="all-ok-button"
+                    onClick={() => {
+                      const todayStr = new Date().toISOString().slice(0, 10);
+                      const newWtRecord = {
+                        id: Date.now(),
+                        division: selectedDivision,
+                        stationLobby: "All Stations",
+                        totalToBeTested: "50",
+                        makeModel: "Motorola",
+                        testingDate: todayStr,
+                        totalTested: "50",
+                        balanceToTest: "0",
+                        remarks: "All walkie-talkies tested and found OK."
+                      };
+                      setSavedWtRecords(prev => [newWtRecord, ...prev]);
+                      setWtStationLobby("");
+                      setWtTotalToBeTested("");
+                      setWtMakeModel("");
+                      setWtCustomMakeModel("");
+                      setWtTestingDate("");
+                      setWtTotalTested("");
+                      setWtRemarks("");
+                      moveToNextCircuit();
+                    }}
+                  >
+                    All OK
+                  </button>
                   <button 
                     type="submit" 
                     className={`save-button ${wtSaving ? "save-button-loading" : ""}`}
@@ -4192,75 +4099,9 @@ export default function Home() {
                 </div>
               </form>
 
-              {/* Logged Walkie-Talkie Registry Section */}
-              <div className="logged-faults-section">
-                <h3>Logged Walkie-Talkie Testing Registry ({selectedDivision} Division)</h3>
-                <div className="fault-record-list">
-                  {savedWtRecords.filter(r => r.division === selectedDivision).length > 0 ? (
-                    savedWtRecords
-                      .filter(r => r.division === selectedDivision)
-                      .map((record) => (
-                        <div key={record.id} className="fault-record">
-                          <div className="fault-record-header">
-                            <span className="fault-record-title">{record.stationLobby}</span>
-                            <span className="fault-record-duration" style={{ backgroundColor: "#EFF6FF", color: "#1D4ED8", border: "1px solid #BFDBFE" }}>
-                              Balance to test: {record.balanceToTest}
-                            </span>
-                          </div>
-                          <div className="fault-record-grid">
-                            <div className="fault-record-item">
-                              <span className="fault-record-label">Make/Model:</span>
-                              <span className="fault-record-value">{record.makeModel}</span>
-                            </div>
-                            <div className="fault-record-item">
-                              <span className="fault-record-label">Date of Testing:</span>
-                              <span className="fault-record-value">{record.testingDate}</span>
-                            </div>
-                            <div className="fault-record-item">
-                              <span className="fault-record-label">Total to be Tested:</span>
-                              <span className="fault-record-value">{record.totalToBeTested}</span>
-                            </div>
-                            <div className="fault-record-item">
-                              <span className="fault-record-label">Total Tested:</span>
-                              <span className="fault-record-value">{record.totalTested}</span>
-                            </div>
-                            {record.remarks && (
-                              <div className="fault-record-item" style={{ gridColumn: "span 2" }}>
-                                <span className="fault-record-label">Remarks:</span>
-                                <span className="fault-record-value">{record.remarks}</span>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      ))
-                  ) : (
-                    <div style={{ padding: "16px", fontSize: "13px", color: "#6B7280", textAlign: "center", border: "1px dashed #D1D5DB", borderRadius: "6px" }}>
-                      No Walkie-Talkie tests registered for {selectedDivision} division today.
-                    </div>
-                  )}
-                </div>
-              </div>
 
-              {/* Workspace footer */}
-              <div className="workspace-footer" style={{ marginTop: "12px" }}>
-                <div className="footer-system">
-                  <svg
-                    width="14"
-                    height="14"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-                    <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-                  </svg>
-                  <span>SECR Walkie-Talkie Testing & VHF Diagnostics console</span>
-                </div>
-                <span>Telecom Desk SECR HQ Bilaspur</span>
-              </div>
+
+
             </div>
           ) : selectedCircuit.name === "Walkie-Talkie Repairing" ? (
             /* Walkie-Talkie Repairing Form Workspace */
@@ -4623,7 +4464,50 @@ export default function Home() {
                 </div>
 
                 {/* Save button with Loading State */}
-                <div style={{ display: "flex", justifyContent: "flex-end" }}>
+                <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", gap: "12px" }}>
+                  <button
+                    type="button"
+                    className="all-ok-button"
+                    onClick={() => {
+                      const todayStr = new Date().toISOString().slice(0, 10);
+                      const newWtrRecord = {
+                        id: Date.now(),
+                        division: selectedDivision,
+                        date: todayStr,
+                        openingBalance: "0",
+                        receivedFromUser: "0",
+                        sentToFirm: "0",
+                        repairedFromFirm: "0",
+                        returnedToUser: "0",
+                        faultTypes: "Battery Fault",
+                        repairStatus: "Returned to User",
+                        proposedCondemnation: "0",
+                        condemned: "0",
+                        totalCondemnedYear: "0",
+                        actionTaken: "No pending repairs. All defective sets restored.",
+                        pendingRepair: "0",
+                        remarks: "All OK."
+                      };
+                      setSavedWtrRecords(prev => [newWtrRecord, ...prev]);
+                      setWtrDate("");
+                      setWtrOpeningBalance("");
+                      setWtrReceivedFromUser("");
+                      setWtrSentToFirm("");
+                      setWtrRepairedFromFirm("");
+                      setWtrReturnedToUser("");
+                      setWtrFaultTypes([]);
+                      setWtrCustomFault("");
+                      setWtrRepairStatus("");
+                      setWtrProposedCondemnation("");
+                      setWtrCondemned("");
+                      setWtrTotalCondemnedYear("");
+                      setWtrActionTaken("");
+                      setWtrRemarks("");
+                      moveToNextCircuit();
+                    }}
+                  >
+                    All OK
+                  </button>
                   <button 
                     type="submit" 
                     className={`save-button ${wtrSaving ? "save-button-loading" : ""}`}
@@ -4641,97 +4525,9 @@ export default function Home() {
                 </div>
               </form>
 
-              {/* Logged Walkie-Talkie Repairing Registry Section */}
-              <div className="logged-faults-section">
-                <h3>Logged Walkie-Talkie Repairing Registry ({selectedDivision} Division)</h3>
-                <div className="fault-record-list">
-                  {savedWtrRecords.filter(r => r.division === selectedDivision).length > 0 ? (
-                    savedWtrRecords
-                      .filter(r => r.division === selectedDivision)
-                      .map((record) => (
-                        <div key={record.id} className="fault-record">
-                          <div className="fault-record-header">
-                            <span className="fault-record-title">Log Date: {record.date}</span>
-                            <span className="fault-record-duration" style={{ backgroundColor: "#FEE2E2", color: "#991B1B", border: "1px solid #FCA5A5" }}>
-                              Pending sets: {record.pendingRepair}
-                            </span>
-                          </div>
-                          <div className="fault-record-grid">
-                            <div className="fault-record-item">
-                              <span className="fault-record-label">Opening Defective Balance:</span>
-                              <span className="fault-record-value">{record.openingBalance}</span>
-                            </div>
-                            <div className="fault-record-item">
-                              <span className="fault-record-label">Received from User:</span>
-                              <span className="fault-record-value">{record.receivedFromUser}</span>
-                            </div>
-                            <div className="fault-record-item">
-                              <span className="fault-record-label">Sent to Firm:</span>
-                              <span className="fault-record-value">{record.sentToFirm}</span>
-                            </div>
-                            <div className="fault-record-item">
-                              <span className="fault-record-label">Repaired from Firm:</span>
-                              <span className="fault-record-value">{record.repairedFromFirm}</span>
-                            </div>
-                            <div className="fault-record-item">
-                              <span className="fault-record-label">Returned to User:</span>
-                              <span className="fault-record-value">{record.returnedToUser}</span>
-                            </div>
-                            <div className="fault-record-item">
-                              <span className="fault-record-label">Proposed/Condemned (This Year):</span>
-                              <span className="fault-record-value">{record.proposedCondemnation} / {record.condemned} ({record.totalCondemnedYear})</span>
-                            </div>
-                            <div className="fault-record-item">
-                              <span className="fault-record-label">Fault Types:</span>
-                              <span className="fault-record-value">{record.faultTypes}</span>
-                            </div>
-                            <div className="fault-record-item">
-                              <span className="fault-record-label">Repair Status:</span>
-                              <span className="fault-record-value" style={{ fontWeight: "bold" }}>{record.repairStatus}</span>
-                            </div>
-                            {record.actionTaken && (
-                              <div className="fault-record-item" style={{ gridColumn: "span 2" }}>
-                                <span className="fault-record-label">Action Taken:</span>
-                                <span className="fault-record-value">{record.actionTaken}</span>
-                              </div>
-                            )}
-                            {record.remarks && (
-                              <div className="fault-record-item" style={{ gridColumn: "span 2" }}>
-                                <span className="fault-record-label">Remarks:</span>
-                                <span className="fault-record-value">{record.remarks}</span>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      ))
-                  ) : (
-                    <div style={{ padding: "16px", fontSize: "13px", color: "#6B7280", textAlign: "center", border: "1px dashed #D1D5DB", borderRadius: "6px" }}>
-                      No Walkie-Talkie repairs registered for {selectedDivision} division today.
-                    </div>
-                  )}
-                </div>
-              </div>
 
-              {/* Workspace footer */}
-              <div className="workspace-footer" style={{ marginTop: "12px" }}>
-                <div className="footer-system">
-                  <svg
-                    width="14"
-                    height="14"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-                    <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-                  </svg>
-                  <span>SECR Walkie-Talkie Repairing & Workshop Operations console</span>
-                </div>
-                <span>Telecom Desk SECR HQ Bilaspur</span>
-              </div>
+
+
             </div>
           ) : selectedCircuit.name === "Low Insulation" ? (
             /* Low Insulation Form Workspace */
@@ -4955,7 +4751,62 @@ export default function Home() {
                 </div>
 
                 {/* Save button with Loading State */}
-                <div style={{ display: "flex", justifyContent: "flex-end" }}>
+                <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", gap: "12px" }}>
+                  <button
+                    type="button"
+                    className="all-ok-button"
+                    onClick={() => {
+                      const nowStr = new Date().toISOString().slice(0, 16);
+                      const todayStr = new Date().toISOString().slice(0, 10);
+                      const formatDatetime = (dateStr: string) => {
+                        if (!dateStr) return "";
+                        const d = new Date(dateStr);
+                        if (isNaN(d.getTime())) return dateStr;
+                        const day = String(d.getDate()).padStart(2, "0");
+                        const month = String(d.getMonth() + 1).padStart(2, "0");
+                        const year = d.getFullYear();
+                        const hour = String(d.getHours()).padStart(2, "0");
+                        const minute = String(d.getMinutes()).padStart(2, "0");
+                        return `${day}-${month}-${year} ${hour}:${minute}`;
+                      };
+                      const formatDate = (dateStr: string) => {
+                        if (!dateStr) return "";
+                        const d = new Date(dateStr);
+                        if (isNaN(d.getTime())) return dateStr;
+                        const day = String(d.getDate()).padStart(2, "0");
+                        const month = String(d.getMonth() + 1).padStart(2, "0");
+                        const year = d.getFullYear();
+                        return `${year}-${month}-${day}`;
+                      };
+                      const newLiRecord = {
+                        id: Date.now(),
+                        division: selectedDivision,
+                        sectionName: "All Sections",
+                        kmNo: "None",
+                        totalFaults: "0",
+                        faultTime: formatDatetime(nowStr),
+                        rectified: "0",
+                        rectifiedTime: formatDatetime(nowStr),
+                        balanceFaults: "0",
+                        actionPlan: "No low insulation faults found. Regular megger testing and monitoring.",
+                        tdc: formatDate(todayStr),
+                        remarks: "All OK."
+                      };
+                      setSavedLiRecords(prev => [newLiRecord, ...prev]);
+                      setLiSectionName("");
+                      setLiKmNo("");
+                      setLiTotalFaults("");
+                      setLiFaultTime("");
+                      setLiRectified("");
+                      setLiRectifiedTime("");
+                      setLiActionPlan("");
+                      setLiTdc("");
+                      setLiRemarks("");
+                      moveToNextCircuit();
+                    }}
+                  >
+                    All OK
+                  </button>
                   <button 
                     type="submit" 
                     className={`save-button ${liSaving ? "save-button-loading" : ""}`}
@@ -4973,75 +4824,9 @@ export default function Home() {
                 </div>
               </form>
 
-              {/* Logged Low Insulation Registry Section */}
-              <div className="logged-faults-section">
-                <h3>Logged Low Insulation Registry ({selectedDivision} Division)</h3>
-                <div className="fault-record-list">
-                  {savedLiRecords.filter(r => r.division === selectedDivision).length > 0 ? (
-                    savedLiRecords
-                      .filter(r => r.division === selectedDivision)
-                      .map((record) => (
-                        <div key={record.id} className="fault-record">
-                          <div className="fault-record-header">
-                            <span className="fault-record-title">{record.sectionName} (KM {record.kmNo})</span>
-                            <span className="fault-record-duration" style={{ backgroundColor: "#FEF3C7", color: "#92400E", border: "1px solid #FCD34D" }}>
-                              Balance faults: {record.balanceFaults}
-                            </span>
-                          </div>
-                          <div className="fault-record-grid">
-                            <div className="fault-record-item">
-                              <span className="fault-record-label">Total Faults:</span>
-                              <span className="fault-record-value">{record.totalFaults} ({record.faultTime})</span>
-                            </div>
-                            <div className="fault-record-item">
-                              <span className="fault-record-label">Rectified Faults:</span>
-                              <span className="fault-record-value">{record.rectified} {record.rectifiedTime ? `(${record.rectifiedTime})` : ""}</span>
-                            </div>
-                            <div className="fault-record-item" style={{ gridColumn: "span 2" }}>
-                              <span className="fault-record-label">Target Date of Completion (TDC):</span>
-                              <span className="fault-record-value" style={{ fontWeight: "bold", color: "#B45309" }}>{record.tdc}</span>
-                            </div>
-                            <div className="fault-record-item" style={{ gridColumn: "span 2" }}>
-                              <span className="fault-record-label">Action Plan:</span>
-                              <span className="fault-record-value">{record.actionPlan}</span>
-                            </div>
-                            {record.remarks && (
-                              <div className="fault-record-item" style={{ gridColumn: "span 2" }}>
-                                <span className="fault-record-label">Remarks:</span>
-                                <span className="fault-record-value">{record.remarks}</span>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      ))
-                  ) : (
-                    <div style={{ padding: "16px", fontSize: "13px", color: "#6B7280", textAlign: "center", border: "1px dashed #D1D5DB", borderRadius: "6px" }}>
-                      No Low Insulation faults registered for {selectedDivision} division today.
-                    </div>
-                  )}
-                </div>
-              </div>
 
-              {/* Workspace footer */}
-              <div className="workspace-footer" style={{ marginTop: "12px" }}>
-                <div className="footer-system">
-                  <svg
-                    width="14"
-                    height="14"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-                    <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-                  </svg>
-                  <span>SECR Cable Insulation Resistance monitoring console</span>
-                </div>
-                <span>Telecom Desk SECR HQ Bilaspur</span>
-              </div>
+
+
             </div>
           ) : (
             /* Active Workspace View */
@@ -5148,9 +4933,9 @@ export default function Home() {
                     onChange={(e) => setLogInput(e.target.value)}
                     required
                   />
-                  <div className="save-row">
-                    {saveSuccess ? (
-                      <span className="save-success-msg">
+                  <div className="save-row" style={{ justifyContent: "flex-end", gap: "12px" }}>
+                    {saveSuccess && (
+                      <span className="save-success-msg" style={{ marginRight: "auto" }}>
                         <svg
                           width="14"
                           height="14"
@@ -5165,9 +4950,28 @@ export default function Home() {
                         </svg>
                         Update saved to daily position
                       </span>
-                    ) : (
-                      <span></span>
                     )}
+                    <button
+                      type="button"
+                      className="all-ok-button"
+                      onClick={() => {
+                        if (!selectedCircuit) return;
+                        const logKey = `${selectedDivision}_${selectedCircuit.id}`;
+                        const newLog = `${new Date().toLocaleTimeString("en-US", {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                          hour12: true,
+                        })} - All systems functioning normally. Insulation parameters healthy. Walkie-Talkies verified. No outages or cable cuts reported.`;
+                        setUserLogs((prev) => ({
+                          ...prev,
+                          [logKey]: [newLog, ...(prev[logKey] || [])],
+                        }));
+                        setLogInput("");
+                        moveToNextCircuit();
+                      }}
+                    >
+                      All OK
+                    </button>
                     <button type="submit" className="save-button">
                       Log Position
                     </button>
@@ -5175,26 +4979,7 @@ export default function Home() {
                 </form>
               </div>
 
-              {/* Workspace footer */}
-              <div className="workspace-footer">
-                <div className="footer-system">
-                  <svg
-                    width="14"
-                    height="14"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-                    <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-                  </svg>
-                  <span>Encrypted Link SECR-HQ/Div-Control</span>
-                </div>
-                <span>Telecom Desk SECR HQ Bilaspur</span>
-              </div>
+
             </div>
           )}
         </main>

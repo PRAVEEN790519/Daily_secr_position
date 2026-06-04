@@ -696,6 +696,27 @@ body,
   transform: scale(0.98);
 }
 
+.all-ok-button {
+  padding: 8px 16px;
+  background-color: #16A34A;
+  color: #FFFFFF;
+  font-size: 13px;
+  font-weight: 650;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.15s ease, transform 0.1s ease;
+  box-shadow: var(--shadow-sm);
+}
+
+.all-ok-button:hover {
+  background-color: #15803D;
+}
+
+.all-ok-button:active {
+  transform: scale(0.98);
+}
+
 /* Footer section inside workspace card */
 .workspace-footer {
   margin-top: auto;
