@@ -826,6 +826,7 @@ export default function Home() {
     const isIcmsCom = selectedCircuit?.name === "Control Failure & Telephone Failure";
     const isFoisVsat = selectedCircuit?.name === "FOIS (VSAT)";
     const isHotline = selectedCircuit?.name === "Hotline";
+    const isVcDiv = selectedCircuit?.name === "Video Conferencing with Divisions";
     if (!icmsEntryNo.trim()) {
       errors.icmsEntryNo = "ICMS Entry No./Docket No. is required";
     }
@@ -836,6 +837,8 @@ export default function Home() {
         ? "Location/station is required" 
         : isHotline
         ? "Faulty Hotline Location is required"
+        : isVcDiv
+        ? "Faulty Location is required"
         : "Faulty Section is required";
     }
     if (!circuitFailed.trim()) errors.circuitFailed = "Failed Circuit Name is required";
@@ -2028,6 +2031,8 @@ export default function Home() {
                         ? "Location/station"
                         : selectedCircuit?.name === "Hotline"
                         ? "Faulty Hotline Location"
+                        : selectedCircuit?.name === "Video Conferencing with Divisions"
+                        ? "Faulty Location"
                         : "Faulty Section"} <span className="required">*</span>
                     </label>
                     <input
@@ -2041,6 +2046,8 @@ export default function Home() {
                           ? "Enter location/station name"
                           : selectedCircuit?.name === "Hotline"
                           ? "Enter faulty hotline location"
+                          : selectedCircuit?.name === "Video Conferencing with Divisions"
+                          ? "Enter faulty location"
                           : "Enter faulty section name"
                       }
                       value={faultySection}
@@ -2114,7 +2121,7 @@ export default function Home() {
                   {/* Total Duration (Read Only) */}
                   <div className="form-group">
                     <label htmlFor="totalDuration" className="form-label">
-                      {selectedCircuit?.name === "Control Failure & Telephone Failure" ? "Duration of Failure" : "Total Duration (Calculated)"}
+                      Duration of Failure
                     </label>
                     <input
                       type="text"
@@ -2156,6 +2163,20 @@ export default function Home() {
                                 "Power Failure",
                                 "Configuration Issue",
                                 "AddExchange",
+                                "Other"
+                              ]
+                            : selectedCircuit?.name === "Video Conferencing with Divisions"
+                            ? [
+                                "Control Failure",
+                                "Telephone Failure",
+                                "Cable Cut",
+                                "Link Failure",
+                                "Equipment Failure (STM)",
+                                "Equipment Failure (Phone)",
+                                "Power Failure",
+                                "Configuration Issue",
+                                "Router Failure",
+                                "Switch failure",
                                 "Other"
                               ]
                             : [
@@ -2501,7 +2522,7 @@ export default function Home() {
                   {/* Total Duration (Read Only) */}
                   <div className="form-group">
                     <label htmlFor="exchTotalDuration" className="form-label">
-                      Total Duration (Calculated)
+                      Duration of Failure
                     </label>
                     <input
                       type="text"
@@ -2959,7 +2980,7 @@ export default function Home() {
                 <div className="form-group-row">
                   {/* Total Duration (Read Only) */}
                   <div className="form-group">
-                    <label htmlFor="netTotalDuration" className="form-label">Total Duration (Calculated)</label>
+                    <label htmlFor="netTotalDuration" className="form-label">Duration of Failure</label>
                     <input
                       type="text"
                       id="netTotalDuration"
@@ -3936,7 +3957,7 @@ export default function Home() {
                   {/* Total duration (calculated, read-only) */}
                   <div className="form-group">
                     <label htmlFor="ccDuration" className="form-label">
-                      Total Duration (Calculated)
+                      Duration of Failure
                     </label>
                     <input
                       type="text"
