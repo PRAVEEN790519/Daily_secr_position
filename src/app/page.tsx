@@ -36,8 +36,7 @@ const generateCircuitDatabase = (): Circuit[] => {
         { name: "Hotline", badge: "HOTLINE", code: "HOT-03", desc: "Direct voice hotline linking General Manager to CRB." },
         { name: "Video Conferencing with Divisions", badge: "VC-D", code: "VC-04", desc: "Daily video conference link connecting HQ to divisional heads." },
         { name: "Railway Board Video Phones", badge: "VP-RB", code: "VPHONE-05", desc: "SIP-based video telephone terminals for Board communications." },
-        { name: "CFTM Conference", badge: "CONF", code: "CONF-06", desc: "Conference circuit for Chief Freight Transportation Manager operations." },
-        { name: "Rail Madad", badge: "MADAD", code: "MAD-07", desc: "Passenger grievance portal integration and telecom complaints hotline." }
+        { name: "CFTM Conference", badge: "CONF", code: "CONF-06", desc: "Conference circuit for Chief Freight Transportation Manager operations." }
       ]
     },
     {
@@ -45,7 +44,6 @@ const generateCircuitDatabase = (): Circuit[] => {
       items: [
         { name: "Railnet / Internet", badge: "NET", code: "NET-08", desc: "SECR Railway Intranet and official broadband gateways." },
         { name: "Wi-Fi", badge: "WIFI", code: "WIFI-09", desc: "Public Wi-Fi access points at stations (RailWire)." },
-        { name: "Google Wi-Fi", badge: "G-WIFI", code: "GWIFI-10", desc: "High-speed Google Wi-Fi station hotspots tracking." },
         { name: "UTS", badge: "UTS", code: "UTS-11", desc: "Unreserved Ticketing System network terminals." },
         { name: "PRS", badge: "PRS", code: "PRS-12", desc: "Passenger Reservation System ticketing gateways." }
       ]
@@ -97,6 +95,12 @@ const generateCircuitDatabase = (): Circuit[] => {
         { name: "PND", badge: "EX-PND", code: "EX-13", desc: "Pendra Road local railway exchange." },
         { name: "UMR", badge: "EX-UMR", code: "EX-14", desc: "Umaria railway telephone exchange." },
         { name: "BRS", badge: "EX-BRS", code: "EX-15", desc: "Birsinghpur exchange lines." }
+      ]
+    },
+    {
+      category: "Rail Madad",
+      items: [
+        { name: "Rail Madad", badge: "MADAD", code: "MAD-07", desc: "Passenger grievance portal integration and telecom complaints hotline." }
       ]
     }
   ];
@@ -436,6 +440,8 @@ export default function Home() {
   const [netFaultNature, setNetFaultNature] = useState<string>("");
   const [netCustomFaultNature, setNetCustomFaultNature] = useState<string>("");
   const [netAuditReport, setNetAuditReport] = useState<string>("");
+  const [netAttachment, setNetAttachment] = useState<File | null>(null);
+  const [netActiveTab, setNetActiveTab] = useState<"divisional" | "hq">("divisional");
   const [netFailureTime, setNetFailureTime] = useState<string>("");
   const [netRectificationTime, setNetRectificationTime] = useState<string>("");
   const [netSelectedReasons, setNetSelectedReasons] = useState<string[]>([]);
@@ -828,9 +834,15 @@ export default function Home() {
     setFormErrors({});
 
     // Reset hierarchical fields
-    setFormMajorSection("");
-    setFormSection("");
-    setFormStationLocation("");
+    if (circuit.name === "Railnet / Internet" && netActiveTab === "hq") {
+      setFormMajorSection("Bilaspur HQ");
+      setFormSection("HQ Internet Maintenance");
+      setFormStationLocation("SECR HQ (Bilaspur)");
+    } else {
+      setFormMajorSection("");
+      setFormSection("");
+      setFormStationLocation("");
+    }
 
     // Clear Exchange states when switching circuits
     if (circuit.category === "Exchange") {
@@ -850,7 +862,11 @@ export default function Home() {
     setExchSaving(false);
 
     // Clear Railnet states when switching circuits
-    setNetLocation("");
+    if (circuit.name === "Railnet / Internet" && netActiveTab === "hq") {
+      setNetLocation("Bilaspur HQ");
+    } else {
+      setNetLocation("");
+    }
     setNetBandwidth("");
     setNetTestingTime("");
     setNetDnSpeed("");
@@ -1402,6 +1418,7 @@ export default function Home() {
         upSpeed: netUpSpeed ? `${netUpSpeed} Mbps` : "-",
         faultNature: netFaultNature === "Other" ? `Other: ${netCustomFaultNature.trim()}` : netFaultNature,
         auditReport: selectedCircuit?.name === "Railnet / Internet" ? netAuditReport.trim() : undefined,
+        attachmentName: netAttachment ? netAttachment.name : undefined,
         failureTime: formatDate(netFailureTime),
         rectificationTime: formatDate(netRectificationTime),
         duration: netTotalDuration,
@@ -1417,7 +1434,6 @@ export default function Home() {
 
       // Reset form fields
       setIcmsEntryNo("");
-      setNetLocation("");
       setNetBandwidth("");
       setNetTestingTime("");
       setNetDnSpeed("");
@@ -1425,14 +1441,23 @@ export default function Home() {
       setNetFaultNature("");
       setNetCustomFaultNature("");
       setNetAuditReport("");
+      setNetAttachment(null);
       setNetFailureTime("");
       setNetRectificationTime("");
       setNetSelectedReasons([]);
       setNetCustomReason("");
       setNetRemarks("");
-      setFormMajorSection("");
-      setFormSection("");
-      setFormStationLocation("");
+      if (netActiveTab === "hq") {
+        setFormMajorSection("Bilaspur HQ");
+        setFormSection("HQ Internet Maintenance");
+        setFormStationLocation("SECR HQ (Bilaspur)");
+        setNetLocation("Bilaspur HQ");
+      } else {
+        setNetLocation("");
+        setFormMajorSection("");
+        setFormSection("");
+        setFormStationLocation("");
+      }
       setNetFormSuccess(true);
 
       // Auto hide success banner after 5 seconds
@@ -2209,7 +2234,8 @@ export default function Home() {
               "Display System",
               "Testing & Maintenance",
               "CCTV",
-              "Exchange"
+              "Exchange",
+              "Rail Madad"
             ].map((catName, index) => {
               const isOpen = openDropdownCategory === catName;
               const filteredList = getFilteredCategoryCircuits(catName);
@@ -2219,27 +2245,38 @@ export default function Home() {
                 <div key={catName} className={`category-select-group ${isSelectedInCat ? "active-category" : ""}`}>
                   <button
                     type="button"
-                    className={`category-heading-trigger ${isOpen ? "open" : ""} ${isSelectedInCat ? "selected" : ""}`}
-                    onClick={() => handleToggleCategoryDropdown(catName)}
-                    aria-label={`Toggle ${catName}`}
+                    className={`category-heading-trigger ${isOpen && catName !== "Rail Madad" ? "open" : ""} ${isSelectedInCat ? "selected" : ""}`}
+                    onClick={() => {
+                      if (catName === "Rail Madad") {
+                        const circuit = CIRCUITS_DATABASE.find(c => c.category === "Rail Madad");
+                        if (circuit) {
+                          handleSelectCircuit(circuit);
+                        }
+                      } else {
+                        handleToggleCategoryDropdown(catName);
+                      }
+                    }}
+                    aria-label={catName === "Rail Madad" ? "Select Rail Madad" : `Toggle ${catName}`}
                   >
                     <span className="category-heading-text">
-                      {index + 1}. {catName}
+                      {catName}
                     </span>
-                    <span className="category-arrow">
-                      {isOpen ? "▲" : "▼"}
-                    </span>
+                    {catName !== "Rail Madad" && (
+                      <span className="category-arrow">
+                        {isOpen ? "▲" : "▼"}
+                      </span>
+                    )}
                   </button>
 
                   {/* Show selected circuit details if closed and selected */}
-                  {isSelectedInCat && !isOpen && (
+                  {isSelectedInCat && !isOpen && catName !== "Rail Madad" && (
                     <div className="category-selected-preview">
                       <span className="dot"></span>
                       <span>{selectedCircuit.name}</span>
                     </div>
                   )}
 
-                  {isOpen && (
+                  {isOpen && catName !== "Rail Madad" && (
                     <div className="circuit-dropdown-inline-box">
                       {/* Search input inside dropdown for searching category items */}
                       <div className="circuit-dropdown-search-wrapper" style={{ position: "relative" }}>
@@ -3331,9 +3368,59 @@ export default function Home() {
             /* Railnet / Internet Monitoring Form Workspace */
             <div className="workspace-content">
               {/* Workspace Title bar */}
-              <div className="workspace-title-section">
+              <div className="workspace-title-section" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div className="workspace-title-left">
                   <h2>Railnet / Internet</h2>
+                </div>
+                <div style={{ display: 'flex', gap: '4px', backgroundColor: '#f1f5f9', padding: '4px', borderRadius: '8px' }}>
+                  <button
+                    type="button"
+                    style={{
+                      padding: '6px 12px',
+                      fontSize: '13px',
+                      fontWeight: '500',
+                      border: 'none',
+                      borderRadius: '6px',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s',
+                      backgroundColor: netActiveTab === 'divisional' ? '#ffffff' : 'transparent',
+                      color: netActiveTab === 'divisional' ? 'var(--primary-color)' : '#64748b',
+                      boxShadow: netActiveTab === 'divisional' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none'
+                    }}
+                    onClick={() => {
+                      setNetActiveTab('divisional');
+                      setFormMajorSection("");
+                      setFormSection("");
+                      setFormStationLocation("");
+                      setNetLocation("");
+                    }}
+                  >
+                    Divisional Maintenance
+                  </button>
+                  <button
+                    type="button"
+                    style={{
+                      padding: '6px 12px',
+                      fontSize: '13px',
+                      fontWeight: '500',
+                      border: 'none',
+                      borderRadius: '6px',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s',
+                      backgroundColor: netActiveTab === 'hq' ? '#ffffff' : 'transparent',
+                      color: netActiveTab === 'hq' ? 'var(--primary-color)' : '#64748b',
+                      boxShadow: netActiveTab === 'hq' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none'
+                    }}
+                    onClick={() => {
+                      setNetActiveTab('hq');
+                      setFormMajorSection("Bilaspur HQ");
+                      setFormSection("HQ Internet Maintenance");
+                      setFormStationLocation("SECR HQ (Bilaspur)");
+                      setNetLocation("Bilaspur HQ");
+                    }}
+                  >
+                    HQ Maintenance
+                  </button>
                 </div>
               </div>
 
@@ -3358,7 +3445,167 @@ export default function Home() {
 
               {/* Railnet / Internet Monitoring Form */}
               <form className="fault-form" onSubmit={handleSaveNetRecord}>
-                {renderHierarchicalFields(netFormErrors)}
+                {netActiveTab !== "hq" && (
+                  <>
+                    <div className="form-group-row">
+                      {/* Major Section */}
+                      <div className="form-group">
+                        <label htmlFor="formMajorSection" className="form-label">
+                          Major Section <span className="required">*</span>
+                        </label>
+                        <select
+                          id="formMajorSection"
+                          className={`form-input ${netFormErrors.formMajorSection ? "field-error-border" : ""}`}
+                          style={{ height: "42px", appearance: "auto" }}
+                          value={formMajorSection}
+                          onChange={(e) => handleMajorSectionChange(e.target.value)}
+                        >
+                          <option value="">Select Major Section</option>
+                          {selectedDivision && HIERARCHICAL_DATA[selectedDivision] && Object.keys(HIERARCHICAL_DATA[selectedDivision].majorSections).map((mSec) => (
+                            <option key={mSec} value={mSec}>{mSec}</option>
+                          ))}
+                        </select>
+                        {netFormErrors.formMajorSection && (
+                          <span className="error-text">{netFormErrors.formMajorSection}</span>
+                        )}
+                      </div>
+
+                      {/* Section */}
+                      <div className="form-group">
+                        <label htmlFor="formSection" className="form-label">
+                          Section <span className="required">*</span>
+                        </label>
+                        <select
+                          id="formSection"
+                          className={`form-input ${netFormErrors.formSection ? "field-error-border" : ""}`}
+                          style={{ height: "42px", appearance: "auto" }}
+                          value={formSection}
+                          onChange={(e) => handleSectionChange(e.target.value)}
+                          disabled={!formMajorSection}
+                        >
+                          <option value="">Select Section</option>
+                          {formMajorSection && selectedDivision && HIERARCHICAL_DATA[selectedDivision]?.majorSections[formMajorSection] && 
+                            Object.keys(HIERARCHICAL_DATA[selectedDivision].majorSections[formMajorSection].sections).map((sec) => (
+                              <option key={sec} value={sec}>{sec}</option>
+                            ))
+                          }
+                        </select>
+                        {netFormErrors.formSection && (
+                          <span className="error-text">{netFormErrors.formSection}</span>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="form-group-row">
+                      {/* Station/Location */}
+                      <div className="form-group">
+                        <label htmlFor="formStationLocation" className="form-label">
+                          Station/Location <span className="required">*</span>
+                        </label>
+                        <select
+                          id="formStationLocation"
+                          className={`form-input ${netFormErrors.formStationLocation ? "field-error-border" : ""}`}
+                          style={{ height: "42px", appearance: "auto" }}
+                          value={formStationLocation}
+                          onChange={(e) => handleStationLocationChange(e.target.value)}
+                          disabled={!formMajorSection}
+                        >
+                          <option value="">Select Station/Location</option>
+                          {formMajorSection && selectedDivision && HIERARCHICAL_DATA[selectedDivision]?.majorSections[formMajorSection] && (() => {
+                            const sectionsObj = HIERARCHICAL_DATA[selectedDivision].majorSections[formMajorSection].sections;
+                            if (formSection) {
+                              return sectionsObj[formSection]?.map((stn) => (
+                                <option key={stn} value={stn}>{stn}</option>
+                              ));
+                            } else {
+                              return Object.values(sectionsObj).flat().map((stn) => (
+                                <option key={stn} value={stn}>{stn}</option>
+                              ));
+                            }
+                          })()}
+                        </select>
+                        {netFormErrors.formStationLocation && (
+                          <span className="error-text">{netFormErrors.formStationLocation}</span>
+                        )}
+                      </div>
+
+                      {/* Location/Station (Searchable Dropdown) */}
+                      <div className="form-group">
+                        <label className="form-label">
+                          {selectedCircuit?.name === "Railnet / Internet" ? "Location/Station" : "Location"} <span className="required">*</span>
+                        </label>
+                        <div className="multiselect-container" ref={netLocRef}>
+                          <button
+                            type="button"
+                            className={`multiselect-trigger ${netLocDropdownOpen ? "open" : ""}`}
+                            onClick={() => setNetLocDropdownOpen(!netLocDropdownOpen)}
+                          >
+                            <span>{netLocation ? netLocation : selectedCircuit?.name === "Railnet / Internet" ? "Select Location/Station" : "Select Location"}</span>
+                          </button>
+                          {netLocDropdownOpen && (
+                            <div className="multiselect-menu">
+                              <div className="circuit-dropdown-search-wrapper" style={{ position: "relative" }}>
+                                <span className="circuit-dropdown-search-icon">
+                                  <svg
+                                    width="12"
+                                    height="12"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    strokeWidth="2.5"
+                                  >
+                                    <circle cx="11" cy="11" r="8"></circle>
+                                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                                  </svg>
+                                </span>
+                                <input
+                                  type="text"
+                                  placeholder={selectedCircuit?.name === "Railnet / Internet" ? "Filter location/station..." : "Filter location..."}
+                                  className="circuit-dropdown-search"
+                                  value={netLocSearchQuery}
+                                  onChange={(e) => setNetLocSearchQuery(e.target.value)}
+                                  autoFocus
+                                  onClick={(e) => e.stopPropagation()}
+                                />
+                              </div>
+                              <div style={{ maxHeight: "170px", overflowY: "auto" }}>
+                                {filteredLocations.length > 0 ? (
+                                  filteredLocations.map((loc) => (
+                                    <div
+                                      key={loc}
+                                      className="dropdown-item"
+                                      style={{
+                                        padding: "8px 12px",
+                                        fontSize: "13.5px",
+                                        backgroundColor: netLocation === loc ? "#EFF6FF" : "transparent",
+                                        color: netLocation === loc ? "var(--primary-color)" : "var(--text-color)"
+                                      }}
+                                      onClick={() => {
+                                        setNetLocation(loc);
+                                        setNetLocDropdownOpen(false);
+                                        setNetLocSearchQuery("");
+                                      }}
+                                    >
+                                      {loc}
+                                    </div>
+                                  ))
+                                ) : (
+                                  <div style={{ padding: "10px", fontSize: "12.5px", color: "#6B7280", textAlign: "center" }}>
+                                    No locations found.
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                        {netFormErrors.netLocation && (
+                          <span className="error-text">{netFormErrors.netLocation}</span>
+                        )}
+                      </div>
+                    </div>
+                  </>
+                )}
+
                 <div className="form-group-row">
                   {/* ICMS Entry No./Docket No. */}
                   <div className="form-group">
@@ -3375,86 +3622,6 @@ export default function Home() {
                     />
                     {netFormErrors.icmsEntryNo && (
                       <span className="error-text">{netFormErrors.icmsEntryNo}</span>
-                    )}
-                  </div>
-                  {/* Placeholder space to maintain clean alignment */}
-                  <div className="form-group"></div>
-                </div>
-
-                <div className="form-group-row">
-                  {/* Location - Searchable Dropdown */}
-                  <div className="form-group">
-                    <label className="form-label">
-                      {selectedCircuit?.name === "Railnet / Internet" ? "Location/Station" : "Location"} <span className="required">*</span>
-                    </label>
-                    <div className="multiselect-container" ref={netLocRef}>
-                      <button
-                        type="button"
-                        className={`multiselect-trigger ${netLocDropdownOpen ? "open" : ""}`}
-                        onClick={() => setNetLocDropdownOpen(!netLocDropdownOpen)}
-                      >
-                        <span>{netLocation ? netLocation : selectedCircuit?.name === "Railnet / Internet" ? "Select Location/Station" : "Select Location"}</span>
-                      </button>
-                      {netLocDropdownOpen && (
-                        <div className="multiselect-menu">
-                          {/* Search input inside Location dropdown */}
-                          <div className="circuit-dropdown-search-wrapper" style={{ position: "relative" }}>
-                            <span className="circuit-dropdown-search-icon">
-                              <svg
-                                width="12"
-                                height="12"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                strokeWidth="2.5"
-                              >
-                                <circle cx="11" cy="11" r="8"></circle>
-                                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                              </svg>
-                            </span>
-                            <input
-                              type="text"
-                              placeholder={selectedCircuit?.name === "Railnet / Internet" ? "Filter location/station..." : "Filter location..."}
-                              className="circuit-dropdown-search"
-                              value={netLocSearchQuery}
-                              onChange={(e) => setNetLocSearchQuery(e.target.value)}
-                              autoFocus
-                              onClick={(e) => e.stopPropagation()}
-                            />
-                          </div>
-                          {/* Location items */}
-                          <div style={{ maxHeight: "170px", overflowY: "auto" }}>
-                            {filteredLocations.length > 0 ? (
-                              filteredLocations.map((loc) => (
-                                <div
-                                  key={loc}
-                                  className="dropdown-item"
-                                  style={{
-                                    padding: "8px 12px",
-                                    fontSize: "13.5px",
-                                    backgroundColor: netLocation === loc ? "#EFF6FF" : "transparent",
-                                    color: netLocation === loc ? "var(--primary-color)" : "var(--text-color)"
-                                  }}
-                                  onClick={() => {
-                                    setNetLocation(loc);
-                                    setNetLocDropdownOpen(false);
-                                    setNetLocSearchQuery("");
-                                  }}
-                                >
-                                  {loc}
-                                </div>
-                              ))
-                            ) : (
-                              <div style={{ padding: "10px", fontSize: "12.5px", color: "#6B7280", textAlign: "center" }}>
-                                No locations found.
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                    {netFormErrors.netLocation && (
-                      <span className="error-text">{netFormErrors.netLocation}</span>
                     )}
                   </div>
 
@@ -3547,7 +3714,7 @@ export default function Home() {
                   </div>
                 )}
 
-                {/* Audit Report textbox (only for Railnet / Internet) */}
+                {/* Audit Report & Attach File row (only for Railnet / Internet) */}
                 {selectedCircuit?.name === "Railnet / Internet" && (
                   <div className="form-group-row">
                     <div className="form-group">
@@ -3566,8 +3733,87 @@ export default function Home() {
                         <span className="error-text">{netFormErrors.netAuditReport}</span>
                       )}
                     </div>
-                    {/* Placeholder space to maintain clean alignment */}
-                    <div className="form-group"></div>
+
+                    <div className="form-group">
+                      <label className="form-label">
+                        Attach File / Report
+                      </label>
+                      <div className="file-upload-wrapper" style={{ display: 'flex', gap: '10px', alignItems: 'center', height: '42px' }}>
+                        <input
+                          type="file"
+                          id="netFileAttachment"
+                          style={{ display: "none" }}
+                          onChange={(e) => {
+                            if (e.target.files && e.target.files[0]) {
+                              setNetAttachment(e.target.files[0]);
+                            }
+                          }}
+                        />
+                        <button
+                          type="button"
+                          className="all-ok-button"
+                          style={{
+                            margin: 0,
+                            padding: "10px 16px",
+                            backgroundColor: "#f3f4f6",
+                            color: "#374151",
+                            border: "1px solid #d1d5db",
+                            borderRadius: "6px",
+                            cursor: "pointer",
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "8px",
+                            fontWeight: "500",
+                            transition: "all 0.2s"
+                          }}
+                          onClick={() => document.getElementById("netFileAttachment")?.click()}
+                          onMouseOver={(e) => {
+                            e.currentTarget.style.backgroundColor = "#e5e7eb";
+                          }}
+                          onMouseOut={(e) => {
+                            e.currentTarget.style.backgroundColor = "#f3f4f6";
+                          }}
+                        >
+                          <svg
+                            width="14"
+                            height="14"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2.5"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          >
+                            <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path>
+                          </svg>
+                          Choose File
+                        </button>
+                        <span style={{ fontSize: "13px", color: netAttachment ? "#1e293b" : "#64748b", fontWeight: netAttachment ? "500" : "normal", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: "160px" }}>
+                          {netAttachment ? netAttachment.name : "No file attached"}
+                        </span>
+                        {netAttachment && (
+                          <button
+                            type="button"
+                            style={{
+                              background: "none",
+                              border: "none",
+                              color: "#ef4444",
+                              cursor: "pointer",
+                              display: "flex",
+                              alignItems: "center",
+                              padding: "4px"
+                            }}
+                            onClick={() => setNetAttachment(null)}
+                            title="Remove file"
+                          >
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                              <line x1="18" y1="6" x2="6" y2="18"></line>
+                              <line x1="6" y1="6" x2="18" y2="18"></line>
+                            </svg>
+                          </button>
+                        )}
+                      </div>
+                    </div>
                   </div>
                 )}
 
@@ -3847,8 +4093,88 @@ export default function Home() {
 
               {/* Rail Madad Case Entry Form */}
               <form className="fault-form" onSubmit={handleSaveMadadRecord}>
-                {renderHierarchicalFields(madadFormErrors)}
                 <div className="form-group-row">
+                  {/* Major Section */}
+                  <div className="form-group">
+                    <label htmlFor="formMajorSection" className="form-label">
+                      Major Section <span className="required">*</span>
+                    </label>
+                    <select
+                      id="formMajorSection"
+                      className={`form-input ${madadFormErrors.formMajorSection ? "field-error-border" : ""}`}
+                      style={{ height: "42px", appearance: "auto" }}
+                      value={formMajorSection}
+                      onChange={(e) => handleMajorSectionChange(e.target.value)}
+                    >
+                      <option value="">Select Major Section</option>
+                      {selectedDivision && HIERARCHICAL_DATA[selectedDivision] && Object.keys(HIERARCHICAL_DATA[selectedDivision].majorSections).map((mSec) => (
+                        <option key={mSec} value={mSec}>{mSec}</option>
+                      ))}
+                    </select>
+                    {madadFormErrors.formMajorSection && (
+                      <span className="error-text">{madadFormErrors.formMajorSection}</span>
+                    )}
+                  </div>
+
+                  {/* Section */}
+                  <div className="form-group">
+                    <label htmlFor="formSection" className="form-label">
+                      Section <span className="required">*</span>
+                    </label>
+                    <select
+                      id="formSection"
+                      className={`form-input ${madadFormErrors.formSection ? "field-error-border" : ""}`}
+                      style={{ height: "42px", appearance: "auto" }}
+                      value={formSection}
+                      onChange={(e) => handleSectionChange(e.target.value)}
+                      disabled={!formMajorSection}
+                    >
+                      <option value="">Select Section</option>
+                      {formMajorSection && selectedDivision && HIERARCHICAL_DATA[selectedDivision]?.majorSections[formMajorSection] && 
+                        Object.keys(HIERARCHICAL_DATA[selectedDivision].majorSections[formMajorSection].sections).map((sec) => (
+                          <option key={sec} value={sec}>{sec}</option>
+                        ))
+                      }
+                    </select>
+                    {madadFormErrors.formSection && (
+                      <span className="error-text">{madadFormErrors.formSection}</span>
+                    )}
+                  </div>
+                </div>
+
+                <div className="form-group-row">
+                  {/* Station/Location */}
+                  <div className="form-group">
+                    <label htmlFor="formStationLocation" className="form-label">
+                      Station/Location <span className="required">*</span>
+                    </label>
+                    <select
+                      id="formStationLocation"
+                      className={`form-input ${madadFormErrors.formStationLocation ? "field-error-border" : ""}`}
+                      style={{ height: "42px", appearance: "auto" }}
+                      value={formStationLocation}
+                      onChange={(e) => handleStationLocationChange(e.target.value)}
+                      disabled={!formMajorSection}
+                    >
+                      <option value="">Select Station/Location</option>
+                      {formMajorSection && selectedDivision && HIERARCHICAL_DATA[selectedDivision]?.majorSections[formMajorSection] && (() => {
+                        const sectionsObj = HIERARCHICAL_DATA[selectedDivision].majorSections[formMajorSection].sections;
+                        if (formSection) {
+                          return sectionsObj[formSection]?.map((stn) => (
+                            <option key={stn} value={stn}>{stn}</option>
+                          ));
+                        } else {
+                          return Object.values(sectionsObj).flat().map((stn) => (
+                            <option key={stn} value={stn}>{stn}</option>
+                          ));
+                        }
+                      })()}
+                    </select>
+                    {madadFormErrors.formStationLocation && (
+                      <span className="error-text">{madadFormErrors.formStationLocation}</span>
+                    )}
+                  </div>
+
                   {/* ICMS Entry No./Docket No. */}
                   <div className="form-group">
                     <label htmlFor="madadIcmsEntryNo" className="form-label">
@@ -3866,11 +4192,26 @@ export default function Home() {
                       <span className="error-text">{madadFormErrors.icmsEntryNo}</span>
                     )}
                   </div>
-                  {/* Placeholder space to maintain clean alignment */}
-                  <div className="form-group"></div>
                 </div>
 
                 <div className="form-group-row">
+                  {/* Case Date & Time */}
+                  <div className="form-group">
+                    <label htmlFor="madadCaseTime" className="form-label">
+                      Case Date & Time <span className="required">*</span>
+                    </label>
+                    <input
+                      type="datetime-local"
+                      id="madadCaseTime"
+                      className={`form-input ${madadFormErrors.madadCaseTime ? "field-error-border" : ""}`}
+                      value={madadCaseTime}
+                      onChange={(e) => setMadadCaseTime(e.target.value)}
+                    />
+                    {madadFormErrors.madadCaseTime && (
+                      <span className="error-text">{madadFormErrors.madadCaseTime}</span>
+                    )}
+                  </div>
+
                   {/* Case Balance Till Last Date */}
                   <div className="form-group">
                     <label htmlFor="madadBalanceLast" className="form-label">
@@ -3888,7 +4229,9 @@ export default function Home() {
                       <span className="error-text">{madadFormErrors.madadBalanceLast}</span>
                     )}
                   </div>
+                </div>
 
+                <div className="form-group-row">
                   {/* Case Received on Date */}
                   <div className="form-group">
                     <label htmlFor="madadReceived" className="form-label">
@@ -3906,10 +4249,8 @@ export default function Home() {
                       <span className="error-text">{madadFormErrors.madadReceived}</span>
                     )}
                   </div>
-                </div>
 
-                <div className="form-group-row">
-                  {/* Case Complied On Date */}
+                  {/* Case complied On Date */}
                   <div className="form-group">
                     <label htmlFor="madadComplied" className="form-label">
                       Case complied On Date <span className="required">*</span>
@@ -3926,7 +4267,9 @@ export default function Home() {
                       <span className="error-text">{madadFormErrors.madadComplied}</span>
                     )}
                   </div>
+                </div>
 
+                <div className="form-group-row">
                   {/* Net Balance Case On Date (Calculated, read-only) */}
                   <div className="form-group">
                     <label htmlFor="madadNetBalance" className="form-label">
@@ -3941,9 +4284,7 @@ export default function Home() {
                       placeholder="Calculated balance"
                     />
                   </div>
-                </div>
 
-                <div className="form-group-row">
                   {/* Description Of Case */}
                   <div className="form-group">
                     <label htmlFor="madadDescription" className="form-label">
@@ -3959,23 +4300,6 @@ export default function Home() {
                     />
                     {madadFormErrors.madadDescription && (
                       <span className="error-text">{madadFormErrors.madadDescription}</span>
-                    )}
-                  </div>
-
-                  {/* Case Date & Time */}
-                  <div className="form-group">
-                    <label htmlFor="madadCaseTime" className="form-label">
-                      Case Date & Time <span className="required">*</span>
-                    </label>
-                    <input
-                      type="datetime-local"
-                      id="madadCaseTime"
-                      className={`form-input ${madadFormErrors.madadCaseTime ? "field-error-border" : ""}`}
-                      value={madadCaseTime}
-                      onChange={(e) => setMadadCaseTime(e.target.value)}
-                    />
-                    {madadFormErrors.madadCaseTime && (
-                      <span className="error-text">{madadFormErrors.madadCaseTime}</span>
                     )}
                   </div>
                 </div>
@@ -4017,17 +4341,22 @@ export default function Home() {
                   </div>
                 </div>
 
-                {/* Remarks */}
-                <div className="form-group full-width">
-                  <label htmlFor="madadRemarks" className="form-label">Remarks</label>
-                  <textarea
-                    id="madadRemarks"
-                    className="form-textarea"
-                    style={{ height: "65px" }}
-                    placeholder="Enter additional remarks or observations"
-                    value={madadRemarks}
-                    onChange={(e) => setMadadRemarks(e.target.value)}
-                  />
+                <div className="form-group-row">
+                  {/* Remarks */}
+                  <div className="form-group">
+                    <label htmlFor="madadRemarks" className="form-label">Remarks</label>
+                    <textarea
+                      id="madadRemarks"
+                      className="form-textarea"
+                      style={{ height: "42px" }}
+                      placeholder="Enter additional remarks or observations"
+                      value={madadRemarks}
+                      onChange={(e) => setMadadRemarks(e.target.value)}
+                    />
+                  </div>
+
+                  {/* Empty spacer to align Remarks nicely with 2-column layout */}
+                  <div className="form-group"></div>
                 </div>
 
                 {/* Save button with Loading State */}
