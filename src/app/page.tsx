@@ -31,9 +31,9 @@ const generateCircuitDatabase = (): Circuit[] => {
     {
       category: "Communication & Voice Circuits",
       items: [
-        { name: "ICMS & COM Position", badge: "ICMS", code: "ICMS-01", desc: "Integrated Coaching Management System & Control Office Application status tracking." },
+        { name: "Control Failure & Telephone Failure", badge: "CFTF", code: "ICMS-01", desc: "Integrated Coaching Management System & Control Office Application status tracking." },
         { name: "FOIS (VSAT)", badge: "FOIS", code: "FOIS-02", desc: "Freight Operations Information System terminal connectivity and central host communications." },
-        { name: "GM–CRB Hotline", badge: "HOTLINE", code: "HOT-03", desc: "Direct voice hotline linking General Manager to CRB." },
+        { name: "Hotline", badge: "HOTLINE", code: "HOT-03", desc: "Direct voice hotline linking General Manager to CRB." },
         { name: "Video Conferencing with Divisions", badge: "VC-D", code: "VC-04", desc: "Daily video conference link connecting HQ to divisional heads." },
         { name: "Railway Board Video Phones", badge: "VP-RB", code: "VPHONE-05", desc: "SIP-based video telephone terminals for Board communications." },
         { name: "CFTM Conference", badge: "CONF", code: "CONF-06", desc: "Conference circuit for Chief Freight Transportation Manager operations." },
@@ -218,7 +218,8 @@ export default function Home() {
   const [logInput, setLogInput] = useState<string>("");
   const [saveSuccess, setSaveSuccess] = useState<boolean>(false);
 
-  // Fault Entry Form states (ICMS & COM Position)
+  // Fault Entry Form states (Control Failure & Telephone Failure)
+  const [icmsEntryNo, setIcmsEntryNo] = useState<string>("");
   const [faultySection, setFaultySection] = useState<string>("");
   const [circuitFailed, setCircuitFailed] = useState<string>("");
   const [failureTime, setFailureTime] = useState<string>("");
@@ -369,8 +370,9 @@ export default function Home() {
   const [savedFaults, setSavedFaults] = useState<any[]>([
     {
       id: 1,
-      circuitId: 1, // ICMS & COM Position
+      circuitId: 1, // Control Failure & Telephone Failure
       division: "Bilaspur",
+      icmsEntryNo: "ICMS-2026-00412",
       faultySection: "BSP-CPH Section",
       circuitFailed: "ICMS Link Primary",
       failureTime: "02-06-2026 09:30",
@@ -638,6 +640,7 @@ export default function Home() {
       setExchangeName(circuit.name.endsWith("Exchange") ? circuit.name : `${circuit.name} Exchange`);
     }
     // Clear standard form inputs when switching circuits
+    setIcmsEntryNo("");
     setFaultySection("");
     setCircuitFailed("");
     setFailureTime("");
@@ -820,9 +823,20 @@ export default function Home() {
   const handleSaveFault = (e: React.FormEvent) => {
     e.preventDefault();
     const errors: Record<string, string> = {};
-    const isIcmsCom = selectedCircuit?.name === "ICMS & COM Position";
+    const isIcmsCom = selectedCircuit?.name === "Control Failure & Telephone Failure";
+    const isFoisVsat = selectedCircuit?.name === "FOIS (VSAT)";
+    const isHotline = selectedCircuit?.name === "Hotline";
+    if (!icmsEntryNo.trim()) {
+      errors.icmsEntryNo = "ICMS Entry No./Docket No. is required";
+    }
     if (!faultySection.trim()) {
-      errors.faultySection = isIcmsCom ? "Faulty Station/ Section is required" : "Faulty Section is required";
+      errors.faultySection = isIcmsCom 
+        ? "Faulty Station/ Section is required" 
+        : isFoisVsat 
+        ? "Location/station is required" 
+        : isHotline
+        ? "Faulty Hotline Location is required"
+        : "Faulty Section is required";
     }
     if (!circuitFailed.trim()) errors.circuitFailed = "Failed Circuit Name is required";
     if (!failureTime) errors.failureTime = "Failure Date & Time is required";
@@ -862,6 +876,7 @@ export default function Home() {
       id: Date.now(),
       circuitId: selectedCircuit?.id,
       division: selectedDivision,
+      icmsEntryNo: icmsEntryNo.trim(),
       faultySection: faultySection.trim(),
       circuitFailed: circuitFailed.trim(),
       failureTime: formatDate(failureTime),
@@ -874,6 +889,7 @@ export default function Home() {
     setSavedFaults(prev => [newFault, ...prev]);
 
     // Reset Form
+    setIcmsEntryNo("");
     setFaultySection("");
     setCircuitFailed("");
     setFailureTime("");
@@ -930,6 +946,9 @@ export default function Home() {
   const handleSaveExchFault = (e: React.FormEvent) => {
     e.preventDefault();
     const errors: Record<string, string> = {};
+    if (!icmsEntryNo.trim()) {
+      errors.icmsEntryNo = "ICMS Entry No./Docket No. is required";
+    }
     if (!exchangeName) errors.exchangeName = "Exchange Name is required";
     if (!faultName) errors.faultName = "Fault Name is required";
     if (faultName === "Other" && !customFaultName.trim()) {
@@ -974,6 +993,7 @@ export default function Home() {
       const newExchFault = {
         id: Date.now(),
         division: selectedDivision,
+        icmsEntryNo: icmsEntryNo.trim(),
         exchangeName,
         faultName: faultName === "Other" ? `Other: ${customFaultName.trim()}` : faultName,
         failureTime: formatDate(exchFailureTime),
@@ -987,6 +1007,7 @@ export default function Home() {
       setExchSaving(false);
 
       // Reset form fields
+      setIcmsEntryNo("");
       setExchangeName("");
       setFaultName("");
       setCustomFaultName("");
@@ -1047,6 +1068,9 @@ export default function Home() {
   const handleSaveNetRecord = (e: React.FormEvent) => {
     e.preventDefault();
     const errors: Record<string, string> = {};
+    if (!icmsEntryNo.trim()) {
+      errors.icmsEntryNo = "ICMS Entry No./Docket No. is required";
+    }
     if (!netLocation) errors.netLocation = "Location is required";
     if (!netBandwidth.trim()) errors.netBandwidth = "Bandwidth is required";
     if (!netTestingTime) errors.netTestingTime = "Testing Time is required";
@@ -1101,6 +1125,7 @@ export default function Home() {
       const newNetRecord = {
         id: Date.now(),
         division: selectedDivision,
+        icmsEntryNo: icmsEntryNo.trim(),
         location: netLocation,
         bandwidth: netBandwidth.trim(),
         testingTime: formatDate(netTestingTime),
@@ -1118,6 +1143,7 @@ export default function Home() {
       setNetSaving(false);
 
       // Reset form fields
+      setIcmsEntryNo("");
       setNetLocation("");
       setNetBandwidth("");
       setNetTestingTime("");
@@ -1141,6 +1167,10 @@ export default function Home() {
   const handleSaveMadadRecord = (e: React.FormEvent) => {
     e.preventDefault();
     const errors: Record<string, string> = {};
+
+    if (!icmsEntryNo.trim()) {
+      errors.icmsEntryNo = "ICMS Entry No./Docket No. is required";
+    }
 
     if (!madadBalanceLast.trim()) {
       errors.madadBalanceLast = "Case Balance Till Last Date is required";
@@ -1190,6 +1220,7 @@ export default function Home() {
       const newMadadRecord = {
         id: Date.now(),
         division: selectedDivision,
+        icmsEntryNo: icmsEntryNo.trim(),
         balanceLast: madadBalanceLast,
         received: madadReceived,
         complied: madadComplied,
@@ -1205,6 +1236,7 @@ export default function Home() {
       setMadadSaving(false);
 
       // Reset form fields
+      setIcmsEntryNo("");
       setMadadBalanceLast("");
       setMadadReceived("");
       setMadadComplied("");
@@ -1224,6 +1256,10 @@ export default function Home() {
   const handleSaveVpRecord = (e: React.FormEvent) => {
     e.preventDefault();
     const errors: Record<string, string> = {};
+
+    if (!icmsEntryNo.trim()) {
+      errors.icmsEntryNo = "ICMS Entry No./Docket No. is required";
+    }
 
     if (!vpPhodChamber) errors.vpPhodChamber = "PHOD Chamber is required";
     if (vpPhodChamber === "Other" && !vpCustomPhod.trim()) {
@@ -1257,6 +1293,7 @@ export default function Home() {
       const newVpRecord = {
         id: Date.now(),
         division: selectedDivision,
+        icmsEntryNo: icmsEntryNo.trim(),
         phodChamber: vpPhodChamber === "Other" ? `Other: ${vpCustomPhod.trim()}` : vpPhodChamber,
         testingTime: formatDate(vpTestingTime),
         videoClarity: vpVideoClarity,
@@ -1268,6 +1305,7 @@ export default function Home() {
       setVpSaving(false);
 
       // Reset form fields
+      setIcmsEntryNo("");
       setVpPhodChamber("");
       setVpCustomPhod("");
       setVpTestingTime("");
@@ -1302,6 +1340,10 @@ export default function Home() {
   const handleSaveCcRecord = (e: React.FormEvent) => {
     e.preventDefault();
     const errors: Record<string, string> = {};
+
+    if (!icmsEntryNo.trim()) {
+      errors.icmsEntryNo = "ICMS Entry No./Docket No. is required";
+    }
 
     if (!ccSectionName.trim()) errors.ccSectionName = "Section name is required";
     if (!ccKmNo.trim()) errors.ccKmNo = "KM Number is required";
@@ -1349,6 +1391,7 @@ export default function Home() {
       const newCcRecord = {
         id: Date.now(),
         division: selectedDivision,
+        icmsEntryNo: icmsEntryNo.trim(),
         sectionName: ccSectionName.trim(),
         kmNo: ccKmNo.trim(),
         cableTypes: ccCableTypes.map(c => c === "Other" ? `Other: ${ccCustomCableType.trim()}` : c).join(", "),
@@ -1363,6 +1406,7 @@ export default function Home() {
       setSavedCcRecords(prev => [newCcRecord, ...prev]);
       setCcSaving(false);
 
+      setIcmsEntryNo("");
       setCcSectionName("");
       setCcKmNo("");
       setCcCableTypes([]);
@@ -1393,6 +1437,10 @@ export default function Home() {
   const handleSaveWtRecord = (e: React.FormEvent) => {
     e.preventDefault();
     const errors: Record<string, string> = {};
+
+    if (!icmsEntryNo.trim()) {
+      errors.icmsEntryNo = "ICMS Entry No./Docket No. is required";
+    }
 
     if (!wtStationLobby.trim()) errors.wtStationLobby = "Station / Lobby is required";
     
@@ -1452,6 +1500,7 @@ export default function Home() {
       const newWtRecord = {
         id: Date.now(),
         division: selectedDivision,
+        icmsEntryNo: icmsEntryNo.trim(),
         stationLobby: wtStationLobby.trim(),
         totalToBeTested: wtTotalToBeTested.trim(),
         makeModel: wtMakeModel === "Other" ? `Other: ${wtCustomMakeModel.trim()}` : wtMakeModel,
@@ -1465,6 +1514,7 @@ export default function Home() {
       setWtSaving(false);
 
       // Reset form fields
+      setIcmsEntryNo("");
       setWtStationLobby("");
       setWtTotalToBeTested("");
       setWtMakeModel("");
@@ -1493,6 +1543,10 @@ export default function Home() {
   const handleSaveWtrRecord = (e: React.FormEvent) => {
     e.preventDefault();
     const errors: Record<string, string> = {};
+
+    if (!icmsEntryNo.trim()) {
+      errors.icmsEntryNo = "ICMS Entry No./Docket No. is required";
+    }
 
     if (!wtrDate) errors.wtrDate = "Date is required";
 
@@ -1559,6 +1613,7 @@ export default function Home() {
       const newWtrRecord = {
         id: Date.now(),
         division: selectedDivision,
+        icmsEntryNo: icmsEntryNo.trim(),
         date: formatDate(wtrDate),
         openingBalance: wtrOpeningBalance.trim(),
         receivedFromUser: wtrReceivedFromUser.trim(),
@@ -1579,6 +1634,7 @@ export default function Home() {
       setWtrSaving(false);
 
       // Reset form fields
+      setIcmsEntryNo("");
       setWtrDate("");
       setWtrOpeningBalance("");
       setWtrReceivedFromUser("");
@@ -1613,6 +1669,10 @@ export default function Home() {
   const handleSaveLiRecord = (e: React.FormEvent) => {
     e.preventDefault();
     const errors: Record<string, string> = {};
+
+    if (!icmsEntryNo.trim()) {
+      errors.icmsEntryNo = "ICMS Entry No./Docket No. is required";
+    }
 
     if (!liSectionName.trim()) errors.liSectionName = "Section name is required";
     if (!liKmNo.trim()) errors.liKmNo = "KM Number is required";
@@ -1696,6 +1756,7 @@ export default function Home() {
       const newLiRecord = {
         id: Date.now(),
         division: selectedDivision,
+        icmsEntryNo: icmsEntryNo.trim(),
         sectionName: liSectionName.trim(),
         kmNo: liKmNo.trim(),
         totalFaults: liTotalFaults.trim(),
@@ -1712,6 +1773,7 @@ export default function Home() {
       setLiSaving(false);
 
       // Reset form fields
+      setIcmsEntryNo("");
       setLiSectionName("");
       setLiKmNo("");
       setLiTotalFaults("");
@@ -1909,12 +1971,7 @@ export default function Home() {
               {/* Workspace Title bar */}
               <div className="workspace-title-section">
                 <div className="workspace-title-left">
-                  <h2>{selectedCircuit.name} - Fault Entry Form</h2>
-                  <div className="workspace-meta">
-                    <span>Code: {selectedCircuit.systemCode}</span>
-                    <span className="meta-divider">|</span>
-                    <span>Division: {selectedDivision}</span>
-                  </div>
+                  <h2>{selectedCircuit.name}</h2>
                 </div>
                 
                 <div className="status-badge yellow">
@@ -1945,16 +2002,48 @@ export default function Home() {
               {/* Fault Entry Form */}
               <form className="fault-form" onSubmit={handleSaveFault}>
                 <div className="form-group-row">
-                  {/* Faulty Station/ Section */}
+                  {/* ICMS Entry No./Docket No. */}
+                  <div className="form-group">
+                    <label htmlFor="icmsEntryNo" className="form-label">
+                      ICMS Entry No./Docket No. <span className="required">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      id="icmsEntryNo"
+                      className={`form-input ${formErrors.icmsEntryNo ? "field-error-border" : ""}`}
+                      placeholder="Enter ICMS entry number/docket number"
+                      value={icmsEntryNo}
+                      onChange={(e) => setIcmsEntryNo(e.target.value)}
+                    />
+                    {formErrors.icmsEntryNo && (
+                      <span className="error-text">{formErrors.icmsEntryNo}</span>
+                    )}
+                  </div>
+
+                  {/* Faulty Station/ Section / Location/station */}
                   <div className="form-group">
                     <label htmlFor="faultySection" className="form-label">
-                      {selectedCircuit?.name === "ICMS & COM Position" ? "Faulty Station/ Section" : "Faulty Section"} <span className="required">*</span>
+                      {selectedCircuit?.name === "Control Failure & Telephone Failure"
+                        ? "Faulty Station/ Section"
+                        : selectedCircuit?.name === "FOIS (VSAT)"
+                        ? "Location/station"
+                        : selectedCircuit?.name === "Hotline"
+                        ? "Faulty Hotline Location"
+                        : "Faulty Section"} <span className="required">*</span>
                     </label>
                     <input
                       type="text"
                       id="faultySection"
                       className={`form-input ${formErrors.faultySection ? "field-error-border" : ""}`}
-                      placeholder={selectedCircuit?.name === "ICMS & COM Position" ? "Enter faulty station/section name" : "Enter faulty section name"}
+                      placeholder={
+                        selectedCircuit?.name === "Control Failure & Telephone Failure"
+                          ? "Enter faulty station/section name"
+                          : selectedCircuit?.name === "FOIS (VSAT)"
+                          ? "Enter location/station name"
+                          : selectedCircuit?.name === "Hotline"
+                          ? "Enter faulty hotline location"
+                          : "Enter faulty section name"
+                      }
                       value={faultySection}
                       onChange={(e) => setFaultySection(e.target.value)}
                     />
@@ -1962,8 +2051,10 @@ export default function Home() {
                       <span className="error-text">{formErrors.faultySection}</span>
                     )}
                   </div>
+                </div>
 
-                  {/* Name of Circuit Failed */}
+                {/* Name of Circuit Failed */}
+                <div className="form-group-row">
                   <div className="form-group">
                     <label htmlFor="circuitFailed" className="form-label">
                       Name of Circuit Failed <span className="required">*</span>
@@ -1980,6 +2071,8 @@ export default function Home() {
                       <span className="error-text">{formErrors.circuitFailed}</span>
                     )}
                   </div>
+                  {/* Placeholder space to maintain clean alignment */}
+                  <div className="form-group"></div>
                 </div>
 
                 <div className="form-group-row">
@@ -2022,7 +2115,7 @@ export default function Home() {
                   {/* Total Duration (Read Only) */}
                   <div className="form-group">
                     <label htmlFor="totalDuration" className="form-label">
-                      Total Duration (Calculated)
+                      {selectedCircuit?.name === "Control Failure & Telephone Failure" ? "Duration of Failure" : "Total Duration (Calculated)"}
                     </label>
                     <input
                       type="text"
@@ -2053,17 +2146,31 @@ export default function Home() {
                       </button>
                       {reasonsDropdownOpen && (
                         <div className="multiselect-menu">
-                          {[
-                            "Cable Cut",
-                            "Link Failure",
-                            "Equipment Failure (STM)",
-                            "Equipment Failure (MUX)",
-                            "Equipment Failure (MUX Card)",
-                            "Equipment Failure (Phone)",
-                            "Power Failure",
-                            "Configuration Issue",
-                            "Other"
-                          ].map((option) => (
+                          {(selectedCircuit?.name === "Hotline"
+                            ? [
+                                "Control Failure",
+                                "Telephone Failure",
+                                "Cable Cut",
+                                "Link Failure",
+                                "Equipment Failure (STM)",
+                                "Equipment Failure (Phone)",
+                                "Power Failure",
+                                "Configuration Issue",
+                                "AddExchange",
+                                "Other"
+                              ]
+                            : [
+                                "Control Failure",
+                                "Telephone Failure",
+                                "Cable Cut",
+                                "Link Failure",
+                                "Equipment Failure (STM)",
+                                "Equipment Failure (Phone)",
+                                "Power Failure",
+                                "Configuration Issue",
+                                "Other"
+                              ]
+                          ).map((option) => (
                             <label key={option} className="multiselect-item">
                               <input
                                 type="checkbox"
@@ -2141,6 +2248,7 @@ export default function Home() {
                         id: Date.now(),
                         circuitId: selectedCircuit?.id,
                         division: selectedDivision,
+                        icmsEntryNo: selectedCircuit?.name === "Control Failure & Telephone Failure" ? "None" : undefined,
                         faultySection: "None",
                         circuitFailed: selectedCircuit?.name || "All Circuits OK",
                         failureTime: formatDate(nowStr),
@@ -2150,6 +2258,7 @@ export default function Home() {
                         remarks: "All circuits tested OK. No faults reported."
                       };
                       setSavedFaults(prev => [newFault, ...prev]);
+                      setIcmsEntryNo("");
                       setFaultySection("");
                       setCircuitFailed("");
                       setFailureTime("");
@@ -2178,12 +2287,7 @@ export default function Home() {
               {/* Workspace Title bar */}
               <div className="workspace-title-section">
                 <div className="workspace-title-left">
-                  <h2>Exchange Fault Entry Form</h2>
-                  <div className="workspace-meta">
-                    <span>Code: {selectedCircuit.systemCode}</span>
-                    <span className="meta-divider">|</span>
-                    <span>Division: {selectedDivision}</span>
-                  </div>
+                  <h2>{exchangeName}</h2>
                 </div>
                 
                 <div className="status-badge yellow">
@@ -2213,6 +2317,28 @@ export default function Home() {
 
               {/* Exchange Fault Entry Form */}
               <form className="fault-form" onSubmit={handleSaveExchFault}>
+                <div className="form-group-row">
+                  {/* ICMS Entry No./Docket No. */}
+                  <div className="form-group">
+                    <label htmlFor="exchIcmsEntryNo" className="form-label">
+                      ICMS Entry No./Docket No. <span className="required">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      id="exchIcmsEntryNo"
+                      className={`form-input ${exchFormErrors.icmsEntryNo ? "field-error-border" : ""}`}
+                      placeholder="Enter ICMS entry number/docket number"
+                      value={icmsEntryNo}
+                      onChange={(e) => setIcmsEntryNo(e.target.value)}
+                    />
+                    {exchFormErrors.icmsEntryNo && (
+                      <span className="error-text">{exchFormErrors.icmsEntryNo}</span>
+                    )}
+                  </div>
+                  {/* Placeholder space to maintain clean alignment */}
+                  <div className="form-group"></div>
+                </div>
+
                 <div className="form-group-row">
                   {/* Name of Exchange - Custom Searchable Dropdown */}
                   <div className="form-group">
@@ -2411,8 +2537,6 @@ export default function Home() {
                             "Cable Cut",
                             "Link Failure",
                             "Equipment Failure (STM)",
-                            "Equipment Failure (MUX)",
-                            "Equipment Failure (MUX Card)",
                             "Equipment Failure (Phone)",
                             "Power Failure",
                             "Hardware Failure",
@@ -2545,12 +2669,7 @@ export default function Home() {
               {/* Workspace Title bar */}
               <div className="workspace-title-section">
                 <div className="workspace-title-left">
-                  <h2>Railnet / Internet Monitoring Form</h2>
-                  <div className="workspace-meta">
-                    <span>Code: {selectedCircuit.systemCode}</span>
-                    <span className="meta-divider">|</span>
-                    <span>Division: {selectedDivision}</span>
-                  </div>
+                  <h2>Railnet / Internet</h2>
                 </div>
                 
                 <div className="status-badge yellow">
@@ -2580,6 +2699,28 @@ export default function Home() {
 
               {/* Railnet / Internet Monitoring Form */}
               <form className="fault-form" onSubmit={handleSaveNetRecord}>
+                <div className="form-group-row">
+                  {/* ICMS Entry No./Docket No. */}
+                  <div className="form-group">
+                    <label htmlFor="netIcmsEntryNo" className="form-label">
+                      ICMS Entry No./Docket No. <span className="required">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      id="netIcmsEntryNo"
+                      className={`form-input ${netFormErrors.icmsEntryNo ? "field-error-border" : ""}`}
+                      placeholder="Enter ICMS entry number/docket number"
+                      value={icmsEntryNo}
+                      onChange={(e) => setIcmsEntryNo(e.target.value)}
+                    />
+                    {netFormErrors.icmsEntryNo && (
+                      <span className="error-text">{netFormErrors.icmsEntryNo}</span>
+                    )}
+                  </div>
+                  {/* Placeholder space to maintain clean alignment */}
+                  <div className="form-group"></div>
+                </div>
+
                 <div className="form-group-row">
                   {/* Location - Searchable Dropdown */}
                   <div className="form-group">
@@ -2853,8 +2994,6 @@ export default function Home() {
                             "Cable Cut",
                             "Link Failure",
                             "Equipment Failure (STM)",
-                            "Equipment Failure (MUX)",
-                            "Equipment Failure (MUX Card)",
                             "Equipment Failure (Phone)",
                             "Router Failure",
                             "Switch Failure",
@@ -2997,12 +3136,7 @@ export default function Home() {
               {/* Workspace Title bar */}
               <div className="workspace-title-section">
                 <div className="workspace-title-left">
-                  <h2>Rail Madad Case Entry Form</h2>
-                  <div className="workspace-meta">
-                    <span>Code: {selectedCircuit.systemCode}</span>
-                    <span className="meta-divider">|</span>
-                    <span>Division: {selectedDivision}</span>
-                  </div>
+                  <h2>Rail Madad Case Entry</h2>
                 </div>
                 
                 <div className="status-badge yellow">
@@ -3032,6 +3166,28 @@ export default function Home() {
 
               {/* Rail Madad Case Entry Form */}
               <form className="fault-form" onSubmit={handleSaveMadadRecord}>
+                <div className="form-group-row">
+                  {/* ICMS Entry No./Docket No. */}
+                  <div className="form-group">
+                    <label htmlFor="madadIcmsEntryNo" className="form-label">
+                      ICMS Entry No./Docket No. <span className="required">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      id="madadIcmsEntryNo"
+                      className={`form-input ${madadFormErrors.icmsEntryNo ? "field-error-border" : ""}`}
+                      placeholder="Enter ICMS entry number/docket number"
+                      value={icmsEntryNo}
+                      onChange={(e) => setIcmsEntryNo(e.target.value)}
+                    />
+                    {madadFormErrors.icmsEntryNo && (
+                      <span className="error-text">{madadFormErrors.icmsEntryNo}</span>
+                    )}
+                  </div>
+                  {/* Placeholder space to maintain clean alignment */}
+                  <div className="form-group"></div>
+                </div>
+
                 <div className="form-group-row">
                   {/* Case Balance Till Last Date */}
                   <div className="form-group">
@@ -3262,12 +3418,7 @@ export default function Home() {
               {/* Workspace Title bar */}
               <div className="workspace-title-section">
                 <div className="workspace-title-left">
-                  <h2>Railway Board Video Phone Test Form</h2>
-                  <div className="workspace-meta">
-                    <span>Code: {selectedCircuit.systemCode}</span>
-                    <span className="meta-divider">|</span>
-                    <span>Division: {selectedDivision}</span>
-                  </div>
+                  <h2>Railway Board Video Phone Test</h2>
                 </div>
                 
                 <div className="status-badge yellow">
@@ -3297,6 +3448,28 @@ export default function Home() {
 
               {/* Video Phone Test Form */}
               <form className="fault-form" onSubmit={handleSaveVpRecord}>
+                <div className="form-group-row">
+                  {/* ICMS Entry No./Docket No. */}
+                  <div className="form-group">
+                    <label htmlFor="vpIcmsEntryNo" className="form-label">
+                      ICMS Entry No./Docket No. <span className="required">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      id="vpIcmsEntryNo"
+                      className={`form-input ${vpFormErrors.icmsEntryNo ? "field-error-border" : ""}`}
+                      placeholder="Enter ICMS entry number/docket number"
+                      value={icmsEntryNo}
+                      onChange={(e) => setIcmsEntryNo(e.target.value)}
+                    />
+                    {vpFormErrors.icmsEntryNo && (
+                      <span className="error-text">{vpFormErrors.icmsEntryNo}</span>
+                    )}
+                  </div>
+                  {/* Placeholder space to maintain clean alignment */}
+                  <div className="form-group"></div>
+                </div>
+
                 <div className="form-group-row">
                   {/* Video Phone in Chamber of PHOD */}
                   <div className="form-group">
@@ -3488,12 +3661,7 @@ export default function Home() {
               {/* Workspace Title bar */}
               <div className="workspace-title-section">
                 <div className="workspace-title-left">
-                  <h2>Cable Cut (OFC & Quad) Monitoring Form</h2>
-                  <div className="workspace-meta">
-                    <span>Code: {selectedCircuit.systemCode}</span>
-                    <span className="meta-divider">|</span>
-                    <span>Division: {selectedDivision}</span>
-                  </div>
+                  <h2>Cable Cut (OFC & Quad)</h2>
                 </div>
                 
                 <div className="status-badge red">
@@ -3523,6 +3691,28 @@ export default function Home() {
 
               {/* Cable Cut Entry Form */}
               <form className="fault-form" onSubmit={handleSaveCcRecord}>
+                <div className="form-group-row">
+                  {/* ICMS Entry No./Docket No. */}
+                  <div className="form-group">
+                    <label htmlFor="ccIcmsEntryNo" className="form-label">
+                      ICMS Entry No./Docket No. <span className="required">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      id="ccIcmsEntryNo"
+                      className={`form-input ${ccFormErrors.icmsEntryNo ? "field-error-border" : ""}`}
+                      placeholder="Enter ICMS entry number/docket number"
+                      value={icmsEntryNo}
+                      onChange={(e) => setIcmsEntryNo(e.target.value)}
+                    />
+                    {ccFormErrors.icmsEntryNo && (
+                      <span className="error-text">{ccFormErrors.icmsEntryNo}</span>
+                    )}
+                  </div>
+                  {/* Placeholder space to maintain clean alignment */}
+                  <div className="form-group"></div>
+                </div>
+
                 <div className="form-group-row">
                   {/* Section name */}
                   <div className="form-group">
@@ -3863,12 +4053,7 @@ export default function Home() {
               {/* Workspace Title bar */}
               <div className="workspace-title-section">
                 <div className="workspace-title-left">
-                  <h2>Walkie-Talkie Testing Form</h2>
-                  <div className="workspace-meta">
-                    <span>Code: {selectedCircuit.systemCode}</span>
-                    <span className="meta-divider">|</span>
-                    <span>Division: {selectedDivision}</span>
-                  </div>
+                  <h2>Walkie-Talkie Testing</h2>
                 </div>
                 
                 <div className="status-badge blue">
@@ -3898,6 +4083,28 @@ export default function Home() {
 
               {/* Walkie-Talkie Testing Form */}
               <form className="fault-form" onSubmit={handleSaveWtRecord}>
+                <div className="form-group-row">
+                  {/* ICMS Entry No./Docket No. */}
+                  <div className="form-group">
+                    <label htmlFor="wtIcmsEntryNo" className="form-label">
+                      ICMS Entry No./Docket No. <span className="required">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      id="wtIcmsEntryNo"
+                      className={`form-input ${wtFormErrors.icmsEntryNo ? "field-error-border" : ""}`}
+                      placeholder="Enter ICMS entry number/docket number"
+                      value={icmsEntryNo}
+                      onChange={(e) => setIcmsEntryNo(e.target.value)}
+                    />
+                    {wtFormErrors.icmsEntryNo && (
+                      <span className="error-text">{wtFormErrors.icmsEntryNo}</span>
+                    )}
+                  </div>
+                  {/* Placeholder space to maintain clean alignment */}
+                  <div className="form-group"></div>
+                </div>
+
                 <div className="form-group-row">
                   {/* Station / Lobby */}
                   <div className="form-group">
@@ -4109,12 +4316,7 @@ export default function Home() {
               {/* Workspace Title bar */}
               <div className="workspace-title-section">
                 <div className="workspace-title-left">
-                  <h2>Walkie-Talkie Repairing Form</h2>
-                  <div className="workspace-meta">
-                    <span>Code: {selectedCircuit.systemCode}</span>
-                    <span className="meta-divider">|</span>
-                    <span>Division: {selectedDivision}</span>
-                  </div>
+                  <h2>Walkie-Talkie Repairing</h2>
                 </div>
                 
                 <div className="status-badge red">
@@ -4144,6 +4346,28 @@ export default function Home() {
 
               {/* Walkie-Talkie Repairing Form */}
               <form className="fault-form" onSubmit={handleSaveWtrRecord}>
+                <div className="form-group-row">
+                  {/* ICMS Entry No./Docket No. */}
+                  <div className="form-group">
+                    <label htmlFor="wtrIcmsEntryNo" className="form-label">
+                      ICMS Entry No./Docket No. <span className="required">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      id="wtrIcmsEntryNo"
+                      className={`form-input ${wtrFormErrors.icmsEntryNo ? "field-error-border" : ""}`}
+                      placeholder="Enter ICMS entry number/docket number"
+                      value={icmsEntryNo}
+                      onChange={(e) => setIcmsEntryNo(e.target.value)}
+                    />
+                    {wtrFormErrors.icmsEntryNo && (
+                      <span className="error-text">{wtrFormErrors.icmsEntryNo}</span>
+                    )}
+                  </div>
+                  {/* Placeholder space to maintain clean alignment */}
+                  <div className="form-group"></div>
+                </div>
+
                 <div className="form-group-row">
                   {/* Date */}
                   <div className="form-group">
@@ -4535,12 +4759,7 @@ export default function Home() {
               {/* Workspace Title bar */}
               <div className="workspace-title-section">
                 <div className="workspace-title-left">
-                  <h2>Low Insulation Monitoring Form</h2>
-                  <div className="workspace-meta">
-                    <span>Code: {selectedCircuit.systemCode}</span>
-                    <span className="meta-divider">|</span>
-                    <span>Division: {selectedDivision}</span>
-                  </div>
+                  <h2>Low Insulation</h2>
                 </div>
                 
                 <div className="status-badge yellow">
@@ -4570,6 +4789,28 @@ export default function Home() {
 
               {/* Low Insulation Form */}
               <form className="fault-form" onSubmit={handleSaveLiRecord}>
+                <div className="form-group-row">
+                  {/* ICMS Entry No./Docket No. */}
+                  <div className="form-group">
+                    <label htmlFor="liIcmsEntryNo" className="form-label">
+                      ICMS Entry No./Docket No. <span className="required">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      id="liIcmsEntryNo"
+                      className={`form-input ${liFormErrors.icmsEntryNo ? "field-error-border" : ""}`}
+                      placeholder="Enter ICMS entry number/docket number"
+                      value={icmsEntryNo}
+                      onChange={(e) => setIcmsEntryNo(e.target.value)}
+                    />
+                    {liFormErrors.icmsEntryNo && (
+                      <span className="error-text">{liFormErrors.icmsEntryNo}</span>
+                    )}
+                  </div>
+                  {/* Placeholder space to maintain clean alignment */}
+                  <div className="form-group"></div>
+                </div>
+
                 <div className="form-group-row">
                   {/* Section name */}
                   <div className="form-group">
@@ -4836,10 +5077,6 @@ export default function Home() {
                 <div className="workspace-title-left">
                   <h2>{selectedCircuit.name}</h2>
                   <div className="workspace-meta">
-                    <span>Code: {selectedCircuit.systemCode}</span>
-                    <span className="meta-divider">|</span>
-                    <span>Division: {selectedDivision}</span>
-                    <span className="meta-divider">|</span>
                     <span>As of: {activeStatus?.lastUpdated}</span>
                   </div>
                 </div>
