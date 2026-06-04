@@ -1937,7 +1937,6 @@ export default function Home() {
                               className={`circuit-item ${selectedCircuit?.id === circuit.id ? "active" : ""}`}
                               onClick={() => {
                                 handleSelectCircuit(circuit);
-                                setOpenDropdownCategory(null);
                               }}
                             >
                               <span>{circuit.name}</span>
