@@ -504,6 +504,14 @@ export default function Home() {
   const [wtFormErrors, setWtFormErrors] = useState<Record<string, string>>({});
   const [wtFormSuccess, setWtFormSuccess] = useState<boolean>(false);
   const [wtSaving, setWtSaving] = useState<boolean>(false);
+  
+  // New parameters
+  const [wtSerialNo, setWtSerialNo] = useState<string>("");
+  const [wtFrequency, setWtFrequency] = useState<string>("");
+  const [wtOutputPower, setWtOutputPower] = useState<string>("");
+  const [wtBatteryVoltage, setWtBatteryVoltage] = useState<string>("");
+  const [wtBatteryCurrent, setWtBatteryCurrent] = useState<string>("");
+  const [wtAntenna, setWtAntenna] = useState<string>("");
 
   // Walkie-Talkie Repairing form states
   const [wtrDate, setWtrDate] = useState<string>("");
@@ -932,6 +940,12 @@ export default function Home() {
     setWtTestingDate("");
     setWtTotalTested("");
     setWtRemarks("");
+    setWtSerialNo("");
+    setWtFrequency("");
+    setWtOutputPower("");
+    setWtBatteryVoltage("");
+    setWtBatteryCurrent("");
+    setWtAntenna("");
     setWtFormErrors({});
     setWtFormSuccess(false);
     setWtSaving(false);
@@ -1770,10 +1784,6 @@ export default function Home() {
     e.preventDefault();
     const errors: Record<string, string> = {};
 
-    if (!icmsEntryNo.trim()) {
-      errors.icmsEntryNo = "ICMS Entry No./Docket No. is required";
-    }
-
     if (!wtStationLobby.trim()) errors.wtStationLobby = "Station / Lobby is required";
     
     if (!wtTotalToBeTested.trim()) {
@@ -1783,12 +1793,6 @@ export default function Home() {
       if (isNaN(val) || val < 0) {
         errors.wtTotalToBeTested = "Must be a valid positive number";
       }
-    }
-
-    if (!wtMakeModel) {
-      errors.wtMakeModel = "Make / Model is required";
-    } else if (wtMakeModel === "Other" && !wtCustomMakeModel.trim()) {
-      errors.wtCustomMakeModel = "Custom Make / Model description is required";
     }
 
     if (!wtTestingDate) {
@@ -1809,9 +1813,18 @@ export default function Home() {
       }
     }
 
-    if (!formMajorSection) errors.formMajorSection = "Major Section is required";
-    if (!formSection) errors.formSection = "Section is required";
-    if (!formStationLocation) errors.formStationLocation = "Station/Location is required";
+    if (!wtSerialNo.trim()) errors.wtSerialNo = "Walkie Talkie Serial No. is required";
+    if (!wtFrequency.trim()) errors.wtFrequency = "Frequency Configuration is required";
+    if (!wtOutputPower.trim()) errors.wtOutputPower = "Output TX Power is required";
+    if (!wtBatteryVoltage.trim()) errors.wtBatteryVoltage = "Battery Voltage is required";
+    if (!wtBatteryCurrent.trim()) errors.wtBatteryCurrent = "Battery Current is required";
+    if (!wtAntenna) errors.wtAntenna = "Antenna status is required";
+
+    if (!wtMakeModel) {
+      errors.wtMakeModel = "Make / Model is required";
+    } else if (wtMakeModel === "Other" && !wtCustomMakeModel.trim()) {
+      errors.wtCustomMakeModel = "Custom Make / Model description is required";
+    }
 
     if (Object.keys(errors).length > 0) {
       setWtFormErrors(errors);
@@ -1836,34 +1849,38 @@ export default function Home() {
       const newWtRecord = {
         id: Date.now(),
         division: selectedDivision,
-        icmsEntryNo: icmsEntryNo.trim(),
         stationLobby: wtStationLobby.trim(),
         totalToBeTested: wtTotalToBeTested.trim(),
-        makeModel: wtMakeModel === "Other" ? `Other: ${wtCustomMakeModel.trim()}` : wtMakeModel,
         testingDate: formatDate(wtTestingDate),
         totalTested: wtTotalTested.trim(),
         balanceToTest: wtBalanceToTest,
         remarks: wtRemarks.trim(),
-        majorSection: formMajorSection,
-        section: formSection,
-        stationLocation: formStationLocation
+        serialNo: wtSerialNo.trim(),
+        frequency: wtFrequency.trim(),
+        outputPower: wtOutputPower.trim(),
+        batteryVoltage: wtBatteryVoltage.trim(),
+        batteryCurrent: wtBatteryCurrent.trim(),
+        antenna: wtAntenna,
+        makeModel: wtMakeModel === "Other" ? `Other: ${wtCustomMakeModel.trim()}` : wtMakeModel
       };
 
       setSavedWtRecords(prev => [newWtRecord, ...prev]);
       setWtSaving(false);
 
       // Reset form fields
-      setIcmsEntryNo("");
       setWtStationLobby("");
       setWtTotalToBeTested("");
-      setWtMakeModel("");
-      setWtCustomMakeModel("");
       setWtTestingDate("");
       setWtTotalTested("");
       setWtRemarks("");
-      setFormMajorSection("");
-      setFormSection("");
-      setFormStationLocation("");
+      setWtSerialNo("");
+      setWtFrequency("");
+      setWtOutputPower("");
+      setWtBatteryVoltage("");
+      setWtBatteryCurrent("");
+      setWtAntenna("");
+      setWtMakeModel("");
+      setWtCustomMakeModel("");
       setWtFormSuccess(true);
 
       // Auto hide success banner after 5 seconds
@@ -5163,29 +5180,7 @@ export default function Home() {
 
               {/* Walkie-Talkie Testing Form */}
               <form className="fault-form" onSubmit={handleSaveWtRecord}>
-                {renderHierarchicalFields(wtFormErrors)}
-                <div className="form-group-row">
-                  {/* ICMS Entry No./Docket No. */}
-                  <div className="form-group">
-                    <label htmlFor="wtIcmsEntryNo" className="form-label">
-                      ICMS Entry No./Docket No. <span className="required">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      id="wtIcmsEntryNo"
-                      className={`form-input ${wtFormErrors.icmsEntryNo ? "field-error-border" : ""}`}
-                      placeholder="Enter ICMS entry number/docket number"
-                      value={icmsEntryNo}
-                      onChange={(e) => setIcmsEntryNo(e.target.value)}
-                    />
-                    {wtFormErrors.icmsEntryNo && (
-                      <span className="error-text">{wtFormErrors.icmsEntryNo}</span>
-                    )}
-                  </div>
-                  {/* Placeholder space to maintain clean alignment */}
-                  <div className="form-group"></div>
-                </div>
-
+                {/* Row 1: Station / Lobby & Make / Model */}
                 <div className="form-group-row">
                   {/* Station / Lobby */}
                   <div className="form-group">
@@ -5251,7 +5246,145 @@ export default function Home() {
                   </div>
                 )}
 
+                {/* Row 2: Walkie Talkie Serial No. & Frequency Configuration -MHZ */}
                 <div className="form-group-row">
+                  {/* Walkie Talkie Serial No. */}
+                  <div className="form-group">
+                    <label htmlFor="wtSerialNo" className="form-label">
+                      Walkie Talkie Serial No. <span className="required">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      id="wtSerialNo"
+                      className={`form-input ${wtFormErrors.wtSerialNo ? "field-error-border" : ""}`}
+                      placeholder="Enter Walkie Talkie serial number"
+                      value={wtSerialNo}
+                      onChange={(e) => setWtSerialNo(e.target.value)}
+                    />
+                    {wtFormErrors.wtSerialNo && (
+                      <span className="error-text">{wtFormErrors.wtSerialNo}</span>
+                    )}
+                  </div>
+
+                  {/* Frequency Configuration -MHZ */}
+                  <div className="form-group">
+                    <label htmlFor="wtFrequency" className="form-label">
+                      Frequency Configuration -MHZ <span className="required">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      id="wtFrequency"
+                      className={`form-input ${wtFormErrors.wtFrequency ? "field-error-border" : ""}`}
+                      placeholder="Enter frequency (e.g. 150.5 MHz)"
+                      value={wtFrequency}
+                      onChange={(e) => setWtFrequency(e.target.value)}
+                    />
+                    {wtFormErrors.wtFrequency && (
+                      <span className="error-text">{wtFormErrors.wtFrequency}</span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Row 3: Output TX Power & Battery Voltage */}
+                <div className="form-group-row">
+                  {/* Output TX Power */}
+                  <div className="form-group">
+                    <label htmlFor="wtOutputPower" className="form-label">
+                      Output TX Power <span className="required">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      id="wtOutputPower"
+                      className={`form-input ${wtFormErrors.wtOutputPower ? "field-error-border" : ""}`}
+                      placeholder="Enter output power (e.g. 5W)"
+                      value={wtOutputPower}
+                      onChange={(e) => setWtOutputPower(e.target.value)}
+                    />
+                    {wtFormErrors.wtOutputPower && (
+                      <span className="error-text">{wtFormErrors.wtOutputPower}</span>
+                    )}
+                  </div>
+
+                  {/* Battery Voltage */}
+                  <div className="form-group">
+                    <label htmlFor="wtBatteryVoltage" className="form-label">
+                      Battery Voltage <span className="required">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      id="wtBatteryVoltage"
+                      className={`form-input ${wtFormErrors.wtBatteryVoltage ? "field-error-border" : ""}`}
+                      placeholder="Enter battery voltage (e.g. 7.4V)"
+                      value={wtBatteryVoltage}
+                      onChange={(e) => setWtBatteryVoltage(e.target.value)}
+                    />
+                    {wtFormErrors.wtBatteryVoltage && (
+                      <span className="error-text">{wtFormErrors.wtBatteryVoltage}</span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Row 4: Battery Current & Antenna */}
+                <div className="form-group-row">
+                  {/* Battery Current */}
+                  <div className="form-group">
+                    <label htmlFor="wtBatteryCurrent" className="form-label">
+                      Battery Current <span className="required">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      id="wtBatteryCurrent"
+                      className={`form-input ${wtFormErrors.wtBatteryCurrent ? "field-error-border" : ""}`}
+                      placeholder="Enter battery current (e.g. 1.5A)"
+                      value={wtBatteryCurrent}
+                      onChange={(e) => setWtBatteryCurrent(e.target.value)}
+                    />
+                    {wtFormErrors.wtBatteryCurrent && (
+                      <span className="error-text">{wtFormErrors.wtBatteryCurrent}</span>
+                    )}
+                  </div>
+
+                  {/* Antenna */}
+                  <div className="form-group">
+                    <label htmlFor="wtAntenna" className="form-label">
+                      Antenna <span className="required">*</span>
+                    </label>
+                    <select
+                      id="wtAntenna"
+                      className={`form-input ${wtFormErrors.wtAntenna ? "field-error-border" : ""}`}
+                      style={{ height: "42px", appearance: "auto" }}
+                      value={wtAntenna}
+                      onChange={(e) => setWtAntenna(e.target.value)}
+                    >
+                      <option value="">Select Antenna status</option>
+                      <option value="OK">OK</option>
+                      <option value="Broken">Broken</option>
+                    </select>
+                    {wtFormErrors.wtAntenna && (
+                      <span className="error-text">{wtFormErrors.wtAntenna}</span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Row 5: Date of Testing & Total walkie-talkies to be tested */}
+                <div className="form-group-row">
+                  {/* Date of testing */}
+                  <div className="form-group">
+                    <label htmlFor="wtTestingDate" className="form-label">
+                      Date of Testing <span className="required">*</span>
+                    </label>
+                    <input
+                      type="date"
+                      id="wtTestingDate"
+                      className={`form-input ${wtFormErrors.wtTestingDate ? "field-error-border" : ""}`}
+                      value={wtTestingDate}
+                      onChange={(e) => setWtTestingDate(e.target.value)}
+                    />
+                    {wtFormErrors.wtTestingDate && (
+                      <span className="error-text">{wtFormErrors.wtTestingDate}</span>
+                    )}
+                  </div>
+
                   {/* Total to be tested */}
                   <div className="form-group">
                     <label htmlFor="wtTotalToBeTested" className="form-label">
@@ -5270,7 +5403,10 @@ export default function Home() {
                       <span className="error-text">{wtFormErrors.wtTotalToBeTested}</span>
                     )}
                   </div>
+                </div>
 
+                {/* Row 6: Total walkie-talkies tested & Balance walkie-talkies to be tested (Calculated) */}
+                <div className="form-group-row">
                   {/* Total tested */}
                   <div className="form-group">
                     <label htmlFor="wtTotalTested" className="form-label">
@@ -5287,25 +5423,6 @@ export default function Home() {
                     />
                     {wtFormErrors.wtTotalTested && (
                       <span className="error-text">{wtFormErrors.wtTotalTested}</span>
-                    )}
-                  </div>
-                </div>
-
-                <div className="form-group-row">
-                  {/* Date of testing */}
-                  <div className="form-group">
-                    <label htmlFor="wtTestingDate" className="form-label">
-                      Date of Testing <span className="required">*</span>
-                    </label>
-                    <input
-                      type="date"
-                      id="wtTestingDate"
-                      className={`form-input ${wtFormErrors.wtTestingDate ? "field-error-border" : ""}`}
-                      value={wtTestingDate}
-                      onChange={(e) => setWtTestingDate(e.target.value)}
-                    />
-                    {wtFormErrors.wtTestingDate && (
-                      <span className="error-text">{wtFormErrors.wtTestingDate}</span>
                     )}
                   </div>
 
@@ -5351,20 +5468,32 @@ export default function Home() {
                         division: selectedDivision,
                         stationLobby: "All Stations",
                         totalToBeTested: "50",
-                        makeModel: "Motorola",
                         testingDate: todayStr,
                         totalTested: "50",
                         balanceToTest: "0",
-                        remarks: "All walkie-talkies tested and found OK."
+                        remarks: "All walkie-talkies tested and found OK.",
+                        serialNo: "WT-ALL-OK",
+                        frequency: "150.5",
+                        outputPower: "5W",
+                        batteryVoltage: "7.4V",
+                        batteryCurrent: "1.5A",
+                        antenna: "OK",
+                        makeModel: "Motorola"
                       };
                       setSavedWtRecords(prev => [newWtRecord, ...prev]);
                       setWtStationLobby("");
                       setWtTotalToBeTested("");
-                      setWtMakeModel("");
-                      setWtCustomMakeModel("");
                       setWtTestingDate("");
                       setWtTotalTested("");
                       setWtRemarks("");
+                      setWtSerialNo("");
+                      setWtFrequency("");
+                      setWtOutputPower("");
+                      setWtBatteryVoltage("");
+                      setWtBatteryCurrent("");
+                      setWtAntenna("");
+                      setWtMakeModel("");
+                      setWtCustomMakeModel("");
                       moveToNextCircuit();
                     }}
                   >
