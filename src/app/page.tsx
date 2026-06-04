@@ -999,19 +999,12 @@ export default function Home() {
     const isFoisVsat = selectedCircuit?.name === "FOIS (VSAT)";
     const isHotline = selectedCircuit?.name === "Hotline";
     const isVcDiv = selectedCircuit?.name === "Video Conferencing with Divisions";
+    const isCftmConf = selectedCircuit?.name === "CFTM Conference";
     if (!icmsEntryNo.trim()) {
       errors.icmsEntryNo = "ICMS Entry No./Docket No. is required";
     }
-    if (!faultySection.trim()) {
-      errors.faultySection = isIcmsCom 
-        ? "Faulty Station/ Section is required" 
-        : isFoisVsat 
-        ? "Location/station is required" 
-        : isHotline
-        ? "Faulty Hotline Location is required"
-        : isVcDiv
-        ? "Faulty Location is required"
-        : "Faulty Section is required";
+    if (!isIcmsCom && !isFoisVsat && !isHotline && !isVcDiv && !isCftmConf && !faultySection.trim()) {
+      errors.faultySection = "Faulty Section is required";
     }
     if (!circuitFailed.trim()) errors.circuitFailed = "Failed Circuit Name is required";
     if (!failureTime) errors.failureTime = "Failure Date & Time is required";
@@ -1056,7 +1049,7 @@ export default function Home() {
       circuitId: selectedCircuit?.id,
       division: selectedDivision,
       icmsEntryNo: icmsEntryNo.trim(),
-      faultySection: faultySection.trim(),
+      faultySection: (isIcmsCom || isFoisVsat || isHotline || isVcDiv || isCftmConf) ? "None" : faultySection.trim(),
       circuitFailed: circuitFailed.trim(),
       failureTime: formatDate(failureTime),
       rectificationTime: formatDate(rectificationTime),
@@ -2308,218 +2301,508 @@ export default function Home() {
 
               {/* Fault Entry Form */}
               <form className="fault-form" onSubmit={handleSaveFault}>
-                {renderHierarchicalFields(formErrors)}
-                <div className="form-group-row">
-                  {/* ICMS Entry No./Docket No. */}
-                  <div className="form-group">
-                    <label htmlFor="icmsEntryNo" className="form-label">
-                      ICMS Entry No./Docket No. <span className="required">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      id="icmsEntryNo"
-                      className={`form-input ${formErrors.icmsEntryNo ? "field-error-border" : ""}`}
-                      placeholder="Enter ICMS entry number/docket number"
-                      value={icmsEntryNo}
-                      onChange={(e) => setIcmsEntryNo(e.target.value)}
-                    />
-                    {formErrors.icmsEntryNo && (
-                      <span className="error-text">{formErrors.icmsEntryNo}</span>
-                    )}
-                  </div>
+                {selectedCircuit?.name === "Control Failure & Telephone Failure" || selectedCircuit?.name === "FOIS (VSAT)" || selectedCircuit?.name === "Hotline" || selectedCircuit?.name === "Video Conferencing with Divisions" || selectedCircuit?.name === "CFTM Conference" ? (
+                  <>
+                    {/* Row 1: ICMS Entry No. & Major Section */}
+                    <div className="form-group-row">
+                      {/* ICMS Entry No./Docket No. */}
+                      <div className="form-group">
+                        <label htmlFor="icmsEntryNo" className="form-label">
+                          ICMS Entry No./Docket No. <span className="required">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          id="icmsEntryNo"
+                          className={`form-input ${formErrors.icmsEntryNo ? "field-error-border" : ""}`}
+                          placeholder="Enter ICMS entry number/docket number"
+                          value={icmsEntryNo}
+                          onChange={(e) => setIcmsEntryNo(e.target.value)}
+                        />
+                        {formErrors.icmsEntryNo && (
+                          <span className="error-text">{formErrors.icmsEntryNo}</span>
+                        )}
+                      </div>
 
-                  {/* Faulty Station/ Section / Location/station */}
-                  <div className="form-group">
-                    <label htmlFor="faultySection" className="form-label">
-                      {selectedCircuit?.name === "Control Failure & Telephone Failure"
-                        ? "Faulty Station/ Section"
-                        : selectedCircuit?.name === "FOIS (VSAT)"
-                        ? "Location/station"
-                        : selectedCircuit?.name === "Hotline"
-                        ? "Faulty Hotline Location"
-                        : selectedCircuit?.name === "Video Conferencing with Divisions"
-                        ? "Faulty Location"
-                        : "Faulty Section"} <span className="required">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      id="faultySection"
-                      className={`form-input ${formErrors.faultySection ? "field-error-border" : ""}`}
-                      placeholder={
-                        selectedCircuit?.name === "Control Failure & Telephone Failure"
-                          ? "Enter faulty station/section name"
-                          : selectedCircuit?.name === "FOIS (VSAT)"
-                          ? "Enter location/station name"
-                          : selectedCircuit?.name === "Hotline"
-                          ? "Enter faulty hotline location"
-                          : selectedCircuit?.name === "Video Conferencing with Divisions"
-                          ? "Enter faulty location"
-                          : "Enter faulty section name"
-                      }
-                      value={faultySection}
-                      onChange={(e) => setFaultySection(e.target.value)}
-                    />
-                    {formErrors.faultySection && (
-                      <span className="error-text">{formErrors.faultySection}</span>
-                    )}
-                  </div>
-                </div>
-
-                {/* Name of Circuit Failed */}
-                <div className="form-group-row">
-                  <div className="form-group">
-                    <label htmlFor="circuitFailed" className="form-label">
-                      Name of Circuit Failed <span className="required">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      id="circuitFailed"
-                      className={`form-input ${formErrors.circuitFailed ? "field-error-border" : ""}`}
-                      placeholder="Enter failed circuit name"
-                      value={circuitFailed}
-                      onChange={(e) => setCircuitFailed(e.target.value)}
-                    />
-                    {formErrors.circuitFailed && (
-                      <span className="error-text">{formErrors.circuitFailed}</span>
-                    )}
-                  </div>
-                  {/* Placeholder space to maintain clean alignment */}
-                  <div className="form-group"></div>
-                </div>
-
-                <div className="form-group-row">
-                  {/* Failure Date & Time */}
-                  <div className="form-group">
-                    <label htmlFor="failureTime" className="form-label">
-                      Failure Date & Time <span className="required">*</span>
-                    </label>
-                    <input
-                      type="datetime-local"
-                      id="failureTime"
-                      className={`form-input ${formErrors.failureTime ? "field-error-border" : ""}`}
-                      value={failureTime}
-                      onChange={(e) => setFailureTime(e.target.value)}
-                    />
-                    {formErrors.failureTime && (
-                      <span className="error-text">{formErrors.failureTime}</span>
-                    )}
-                  </div>
-
-                  {/* Rectification Time (RT) */}
-                  <div className="form-group">
-                    <label htmlFor="rectificationTime" className="form-label">
-                      Rectification Time (RT) <span className="required">*</span>
-                    </label>
-                    <input
-                      type="datetime-local"
-                      id="rectificationTime"
-                      className={`form-input ${formErrors.rectificationTime ? "field-error-border" : ""}`}
-                      value={rectificationTime}
-                      onChange={(e) => setRectificationTime(e.target.value)}
-                    />
-                    {formErrors.rectificationTime && (
-                      <span className="error-text">{formErrors.rectificationTime}</span>
-                    )}
-                  </div>
-                </div>
-
-                <div className="form-group-row">
-                  {/* Total Duration (Read Only) */}
-                  <div className="form-group">
-                    <label htmlFor="totalDuration" className="form-label">
-                      Duration of Failure
-                    </label>
-                    <input
-                      type="text"
-                      id="totalDuration"
-                      className="form-input"
-                      value={totalDuration}
-                      readOnly
-                      placeholder="XX Hrs XX Min"
-                    />
-                  </div>
-
-                  {/* Reason of Failure */}
-                  <div className="form-group">
-                    <label className="form-label">
-                      Reason of Failure <span className="required">*</span>
-                    </label>
-                    <div className="multiselect-container" ref={reasonsRef}>
-                      <button
-                        type="button"
-                        className={`multiselect-trigger ${reasonsDropdownOpen ? "open" : ""}`}
-                        onClick={() => setReasonsDropdownOpen(!reasonsDropdownOpen)}
-                      >
-                        <span>
-                          {selectedReasons.length === 0
-                            ? "Select Reason(s)..."
-                            : selectedReasons.join(", ")}
-                        </span>
-                      </button>
-                      {reasonsDropdownOpen && (
-                        <div className="multiselect-menu">
-                          {(selectedCircuit?.name === "Hotline"
-                            ? [
-                                "Control Failure",
-                                "Telephone Failure",
-                                "Cable Cut",
-                                "Link Failure",
-                                "Equipment Failure (STM)",
-                                "Equipment Failure (Phone)",
-                                "Power Failure",
-                                "Configuration Issue",
-                                "AddExchange",
-                                "Other"
-                              ]
-                            : selectedCircuit?.name === "Video Conferencing with Divisions"
-                            ? [
-                                "Control Failure",
-                                "Telephone Failure",
-                                "Cable Cut",
-                                "Link Failure",
-                                "Equipment Failure (STM)",
-                                "Equipment Failure (Phone)",
-                                "Power Failure",
-                                "Configuration Issue",
-                                "Router Failure",
-                                "Switch failure",
-                                "Other"
-                              ]
-                            : [
-                                "Control Failure",
-                                "Telephone Failure",
-                                "Cable Cut",
-                                "Link Failure",
-                                "Equipment Failure (STM)",
-                                "Equipment Failure (Phone)",
-                                "Power Failure",
-                                "Configuration Issue",
-                                "Other"
-                              ]
-                          ).map((option) => (
-                            <label key={option} className="multiselect-item">
-                              <input
-                                type="checkbox"
-                                checked={selectedReasons.includes(option)}
-                                onChange={() => {
-                                  if (selectedReasons.includes(option)) {
-                                    setSelectedReasons(selectedReasons.filter((r) => r !== option));
-                                  } else {
-                                    setSelectedReasons([...selectedReasons, option]);
-                                  }
-                                }}
-                              />
-                              <span>{option}</span>
-                            </label>
+                      {/* Major Section */}
+                      <div className="form-group">
+                        <label htmlFor="formMajorSection" className="form-label">
+                          Major Section <span className="required">*</span>
+                        </label>
+                        <select
+                          id="formMajorSection"
+                          className={`form-input ${formErrors.formMajorSection ? "field-error-border" : ""}`}
+                          style={{ height: "42px", appearance: "auto" }}
+                          value={formMajorSection}
+                          onChange={(e) => {
+                            setFormMajorSection(e.target.value);
+                            setFormSection("");
+                            setFormStationLocation("");
+                          }}
+                        >
+                          <option value="">Select Major Section</option>
+                          {selectedDivision && HIERARCHICAL_DATA[selectedDivision] && Object.keys(HIERARCHICAL_DATA[selectedDivision].majorSections).map((mSec) => (
+                            <option key={mSec} value={mSec}>{mSec}</option>
                           ))}
-                        </div>
-                      )}
+                        </select>
+                        {formErrors.formMajorSection && (
+                          <span className="error-text">{formErrors.formMajorSection}</span>
+                        )}
+                      </div>
                     </div>
-                    {formErrors.reasons && (
-                      <span className="error-text">{formErrors.reasons}</span>
-                    )}
-                  </div>
-                </div>
+
+                    {/* Row 2: Section & Station/Location */}
+                    <div className="form-group-row">
+                      {/* Section */}
+                      <div className="form-group">
+                        <label htmlFor="formSection" className="form-label">
+                          Section <span className="required">*</span>
+                        </label>
+                        <select
+                          id="formSection"
+                          className={`form-input ${formErrors.formSection ? "field-error-border" : ""}`}
+                          style={{ height: "42px", appearance: "auto" }}
+                          value={formSection}
+                          onChange={(e) => {
+                            setFormSection(e.target.value);
+                            setFormStationLocation("");
+                          }}
+                          disabled={!formMajorSection}
+                        >
+                          <option value="">Select Section</option>
+                          {formMajorSection && selectedDivision && HIERARCHICAL_DATA[selectedDivision]?.majorSections[formMajorSection] && 
+                            Object.keys(HIERARCHICAL_DATA[selectedDivision].majorSections[formMajorSection].sections).map((sec) => (
+                              <option key={sec} value={sec}>{sec}</option>
+                            ))
+                          }
+                        </select>
+                        {formErrors.formSection && (
+                          <span className="error-text">{formErrors.formSection}</span>
+                        )}
+                      </div>
+
+                      {/* Station/Location */}
+                      <div className="form-group">
+                        <label htmlFor="formStationLocation" className="form-label">
+                          Station/Location <span className="required">*</span>
+                        </label>
+                        <select
+                          id="formStationLocation"
+                          className={`form-input ${formErrors.formStationLocation ? "field-error-border" : ""}`}
+                          style={{ height: "42px", appearance: "auto" }}
+                          value={formStationLocation}
+                          onChange={(e) => setFormStationLocation(e.target.value)}
+                          disabled={!formSection}
+                        >
+                          <option value="">Select Station/Location</option>
+                          {formSection && formMajorSection && selectedDivision && HIERARCHICAL_DATA[selectedDivision]?.majorSections[formMajorSection]?.sections[formSection] &&
+                            HIERARCHICAL_DATA[selectedDivision].majorSections[formMajorSection].sections[formSection].map((stn) => (
+                              <option key={stn} value={stn}>{stn}</option>
+                            ))
+                          }
+                        </select>
+                        {formErrors.formStationLocation && (
+                          <span className="error-text">{formErrors.formStationLocation}</span>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Row 3: Name of Circuit Failed & Failure Date & Time */}
+                    <div className="form-group-row">
+                      {/* Name of Circuit Failed */}
+                      <div className="form-group">
+                        <label htmlFor="circuitFailed" className="form-label">
+                          Name of Circuit Failed <span className="required">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          id="circuitFailed"
+                          className={`form-input ${formErrors.circuitFailed ? "field-error-border" : ""}`}
+                          placeholder="Enter failed circuit name"
+                          value={circuitFailed}
+                          onChange={(e) => setCircuitFailed(e.target.value)}
+                        />
+                        {formErrors.circuitFailed && (
+                          <span className="error-text">{formErrors.circuitFailed}</span>
+                        )}
+                      </div>
+
+                      {/* Failure Date & Time */}
+                      <div className="form-group">
+                        <label htmlFor="failureTime" className="form-label">
+                          Failure Date & Time <span className="required">*</span>
+                        </label>
+                        <input
+                          type="datetime-local"
+                          id="failureTime"
+                          className={`form-input ${formErrors.failureTime ? "field-error-border" : ""}`}
+                          value={failureTime}
+                          onChange={(e) => setFailureTime(e.target.value)}
+                        />
+                        {formErrors.failureTime && (
+                          <span className="error-text">{formErrors.failureTime}</span>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Row 4: Rectification Time & Duration of Failure */}
+                    <div className="form-group-row">
+                      {/* Rectification Time (RT) */}
+                      <div className="form-group">
+                        <label htmlFor="rectificationTime" className="form-label">
+                          Rectification Time (RT) <span className="required">*</span>
+                        </label>
+                        <input
+                          type="datetime-local"
+                          id="rectificationTime"
+                          className={`form-input ${formErrors.rectificationTime ? "field-error-border" : ""}`}
+                          value={rectificationTime}
+                          onChange={(e) => setRectificationTime(e.target.value)}
+                        />
+                        {formErrors.rectificationTime && (
+                          <span className="error-text">{formErrors.rectificationTime}</span>
+                        )}
+                      </div>
+
+                      {/* Duration of Failure */}
+                      <div className="form-group">
+                        <label htmlFor="totalDuration" className="form-label">
+                          Duration of Failure
+                        </label>
+                        <input
+                          type="text"
+                          id="totalDuration"
+                          className="form-input"
+                          value={totalDuration}
+                          readOnly
+                          placeholder="XX Hrs XX Min"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Row 5: Reason of Failure & spacer */}
+                    <div className="form-group-row">
+                      {/* Reason of Failure */}
+                      <div className="form-group">
+                        <label className="form-label">
+                          Reason of Failure <span className="required">*</span>
+                        </label>
+                        <div className="multiselect-container" ref={reasonsRef}>
+                          <button
+                            type="button"
+                            className={`multiselect-trigger ${reasonsDropdownOpen ? "open" : ""}`}
+                            onClick={() => setReasonsDropdownOpen(!reasonsDropdownOpen)}
+                          >
+                            <span>
+                              {selectedReasons.length === 0
+                                ? "Select Reason(s)..."
+                                : selectedReasons.join(", ")}
+                            </span>
+                          </button>
+                          {reasonsDropdownOpen && (
+                            <div className="multiselect-menu">
+                              {(selectedCircuit?.name === "Hotline"
+                                ? [
+                                    "Control Failure",
+                                    "Telephone Failure",
+                                    "Cable Cut",
+                                    "Link Failure",
+                                    "Equipment Failure (STM)",
+                                    "Equipment Failure (Phone)",
+                                    "Power Failure",
+                                    "Configuration Issue",
+                                    "AddExchange",
+                                    "Other"
+                                  ]
+                                : selectedCircuit?.name === "Video Conferencing with Divisions"
+                                ? [
+                                    "Control Failure",
+                                    "Telephone Failure",
+                                    "Cable Cut",
+                                    "Link Failure",
+                                    "Equipment Failure (STM)",
+                                    "Equipment Failure (Phone)",
+                                    "Power Failure",
+                                    "Configuration Issue",
+                                    "Router Failure",
+                                    "Switch failure",
+                                    "Other"
+                                  ]
+                                : selectedCircuit?.name === "Control Failure & Telephone Failure" || selectedCircuit?.name === "FOIS (VSAT)"
+                                ? [
+                                    "Control Failure",
+                                    "Telephone Failure",
+                                    "Cable Cut",
+                                    "Link Failure",
+                                    "Equipment Failure (STM)",
+                                    "Equipment Failure (MUX)",
+                                    "Equipment Failure (Phone)",
+                                    "Power Failure",
+                                    "Configuration Issue",
+                                    "Other"
+                                  ]
+                                : [
+                                    "Control Failure",
+                                    "Telephone Failure",
+                                    "Cable Cut",
+                                    "Link Failure",
+                                    "Equipment Failure (STM)",
+                                    "Equipment Failure (Phone)",
+                                    "Power Failure",
+                                    "Configuration Issue",
+                                    "Other"
+                                  ]
+                              ).map((option) => (
+                                <label key={option} className="multiselect-item">
+                                  <input
+                                    type="checkbox"
+                                    checked={selectedReasons.includes(option)}
+                                    onChange={() => {
+                                      if (selectedReasons.includes(option)) {
+                                        setSelectedReasons(selectedReasons.filter((r) => r !== option));
+                                      } else {
+                                        setSelectedReasons([...selectedReasons, option]);
+                                      }
+                                    }}
+                                  />
+                                  <span>{option}</span>
+                                </label>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                        {formErrors.reasons && (
+                          <span className="error-text">{formErrors.reasons}</span>
+                        )}
+                      </div>
+
+                      <div className="form-group"></div>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    {renderHierarchicalFields(formErrors)}
+                    <div className="form-group-row">
+                      {/* ICMS Entry No./Docket No. */}
+                      <div className="form-group">
+                        <label htmlFor="icmsEntryNo" className="form-label">
+                          ICMS Entry No./Docket No. <span className="required">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          id="icmsEntryNo"
+                          className={`form-input ${formErrors.icmsEntryNo ? "field-error-border" : ""}`}
+                          placeholder="Enter ICMS entry number/docket number"
+                          value={icmsEntryNo}
+                          onChange={(e) => setIcmsEntryNo(e.target.value)}
+                        />
+                        {formErrors.icmsEntryNo && (
+                          <span className="error-text">{formErrors.icmsEntryNo}</span>
+                        )}
+                      </div>
+
+                      {/* Faulty Station/ Section / Location/station */}
+                      <div className="form-group">
+                        <label htmlFor="faultySection" className="form-label">
+                          {selectedCircuit?.name === "FOIS (VSAT)"
+                            ? "Location/station"
+                            : selectedCircuit?.name === "Hotline"
+                            ? "Faulty Hotline Location"
+                            : selectedCircuit?.name === "Video Conferencing with Divisions"
+                            ? "Faulty Location"
+                            : "Faulty Section"} <span className="required">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          id="faultySection"
+                          className={`form-input ${formErrors.faultySection ? "field-error-border" : ""}`}
+                          placeholder={
+                            selectedCircuit?.name === "FOIS (VSAT)"
+                              ? "Enter location/station name"
+                              : selectedCircuit?.name === "Hotline"
+                              ? "Enter faulty hotline location"
+                              : selectedCircuit?.name === "Video Conferencing with Divisions"
+                              ? "Enter faulty location"
+                              : "Enter faulty section name"
+                          }
+                          value={faultySection}
+                          onChange={(e) => setFaultySection(e.target.value)}
+                        />
+                        {formErrors.faultySection && (
+                          <span className="error-text">{formErrors.faultySection}</span>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Name of Circuit Failed */}
+                    <div className="form-group-row">
+                      <div className="form-group">
+                        <label htmlFor="circuitFailed" className="form-label">
+                          Name of Circuit Failed <span className="required">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          id="circuitFailed"
+                          className={`form-input ${formErrors.circuitFailed ? "field-error-border" : ""}`}
+                          placeholder="Enter failed circuit name"
+                          value={circuitFailed}
+                          onChange={(e) => setCircuitFailed(e.target.value)}
+                        />
+                        {formErrors.circuitFailed && (
+                          <span className="error-text">{formErrors.circuitFailed}</span>
+                        )}
+                      </div>
+                      {/* Placeholder space to maintain clean alignment */}
+                      <div className="form-group"></div>
+                    </div>
+
+                    <div className="form-group-row">
+                      {/* Failure Date & Time */}
+                      <div className="form-group">
+                        <label htmlFor="failureTime" className="form-label">
+                          Failure Date & Time <span className="required">*</span>
+                        </label>
+                        <input
+                          type="datetime-local"
+                          id="failureTime"
+                          className={`form-input ${formErrors.failureTime ? "field-error-border" : ""}`}
+                          value={failureTime}
+                          onChange={(e) => setFailureTime(e.target.value)}
+                        />
+                        {formErrors.failureTime && (
+                          <span className="error-text">{formErrors.failureTime}</span>
+                        )}
+                      </div>
+
+                      {/* Rectification Time (RT) */}
+                      <div className="form-group">
+                        <label htmlFor="rectificationTime" className="form-label">
+                          Rectification Time (RT) <span className="required">*</span>
+                        </label>
+                        <input
+                          type="datetime-local"
+                          id="rectificationTime"
+                          className={`form-input ${formErrors.rectificationTime ? "field-error-border" : ""}`}
+                          value={rectificationTime}
+                          onChange={(e) => setRectificationTime(e.target.value)}
+                        />
+                        {formErrors.rectificationTime && (
+                          <span className="error-text">{formErrors.rectificationTime}</span>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="form-group-row">
+                      {/* Total Duration (Read Only) */}
+                      <div className="form-group">
+                        <label htmlFor="totalDuration" className="form-label">
+                          Duration of Failure
+                        </label>
+                        <input
+                          type="text"
+                          id="totalDuration"
+                          className="form-input"
+                          value={totalDuration}
+                          readOnly
+                          placeholder="XX Hrs XX Min"
+                        />
+                      </div>
+
+                      {/* Reason of Failure */}
+                      <div className="form-group">
+                        <label className="form-label">
+                          Reason of Failure <span className="required">*</span>
+                        </label>
+                        <div className="multiselect-container" ref={reasonsRef}>
+                          <button
+                            type="button"
+                            className={`multiselect-trigger ${reasonsDropdownOpen ? "open" : ""}`}
+                            onClick={() => setReasonsDropdownOpen(!reasonsDropdownOpen)}
+                          >
+                            <span>
+                              {selectedReasons.length === 0
+                                ? "Select Reason(s)..."
+                                : selectedReasons.join(", ")}
+                            </span>
+                          </button>
+                          {reasonsDropdownOpen && (
+                            <div className="multiselect-menu">
+                              {(selectedCircuit?.name === "Hotline"
+                                ? [
+                                    "Control Failure",
+                                    "Telephone Failure",
+                                    "Cable Cut",
+                                    "Link Failure",
+                                    "Equipment Failure (STM)",
+                                    "Equipment Failure (Phone)",
+                                    "Power Failure",
+                                    "Configuration Issue",
+                                    "AddExchange",
+                                    "Other"
+                                  ]
+                                : selectedCircuit?.name === "Video Conferencing with Divisions"
+                                ? [
+                                    "Control Failure",
+                                    "Telephone Failure",
+                                    "Cable Cut",
+                                    "Link Failure",
+                                    "Equipment Failure (STM)",
+                                    "Equipment Failure (Phone)",
+                                    "Power Failure",
+                                    "Configuration Issue",
+                                    "Router Failure",
+                                    "Switch failure",
+                                    "Other"
+                                  ]
+                                : (selectedCircuit?.name === "Control Failure & Telephone Failure" || selectedCircuit?.name === "FOIS (VSAT)")
+                                ? [
+                                    "Control Failure",
+                                    "Telephone Failure",
+                                    "Cable Cut",
+                                    "Link Failure",
+                                    "Equipment Failure (STM)",
+                                    "Equipment Failure (MUX)",
+                                    "Equipment Failure (Phone)",
+                                    "Power Failure",
+                                    "Configuration Issue",
+                                    "Other"
+                                  ]
+                                : [
+                                    "Control Failure",
+                                    "Telephone Failure",
+                                    "Cable Cut",
+                                    "Link Failure",
+                                    "Equipment Failure (STM)",
+                                    "Equipment Failure (Phone)",
+                                    "Power Failure",
+                                    "Configuration Issue",
+                                    "Other"
+                                  ]
+                              ).map((option) => (
+                                <label key={option} className="multiselect-item">
+                                  <input
+                                    type="checkbox"
+                                    checked={selectedReasons.includes(option)}
+                                    onChange={() => {
+                                      if (selectedReasons.includes(option)) {
+                                        setSelectedReasons(selectedReasons.filter((r) => r !== option));
+                                      } else {
+                                        setSelectedReasons([...selectedReasons, option]);
+                                      }
+                                    }}
+                                  />
+                                  <span>{option}</span>
+                                </label>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                        {formErrors.reasons && (
+                          <span className="error-text">{formErrors.reasons}</span>
+                        )}
+                      </div>
+                    </div>
+                  </>
+                )}
 
                 {/* Other Custom Reason input */}
                 {selectedReasons.includes("Other") && (
@@ -3783,7 +4066,7 @@ export default function Home() {
 
               {/* Video Phone Test Form */}
               <form className="fault-form" onSubmit={handleSaveVpRecord}>
-                {renderHierarchicalFields(vpFormErrors)}
+                {/* Row 1: ICMS Entry No. & Major Section */}
                 <div className="form-group-row">
                   {/* ICMS Entry No./Docket No. */}
                   <div className="form-group">
@@ -3802,10 +4085,91 @@ export default function Home() {
                       <span className="error-text">{vpFormErrors.icmsEntryNo}</span>
                     )}
                   </div>
-                  {/* Placeholder space to maintain clean alignment */}
-                  <div className="form-group"></div>
+
+                  {/* Major Section */}
+                  <div className="form-group">
+                    <label htmlFor="formMajorSection" className="form-label">
+                      Major Section <span className="required">*</span>
+                    </label>
+                    <select
+                      id="formMajorSection"
+                      className={`form-input ${vpFormErrors.formMajorSection ? "field-error-border" : ""}`}
+                      style={{ height: "42px", appearance: "auto" }}
+                      value={formMajorSection}
+                      onChange={(e) => {
+                        setFormMajorSection(e.target.value);
+                        setFormSection("");
+                        setFormStationLocation("");
+                      }}
+                    >
+                      <option value="">Select Major Section</option>
+                      {selectedDivision && HIERARCHICAL_DATA[selectedDivision] && Object.keys(HIERARCHICAL_DATA[selectedDivision].majorSections).map((mSec) => (
+                        <option key={mSec} value={mSec}>{mSec}</option>
+                      ))}
+                    </select>
+                    {vpFormErrors.formMajorSection && (
+                      <span className="error-text">{vpFormErrors.formMajorSection}</span>
+                    )}
+                  </div>
                 </div>
 
+                {/* Row 2: Section & Station/Location */}
+                <div className="form-group-row">
+                  {/* Section */}
+                  <div className="form-group">
+                    <label htmlFor="formSection" className="form-label">
+                      Section <span className="required">*</span>
+                    </label>
+                    <select
+                      id="formSection"
+                      className={`form-input ${vpFormErrors.formSection ? "field-error-border" : ""}`}
+                      style={{ height: "42px", appearance: "auto" }}
+                      value={formSection}
+                      onChange={(e) => {
+                        setFormSection(e.target.value);
+                        setFormStationLocation("");
+                      }}
+                      disabled={!formMajorSection}
+                    >
+                      <option value="">Select Section</option>
+                      {formMajorSection && selectedDivision && HIERARCHICAL_DATA[selectedDivision]?.majorSections[formMajorSection] && 
+                        Object.keys(HIERARCHICAL_DATA[selectedDivision].majorSections[formMajorSection].sections).map((sec) => (
+                          <option key={sec} value={sec}>{sec}</option>
+                        ))
+                      }
+                    </select>
+                    {vpFormErrors.formSection && (
+                      <span className="error-text">{vpFormErrors.formSection}</span>
+                    )}
+                  </div>
+
+                  {/* Station/Location */}
+                  <div className="form-group">
+                    <label htmlFor="formStationLocation" className="form-label">
+                      Station/Location <span className="required">*</span>
+                    </label>
+                    <select
+                      id="formStationLocation"
+                      className={`form-input ${vpFormErrors.formStationLocation ? "field-error-border" : ""}`}
+                      style={{ height: "42px", appearance: "auto" }}
+                      value={formStationLocation}
+                      onChange={(e) => setFormStationLocation(e.target.value)}
+                      disabled={!formSection}
+                    >
+                      <option value="">Select Station/Location</option>
+                      {formSection && formMajorSection && selectedDivision && HIERARCHICAL_DATA[selectedDivision]?.majorSections[formMajorSection]?.sections[formSection] &&
+                        HIERARCHICAL_DATA[selectedDivision].majorSections[formMajorSection].sections[formSection].map((stn) => (
+                          <option key={stn} value={stn}>{stn}</option>
+                        ))
+                      }
+                    </select>
+                    {vpFormErrors.formStationLocation && (
+                      <span className="error-text">{vpFormErrors.formStationLocation}</span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Row 3: PHOD Chamber & Testing Time */}
                 <div className="form-group-row">
                   {/* Video Phone in Chamber of PHOD */}
                   <div className="form-group">
@@ -3870,6 +4234,7 @@ export default function Home() {
                   </div>
                 )}
 
+                {/* Row 4: Video Clarity & Audio Clarity */}
                 <div className="form-group-row">
                   {/* Video Clarity */}
                   <div className="form-group">
