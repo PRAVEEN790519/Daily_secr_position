@@ -44,8 +44,7 @@ const generateCircuitDatabase = (): Circuit[] => {
       items: [
         { name: "Railnet / Internet", badge: "NET", code: "NET-08", desc: "SECR Railway Intranet and official broadband gateways." },
         { name: "Wi-Fi", badge: "WIFI", code: "WIFI-09", desc: "Public Wi-Fi access points at stations (RailWire)." },
-        { name: "UTS", badge: "UTS", code: "UTS-11", desc: "Unreserved Ticketing System network terminals." },
-        { name: "PRS", badge: "PRS", code: "PRS-12", desc: "Passenger Reservation System ticketing gateways." }
+        { name: "PRS/UTS", badge: "PRS/UTS", code: "PRSUTS-11", desc: "Passenger Reservation System & Unreserved Ticketing System network terminals." }
       ]
     },
     {
@@ -430,9 +429,6 @@ export default function Home() {
   const [exchSaving, setExchSaving] = useState<boolean>(false);
 
   // Railnet / Internet Monitoring Form states
-  const [netLocation, setNetLocation] = useState<string>("");
-  const [netLocSearchQuery, setNetLocSearchQuery] = useState<string>("");
-  const [netLocDropdownOpen, setNetLocDropdownOpen] = useState<boolean>(false);
   const [netBandwidth, setNetBandwidth] = useState<string>("");
   const [netTestingTime, setNetTestingTime] = useState<string>("");
   const [netDnSpeed, setNetDnSpeed] = useState<string>("");
@@ -477,7 +473,6 @@ export default function Home() {
   const [vpSaving, setVpSaving] = useState<boolean>(false);
 
   // Cable Cut form states
-  const [ccSectionName, setCcSectionName] = useState<string>("");
   const [ccKmNo, setCcKmNo] = useState<string>("");
   const [ccCableTypes, setCcCableTypes] = useState<string[]>([]);
   const [ccCableTypesOpen, setCcCableTypesOpen] = useState<boolean>(false);
@@ -534,18 +529,87 @@ export default function Home() {
   const [wtrSaving, setWtrSaving] = useState<boolean>(false);
 
   // Low Insulation form states
-  const [liSectionName, setLiSectionName] = useState<string>("");
   const [liKmNo, setLiKmNo] = useState<string>("");
-  const [liTotalFaults, setLiTotalFaults] = useState<string>("");
-  const [liFaultTime, setLiFaultTime] = useState<string>("");
-  const [liRectified, setLiRectified] = useState<string>("");
+  const [liCableType, setLiCableType] = useState<string>("");
+  const [liFaultsTime, setLiFaultsTime] = useState<string>("");
   const [liRectifiedTime, setLiRectifiedTime] = useState<string>("");
+  const [liBalanceFaults, setLiBalanceFaults] = useState<string>("");
   const [liActionPlan, setLiActionPlan] = useState<string>("");
-  const [liTdc, setLiTdc] = useState<string>("");
   const [liRemarks, setLiRemarks] = useState<string>("");
   const [liFormErrors, setLiFormErrors] = useState<Record<string, string>>({});
   const [liFormSuccess, setLiFormSuccess] = useState<boolean>(false);
   const [liSaving, setLiSaving] = useState<boolean>(false);
+
+  // Temporary Joints form states
+  const [tjSectionYardName, setTjSectionYardName] = useState<string>("");
+  const [tjKmNo, setTjKmNo] = useState<string>("");
+  const [tjCableType, setTjCableType] = useState<string>("");
+  const [tjTotalJoints, setTjTotalJoints] = useState<string>("");
+  const [tjJointsTime, setTjJointsTime] = useState<string>("");
+  const [tjRectified, setTjRectified] = useState<string>("");
+  const [tjRectifiedTime, setTjRectifiedTime] = useState<string>("");
+  const [tjTdc, setTjTdc] = useState<string>("");
+  const [tjActionPlan, setTjActionPlan] = useState<string>("");
+  const [tjRemarks, setTjRemarks] = useState<string>("");
+  const [tjFormErrors, setTjFormErrors] = useState<Record<string, string>>({});
+  const [tjFormSuccess, setTjFormSuccess] = useState<boolean>(false);
+  const [tjSaving, setTjSaving] = useState<boolean>(false);
+
+  // CGDM form states
+  const [cgdmPfNo, setCgdmPfNo] = useState<string>("");
+  const [cgdmFaultyBoards, setCgdmFaultyBoards] = useState<string>("");
+  const [cgdmFailureTime, setCgdmFailureTime] = useState<string>("");
+  const [cgdmRectifiedTime, setCgdmRectifiedTime] = useState<string>("");
+  const [cgdmReasonOfFailure, setCgdmReasonOfFailure] = useState<string>("");
+  const [cgdmRemarks, setCgdmRemarks] = useState<string>("");
+  const [cgdmFormErrors, setCgdmFormErrors] = useState<Record<string, string>>({});
+  const [cgdmFormSuccess, setCgdmFormSuccess] = useState<boolean>(false);
+  const [cgdmSaving, setCgdmSaving] = useState<boolean>(false);
+
+  // TIB form states
+  const [tibNoOfFaulty, setTibNoOfFaulty] = useState<string>("");
+  const [tibFailureTime, setTibFailureTime] = useState<string>("");
+  const [tibRectifiedTime, setTibRectifiedTime] = useState<string>("");
+  const [tibReasonOfFailure, setTibReasonOfFailure] = useState<string>("");
+  const [tibRemarks, setTibRemarks] = useState<string>("");
+  const [tibFormErrors, setTibFormErrors] = useState<Record<string, string>>({});
+  const [tibFormSuccess, setTibFormSuccess] = useState<boolean>(false);
+  const [tibSaving, setTibSaving] = useState<boolean>(false);
+
+  // CCTV Monitoring form states
+  const [cctvmTotalNotWorkingLocation, setCctvmTotalNotWorkingLocation] = useState<string>("");
+  const [cctvmWarRoomFailed, setCctvmWarRoomFailed] = useState<string>("");
+  const [cctvmFailureTime, setCctvmFailureTime] = useState<string>("");
+  const [cctvmRectifiedTime, setCctvmRectifiedTime] = useState<string>("");
+  const [cctvmReasonOfFailure, setCctvmReasonOfFailure] = useState<string>("");
+  const [cctvmRemarks, setCctvmRemarks] = useState<string>("");
+  const [cctvmFormErrors, setCctvmFormErrors] = useState<Record<string, string>>({});
+  const [cctvmFormSuccess, setCctvmFormSuccess] = useState<boolean>(false);
+  const [cctvmSaving, setCctvmSaving] = useState<boolean>(false);
+
+  // CCTV Maintenance form states
+  const [cctvsTotalNotWorkingLocation, setCctvsTotalNotWorkingLocation] = useState<string>("");
+  const [cctvsWarRoomFailed, setCctvsWarRoomFailed] = useState<string>("");
+  const [cctvsFailureTime, setCctvsFailureTime] = useState<string>("");
+  const [cctvsRectifiedTime, setCctvsRectifiedTime] = useState<string>("");
+  const [cctvsReasonOfFailure, setCctvsReasonOfFailure] = useState<string>("");
+  const [cctvsRemarks, setCctvsRemarks] = useState<string>("");
+  const [cctvsFormErrors, setCctvsFormErrors] = useState<Record<string, string>>({});
+  const [cctvsFormSuccess, setCctvsFormSuccess] = useState<boolean>(false);
+  const [cctvsSaving, setCctvsSaving] = useState<boolean>(false);
+
+  // PRS/UTS form states
+  const [puSystemType, setPuSystemType] = useState<string>("");
+  const [puNatureOfFault, setPuNatureOfFault] = useState<string>("");
+  const [puFailureTime, setPuFailureTime] = useState<string>("");
+  const [puRectifiedTime, setPuRectifiedTime] = useState<string>("");
+  const [puReasonOfFailure, setPuReasonOfFailure] = useState<string>("");
+  const [puRemarks, setPuRemarks] = useState<string>("");
+  const [puFormErrors, setPuFormErrors] = useState<Record<string, string>>({});
+  const [puFormSuccess, setPuFormSuccess] = useState<boolean>(false);
+  const [puSaving, setPuSaving] = useState<boolean>(false);
+
+
 
   // Refs to handle click outside for dropdowns
   const divisionRef = useRef<HTMLDivElement>(null);
@@ -553,7 +617,7 @@ export default function Home() {
   const reasonsRef = useRef<HTMLDivElement>(null);
   const exchangeRef = useRef<HTMLDivElement>(null);
   const exchReasonsRef = useRef<HTMLDivElement>(null);
-  const netLocRef = useRef<HTMLDivElement>(null);
+
   const netReasonsRef = useRef<HTMLDivElement>(null);
   const ccCableTypesRef = useRef<HTMLDivElement>(null);
   const ccCutByWhomRef = useRef<HTMLDivElement>(null);
@@ -735,18 +799,126 @@ export default function Home() {
     {
       id: 1,
       division: "Bilaspur",
-      sectionName: "CPH-RIG Section",
       kmNo: "732/18",
-      totalFaults: "6",
-      faultTime: "2026-06-02 08:30",
-      rectified: "4",
+      cableType: "6 Quad Cable",
+      faultsTime: "2026-06-02 08:30",
       rectifiedTime: "2026-06-02 17:00",
       balanceFaults: "2",
       actionPlan: "Megger testing of quad pairs, replacement of joint kits.",
-      tdc: "2026-06-10",
       remarks: "4 pairs rectified. Remaining 2 pairs are spare."
     }
   ]);
+
+  // Saved Logged Temporary Joints Records
+  const [savedTjRecords, setSavedTjRecords] = useState<any[]>([
+    {
+      id: 1,
+      division: "Bilaspur",
+      sectionYardName: "CPH-RIG Section",
+      kmNo: "732/18",
+      cableType: "OFC (24 Core)",
+      totalJoints: "5",
+      jointsTime: "2026-06-02 08:30",
+      rectified: "3",
+      rectifiedTime: "2026-06-02 17:00",
+      balanceJoints: "2",
+      actionPlan: "Making permanent joint chamber and layout planning.",
+      tdc: "2026-06-12",
+      remarks: "3 joints completed successfully.",
+      majorSection: "Champa - Raigarh",
+      section: "CPH-RIG"
+    }
+  ]);
+
+  // Saved Logged CGDM Records
+  const [savedCgdmRecords, setSavedCgdmRecords] = useState<any[]>([
+    {
+      id: 1,
+      division: "Bilaspur",
+      majorSection: "Bilaspur - Raigarh (BSP-RIG)",
+      section: "Bilaspur - Champa (BSP-CPH)",
+      stationLocation: "Champa Junction (CPH)",
+      pfNo: "2",
+      faultyBoards: "4",
+      failureTime: "02-06-2026 10:30",
+      rectifiedTime: "02-06-2026 12:45",
+      duration: "2 Hrs 15 Min",
+      reasonOfFailure: "Power supply module failure",
+      remarks: "Power supply card replaced on platform 2 board."
+    }
+  ]);
+
+  // Saved Logged TIB Records
+  const [savedTibRecords, setSavedTibRecords] = useState<any[]>([
+    {
+      id: 1,
+      division: "Bilaspur",
+      majorSection: "Bilaspur - Raigarh (BSP-RIG)",
+      section: "Bilaspur - Champa (BSP-CPH)",
+      stationLocation: "Naila (NIA)",
+      noOfFaulty: "2",
+      failureTime: "02-06-2026 09:15",
+      rectifiedTime: "02-06-2026 11:30",
+      duration: "2 Hrs 15 Min",
+      reasonOfFailure: "Controller board communication fault",
+      remarks: "LAN cable replaced and controller board reset."
+    }
+  ]);
+
+  // Saved Logged CCTV Monitoring Records
+  const [savedCctvmRecords, setSavedCctvmRecords] = useState<any[]>([
+    {
+      id: 1,
+      division: "Raipur",
+      majorSection: "Raipur - Durg (R-DURG)",
+      section: "Raipur - Bhilai (R-BPH)",
+      totalNotWorkingLocation: "Total: 12 / Not Working: 1 (Raipur PF-1)",
+      warRoomFailed: "No",
+      failureTime: "02-06-2026 08:30",
+      rectifiedTime: "02-06-2026 10:15",
+      duration: "1 Hrs 45 Min",
+      reasonOfFailure: "PoE switch power failure",
+      remarks: "PoE injector replaced at platform 1 switch room."
+    }
+  ]);
+
+  // Saved Logged CCTV Maintenance Records
+  const [savedCctvsRecords, setSavedCctvsRecords] = useState<any[]>([
+    {
+      id: 1,
+      division: "Raipur",
+      majorSection: "Raipur - Durg (R-DURG)",
+      section: "Raipur - Bhilai (R-BPH)",
+      totalNotWorkingLocation: "Total: 24 / Not Working: 2 (Bhilai Bazar)",
+      warRoomFailed: "No",
+      failureTime: "02-06-2026 09:15",
+      rectifiedTime: "02-06-2026 11:30",
+      duration: "2 Hrs 15 Min",
+      reasonOfFailure: "NVR storage disk failure",
+      remarks: "Defective HDD replaced and system rebooted."
+    }
+  ]);
+
+  // Saved Logged PRS/UTS Records
+  const [savedPuRecords, setSavedPuRecords] = useState<any[]>([
+    {
+      id: 1,
+      division: "Raipur",
+      systemType: "PRS",
+      majorSection: "Raipur - Durg (R-DURG)",
+      section: "Raipur - Bhilai (R-BPH)",
+      stationLocation: "Bhilai Nagar (BHN)",
+      natureOfFault: "Link (RLY)",
+      failureTime: "02-06-2026 09:30",
+      rectifiedTime: "02-06-2026 11:15",
+      duration: "1 Hrs 45 Min",
+      reasonOfFailure: "Modem card crash",
+      remarks: "Modem reset and link re-established."
+    }
+  ]);
+
+
+
 
   // Close dropdowns on clicking outside
   useEffect(() => {
@@ -763,9 +935,7 @@ export default function Home() {
       if (exchReasonsRef.current && !exchReasonsRef.current.contains(event.target as Node)) {
         setExchReasonsDropdownOpen(false);
       }
-      if (netLocRef.current && !netLocRef.current.contains(event.target as Node)) {
-        setNetLocDropdownOpen(false);
-      }
+
       if (netReasonsRef.current && !netReasonsRef.current.contains(event.target as Node)) {
         setNetReasonsDropdownOpen(false);
       }
@@ -870,11 +1040,6 @@ export default function Home() {
     setExchSaving(false);
 
     // Clear Railnet states when switching circuits
-    if (circuit.name === "Railnet / Internet" && netActiveTab === "hq") {
-      setNetLocation("Bilaspur HQ");
-    } else {
-      setNetLocation("");
-    }
     setNetBandwidth("");
     setNetTestingTime("");
     setNetDnSpeed("");
@@ -916,7 +1081,6 @@ export default function Home() {
     setVpSaving(false);
 
     // Clear Cable Cut states when switching circuits
-    setCcSectionName("");
     setCcKmNo("");
     setCcCableTypes([]);
     setCcCableTypesOpen(false);
@@ -931,6 +1095,60 @@ export default function Home() {
     setCcFormErrors({});
     setCcFormSuccess(false);
     setCcSaving(false);
+
+    // Clear CGDM states when switching circuits
+    setCgdmPfNo("");
+    setCgdmFaultyBoards("");
+    setCgdmFailureTime("");
+    setCgdmRectifiedTime("");
+    setCgdmReasonOfFailure("");
+    setCgdmRemarks("");
+    setCgdmFormErrors({});
+    setCgdmFormSuccess(false);
+    setCgdmSaving(false);
+
+    // Clear TIB states when switching circuits
+    setTibNoOfFaulty("");
+    setTibFailureTime("");
+    setTibRectifiedTime("");
+    setTibReasonOfFailure("");
+    setTibRemarks("");
+    setTibFormErrors({});
+    setTibFormSuccess(false);
+    setTibSaving(false);
+
+    // Clear CCTV Monitoring states when switching circuits
+    setCctvmTotalNotWorkingLocation("");
+    setCctvmWarRoomFailed("");
+    setCctvmFailureTime("");
+    setCctvmRectifiedTime("");
+    setCctvmReasonOfFailure("");
+    setCctvmRemarks("");
+    setCctvmFormErrors({});
+    setCctvmFormSuccess(false);
+    setCctvmSaving(false);
+
+    // Clear CCTV Maintenance states when switching circuits
+    setCctvsTotalNotWorkingLocation("");
+    setCctvsWarRoomFailed("");
+    setCctvsFailureTime("");
+    setCctvsRectifiedTime("");
+    setCctvsReasonOfFailure("");
+    setCctvsRemarks("");
+    setCctvsFormErrors({});
+    setCctvsFormSuccess(false);
+    setCctvsSaving(false);
+
+    // Clear PRS/UTS states when switching circuits
+    setPuSystemType("");
+    setPuNatureOfFault("");
+    setPuFailureTime("");
+    setPuRectifiedTime("");
+    setPuReasonOfFailure("");
+    setPuRemarks("");
+    setPuFormErrors({});
+    setPuFormSuccess(false);
+    setPuSaving(false);
 
     // Clear Walkie-Talkie Testing states when switching circuits
     setWtStationLobby("");
@@ -971,18 +1189,32 @@ export default function Home() {
     setWtrSaving(false);
 
     // Clear Low Insulation states when switching circuits
-    setLiSectionName("");
     setLiKmNo("");
-    setLiTotalFaults("");
-    setLiFaultTime("");
-    setLiRectified("");
+    setLiCableType("");
+    setLiFaultsTime("");
     setLiRectifiedTime("");
+    setLiBalanceFaults("");
     setLiActionPlan("");
-    setLiTdc("");
     setLiRemarks("");
     setLiFormErrors({});
     setLiFormSuccess(false);
     setLiSaving(false);
+
+    // Clear Temporary Joints states when switching circuits
+    setTjSectionYardName("");
+    setTjKmNo("");
+    setTjCableType("");
+    setTjTotalJoints("");
+    setTjJointsTime("");
+    setTjRectified("");
+    setTjRectifiedTime("");
+    setTjTdc("");
+    setTjActionPlan("");
+    setTjRemarks("");
+    setTjFormErrors({});
+    setTjFormSuccess(false);
+    setTjSaving(false);
+
   };
 
   // Switch to the next circuit in the list when All OK is triggered
@@ -1300,36 +1532,7 @@ export default function Home() {
     }, 1200);
   };
 
-  // Mock List of SECR Locations for Railnet
-  // Mock List of SECR Locations for Railnet
-  const LOCATIONS_LIST = useMemo(() => {
-    const list = [
-      "Bilaspur HQ",
-      "Raipur Division",
-      "Nagpur Division",
-      "Durg Station",
-      "Gondia Station",
-      "Dongargarh Station",
-      "Champa Station",
-      "Korba Station",
-      "Anuppur Station",
-      "Shahdol Station",
-      "Usalapur Station",
-      "Bhatapara Station"
-    ];
-    if (selectedCircuit?.name === "Railnet / Internet") {
-      list.push("Others");
-    }
-    return list;
-  }, [selectedCircuit]);
 
-  // Filter locations based on search query
-  const filteredLocations = useMemo(() => {
-    if (!netLocSearchQuery.trim()) return LOCATIONS_LIST;
-    return LOCATIONS_LIST.filter(loc => 
-      loc.toLowerCase().includes(netLocSearchQuery.toLowerCase())
-    );
-  }, [netLocSearchQuery, LOCATIONS_LIST]);
 
   // Railnet Auto-calculated duration
   const netTotalDuration = useMemo(() => {
@@ -1354,11 +1557,6 @@ export default function Home() {
     const errors: Record<string, string> = {};
     if (!icmsEntryNo.trim()) {
       errors.icmsEntryNo = "ICMS Entry No./Docket No. is required";
-    }
-    if (!netLocation) {
-      errors.netLocation = selectedCircuit?.name === "Railnet / Internet"
-        ? "Location/Station is required"
-        : "Location is required";
     }
     if (!netBandwidth.trim()) errors.netBandwidth = "Bandwidth is required";
     if (!netTestingTime) {
@@ -1425,7 +1623,7 @@ export default function Home() {
         id: Date.now(),
         division: selectedDivision,
         icmsEntryNo: icmsEntryNo.trim(),
-        location: netLocation,
+        location: netActiveTab === "hq" ? "Bilaspur HQ" : formStationLocation,
         bandwidth: netBandwidth.trim(),
         testingTime: formatDate(netTestingTime),
         dnSpeed: netDnSpeed ? `${netDnSpeed} Mbps` : "-",
@@ -1465,9 +1663,7 @@ export default function Home() {
         setFormMajorSection("Bilaspur HQ");
         setFormSection("HQ Internet Maintenance");
         setFormStationLocation("SECR HQ (Bilaspur)");
-        setNetLocation("Bilaspur HQ");
       } else {
-        setNetLocation("");
         setFormMajorSection("");
         setFormSection("");
         setFormStationLocation("");
@@ -1677,11 +1873,6 @@ export default function Home() {
     e.preventDefault();
     const errors: Record<string, string> = {};
 
-    if (!icmsEntryNo.trim()) {
-      errors.icmsEntryNo = "ICMS Entry No./Docket No. is required";
-    }
-
-    if (!ccSectionName.trim()) errors.ccSectionName = "Section name is required";
     if (!ccKmNo.trim()) errors.ccKmNo = "KM Number is required";
     if (ccCableTypes.length === 0) errors.ccCableTypes = "At least one cable type is required";
     if (ccCableTypes.includes("Other") && !ccCustomCableType.trim()) {
@@ -1731,8 +1922,6 @@ export default function Home() {
       const newCcRecord = {
         id: Date.now(),
         division: selectedDivision,
-        icmsEntryNo: icmsEntryNo.trim(),
-        sectionName: ccSectionName.trim(),
         kmNo: ccKmNo.trim(),
         cableTypes: ccCableTypes.map(c => c === "Other" ? `Other: ${ccCustomCableType.trim()}` : c).join(", "),
         cutByWhom: ccCutByWhom.map(c => c === "Other" ? `Other: ${ccCustomCutBy.trim()}` : c).join(", "),
@@ -1749,8 +1938,6 @@ export default function Home() {
       setSavedCcRecords(prev => [newCcRecord, ...prev]);
       setCcSaving(false);
 
-      setIcmsEntryNo("");
-      setCcSectionName("");
       setCcKmNo("");
       setCcCableTypes([]);
       setCcCustomCableType("");
@@ -1903,10 +2090,6 @@ export default function Home() {
     e.preventDefault();
     const errors: Record<string, string> = {};
 
-    if (!icmsEntryNo.trim()) {
-      errors.icmsEntryNo = "ICMS Entry No./Docket No. is required";
-    }
-
     if (!wtrDate) errors.wtrDate = "Date is required";
 
     const validateNonNegative = (val: string, fieldName: string) => {
@@ -1976,7 +2159,6 @@ export default function Home() {
       const newWtrRecord = {
         id: Date.now(),
         division: selectedDivision,
-        icmsEntryNo: icmsEntryNo.trim(),
         date: formatDate(wtrDate),
         openingBalance: wtrOpeningBalance.trim(),
         receivedFromUser: wtrReceivedFromUser.trim(),
@@ -2000,7 +2182,6 @@ export default function Home() {
       setWtrSaving(false);
 
       // Reset form fields
-      setIcmsEntryNo("");
       setWtrDate("");
       setWtrOpeningBalance("");
       setWtrReceivedFromUser("");
@@ -2025,68 +2206,48 @@ export default function Home() {
     }, 1200);
   };
 
-  // Low Insulation Auto-calculated Balance faults
-  const liBalanceFaults = useMemo(() => {
-    if (!liTotalFaults || !liRectified) return "";
-    const total = parseInt(liTotalFaults, 10);
-    const rect = parseInt(liRectified, 10);
+
+
+  // Temporary Joints Auto-calculated Balance joints
+  const tjBalanceJoints = useMemo(() => {
+    if (!tjTotalJoints || !tjRectified) return "";
+    const total = parseInt(tjTotalJoints, 10);
+    const rect = parseInt(tjRectified, 10);
     if (isNaN(total) || isNaN(rect)) return "";
     return Math.max(0, total - rect).toString();
-  }, [liTotalFaults, liRectified]);
+  }, [tjTotalJoints, tjRectified]);
+
 
   // Handle Save Low Insulation Form
   const handleSaveLiRecord = (e: React.FormEvent) => {
     e.preventDefault();
     const errors: Record<string, string> = {};
 
-    if (!icmsEntryNo.trim()) {
-      errors.icmsEntryNo = "ICMS Entry No./Docket No. is required";
+    if (!liCableType.trim()) {
+      errors.liCableType = "Type of Cable is required";
     }
 
-    if (!liSectionName.trim()) errors.liSectionName = "Section name is required";
     if (!liKmNo.trim()) errors.liKmNo = "KM Number is required";
 
-    if (!liTotalFaults.trim()) {
-      errors.liTotalFaults = "Total number of insulation faults is required";
-    } else {
-      const val = parseInt(liTotalFaults, 10);
-      if (isNaN(val) || val < 0) {
-        errors.liTotalFaults = "Must be a valid positive number";
-      }
+    if (!liFaultsTime) {
+      errors.liFaultsTime = "Total no. of Insulation Faults(Date & Time) is required";
     }
 
-    if (!liFaultTime) {
-      errors.liFaultTime = "Fault Date & Time is required";
+    if (!liBalanceFaults.trim()) {
+      errors.liBalanceFaults = "Balance faults count is required";
     }
 
-    if (!liRectified.trim()) {
-      errors.liRectified = "Rectified faults count is required";
-    } else {
-      const val = parseInt(liRectified, 10);
-      if (isNaN(val) || val < 0) {
-        errors.liRectified = "Must be a valid positive number";
-      } else {
-        const totalVal = parseInt(liTotalFaults, 10);
-        if (!isNaN(totalVal) && val > totalVal) {
-          errors.liRectified = "Rectified faults cannot exceed total faults";
-        }
-      }
+    if (!liActionPlan.trim()) {
+      errors.liActionPlan = "Action Plan & TDC is required";
     }
 
-    if (liRectified && parseInt(liRectified, 10) > 0 && !liRectifiedTime) {
-      errors.liRectifiedTime = "Rectified Date & Time is required when some faults are rectified";
-    }
-
-    if (liFaultTime && liRectifiedTime) {
-      const start = new Date(liFaultTime);
+    if (liFaultsTime && liRectifiedTime) {
+      const start = new Date(liFaultsTime);
       const end = new Date(liRectifiedTime);
       if (end.getTime() < start.getTime()) {
-        errors.liRectifiedTime = "Rectified Date & Time cannot be earlier than Fault Date & Time";
+        errors.liRectifiedTime = "Rectified Date & Time cannot be earlier than Faults Date & Time";
       }
     }
-
-    if (!liActionPlan.trim()) errors.liActionPlan = "Action Plan is required";
-    if (!liTdc) errors.liTdc = "Target Date of Completion (TDC) is required";
 
     if (!formMajorSection) errors.formMajorSection = "Major Section is required";
     if (!formSection) errors.formSection = "Section is required";
@@ -2115,6 +2276,119 @@ export default function Home() {
         return `${day}-${month}-${year} ${hour}:${minute}`;
       };
 
+      const newLiRecord = {
+        id: Date.now(),
+        division: selectedDivision,
+        cableType: liCableType.trim(),
+        kmNo: liKmNo.trim(),
+        faultsTime: formatDatetime(liFaultsTime),
+        rectifiedTime: formatDatetime(liRectifiedTime),
+        balanceFaults: liBalanceFaults.trim(),
+        actionPlan: liActionPlan.trim(),
+        remarks: liRemarks.trim(),
+        majorSection: formMajorSection,
+        section: formSection,
+        stationLocation: formStationLocation
+      };
+
+      setSavedLiRecords(prev => [newLiRecord, ...prev]);
+      setLiSaving(false);
+
+      // Reset form fields
+      setLiCableType("");
+      setLiKmNo("");
+      setLiFaultsTime("");
+      setLiRectifiedTime("");
+      setLiBalanceFaults("");
+      setLiActionPlan("");
+      setLiRemarks("");
+      setFormMajorSection("");
+      setFormSection("");
+      setFormStationLocation("");
+      setLiFormSuccess(true);
+
+      // Auto hide success banner after 5 seconds
+      setTimeout(() => setLiFormSuccess(false), 5000);
+    }, 1200);
+  };
+
+  // Handle Save Temporary Joints Form
+  const handleSaveTjRecord = (e: React.FormEvent) => {
+    e.preventDefault();
+    const errors: Record<string, string> = {};
+
+    if (!tjSectionYardName.trim()) errors.tjSectionYardName = "Section/Yard Name is required";
+    if (!tjKmNo.trim()) errors.tjKmNo = "KM Number is required";
+    if (!tjCableType.trim()) errors.tjCableType = "Type of Cable is required";
+
+    if (!tjTotalJoints.trim()) {
+      errors.tjTotalJoints = "Total number of temporary joints is required";
+    } else {
+      const val = parseInt(tjTotalJoints, 10);
+      if (isNaN(val) || val < 0) {
+        errors.tjTotalJoints = "Must be a valid positive number";
+      }
+    }
+
+    if (!tjJointsTime) {
+      errors.tjJointsTime = "Joints Date & Time is required";
+    }
+
+    if (!tjRectified.trim()) {
+      errors.tjRectified = "Rectified joints count is required";
+    } else {
+      const val = parseInt(tjRectified, 10);
+      if (isNaN(val) || val < 0) {
+        errors.tjRectified = "Must be a valid positive number";
+      } else {
+        const totalVal = parseInt(tjTotalJoints, 10);
+        if (!isNaN(totalVal) && val > totalVal) {
+          errors.tjRectified = "Rectified joints cannot exceed total joints";
+        }
+      }
+    }
+
+    if (tjRectified && parseInt(tjRectified, 10) > 0 && !tjRectifiedTime) {
+      errors.tjRectifiedTime = "Rectified Date & Time is required when some joints are rectified";
+    }
+
+    if (tjJointsTime && tjRectifiedTime) {
+      const start = new Date(tjJointsTime);
+      const end = new Date(tjRectifiedTime);
+      if (end.getTime() < start.getTime()) {
+        errors.tjRectifiedTime = "Rectified Date & Time cannot be earlier than Joints Date & Time";
+      }
+    }
+
+    if (!tjActionPlan.trim()) errors.tjActionPlan = "Action Plan is required";
+    if (!tjTdc) errors.tjTdc = "Target Date of Completion (TDC) is required";
+
+    if (!formMajorSection) errors.formMajorSection = "Major Section is required";
+    if (!formSection) errors.formSection = "Section is required";
+
+    if (Object.keys(errors).length > 0) {
+      setTjFormErrors(errors);
+      return;
+    }
+
+    setTjFormErrors({});
+    setTjSaving(true);
+
+    // Simulate loading state (1.2 seconds)
+    setTimeout(() => {
+      // Formatter for datetime picker: DD-MM-YYYY HH:MM
+      const formatDatetime = (dateStr: string) => {
+        if (!dateStr) return "";
+        const d = new Date(dateStr);
+        if (isNaN(d.getTime())) return dateStr;
+        const day = String(d.getDate()).padStart(2, "0");
+        const month = String(d.getMonth() + 1).padStart(2, "0");
+        const year = d.getFullYear();
+        const hour = String(d.getHours()).padStart(2, "0");
+        const minute = String(d.getMinutes()).padStart(2, "0");
+        return `${day}-${month}-${year} ${hour}:${minute}`;
+      };
+
       // Formatter for date picker: YYYY-MM-DD
       const formatDate = (dateStr: string) => {
         if (!dateStr) return "";
@@ -2126,48 +2400,542 @@ export default function Home() {
         return `${year}-${month}-${day}`;
       };
 
-      const newLiRecord = {
+      const newTjRecord = {
         id: Date.now(),
         division: selectedDivision,
-        icmsEntryNo: icmsEntryNo.trim(),
-        sectionName: liSectionName.trim(),
-        kmNo: liKmNo.trim(),
-        totalFaults: liTotalFaults.trim(),
-        faultTime: formatDatetime(liFaultTime),
-        rectified: liRectified.trim(),
-        rectifiedTime: formatDatetime(liRectifiedTime),
-        balanceFaults: liBalanceFaults,
-        actionPlan: liActionPlan.trim(),
-        tdc: formatDate(liTdc),
-        remarks: liRemarks.trim(),
+        sectionYardName: tjSectionYardName.trim(),
+        kmNo: tjKmNo.trim(),
+        cableType: tjCableType.trim(),
+        totalJoints: tjTotalJoints.trim(),
+        jointsTime: formatDatetime(tjJointsTime),
+        rectified: tjRectified.trim(),
+        rectifiedTime: formatDatetime(tjRectifiedTime),
+        balanceJoints: tjBalanceJoints,
+        actionPlan: tjActionPlan.trim(),
+        tdc: formatDate(tjTdc),
+        remarks: tjRemarks.trim(),
         majorSection: formMajorSection,
-        section: formSection,
-        stationLocation: formStationLocation
+        section: formSection
       };
 
-      setSavedLiRecords(prev => [newLiRecord, ...prev]);
-      setLiSaving(false);
+      setSavedTjRecords(prev => [newTjRecord, ...prev]);
+      setTjSaving(false);
 
       // Reset form fields
-      setIcmsEntryNo("");
-      setLiSectionName("");
-      setLiKmNo("");
-      setLiTotalFaults("");
-      setLiFaultTime("");
-      setLiRectified("");
-      setLiRectifiedTime("");
-      setLiActionPlan("");
-      setLiTdc("");
-      setLiRemarks("");
+      setTjSectionYardName("");
+      setTjKmNo("");
+      setTjCableType("");
+      setTjTotalJoints("");
+      setTjJointsTime("");
+      setTjRectified("");
+      setTjRectifiedTime("");
+      setTjActionPlan("");
+      setTjTdc("");
+      setTjRemarks("");
+      setFormMajorSection("");
+      setFormSection("");
+      setTjFormSuccess(true);
+
+      // Auto hide success banner after 5 seconds
+      setTimeout(() => setTjFormSuccess(false), 5000);
+    }, 1200);
+  };
+
+  // CGDM Auto-calculated duration
+  const cgdmTotalDuration = useMemo(() => {
+    if (!cgdmFailureTime || !cgdmRectifiedTime) return "";
+    const start = new Date(cgdmFailureTime);
+    const end = new Date(cgdmRectifiedTime);
+    if (isNaN(start.getTime()) || isNaN(end.getTime())) return "";
+    
+    const diffMs = end.getTime() - start.getTime();
+    if (diffMs < 0) return "RT is earlier than Failure Time";
+    
+    const diffMinutes = Math.floor(diffMs / (1000 * 60));
+    const hrs = Math.floor(diffMinutes / 60);
+    const mins = diffMinutes % 60;
+    
+    return `${hrs} Hrs ${mins} Min`;
+  }, [cgdmFailureTime, cgdmRectifiedTime]);
+
+  // Handle Save CGDM Form
+  const handleSaveCgdmRecord = (e: React.FormEvent) => {
+    e.preventDefault();
+    const errors: Record<string, string> = {};
+
+    if (!cgdmPfNo.trim()) errors.cgdmPfNo = "Platform Number is required";
+    if (!cgdmFaultyBoards.trim()) {
+      errors.cgdmFaultyBoards = "Number of faulty boards is required";
+    } else {
+      const val = parseInt(cgdmFaultyBoards, 10);
+      if (isNaN(val) || val < 0) {
+        errors.cgdmFaultyBoards = "Must be a valid positive number";
+      }
+    }
+    if (!cgdmFailureTime) errors.cgdmFailureTime = "Failure Date & Time is required";
+    if (!cgdmRectifiedTime) errors.cgdmRectifiedTime = "Rectification Time (RT) is required";
+    if (!cgdmReasonOfFailure.trim()) errors.cgdmReasonOfFailure = "Reason of failure is required";
+
+    if (!formMajorSection) errors.formMajorSection = "Major Section is required";
+    if (!formSection) errors.formSection = "Section is required";
+    if (!formStationLocation) errors.formStationLocation = "Faulty Station Name is required";
+
+    if (cgdmFailureTime && cgdmRectifiedTime) {
+      const start = new Date(cgdmFailureTime);
+      const end = new Date(cgdmRectifiedTime);
+      if (end.getTime() < start.getTime()) {
+        errors.cgdmRectifiedTime = "Rectification Time cannot be earlier than Failure Time";
+      }
+    }
+
+    if (Object.keys(errors).length > 0) {
+      setCgdmFormErrors(errors);
+      return;
+    }
+
+    setCgdmFormErrors({});
+    setCgdmSaving(true);
+
+    // Simulate loading state (1.2 seconds)
+    setTimeout(() => {
+      // Date formatter: DD-MM-YYYY HH:MM
+      const formatDate = (dateStr: string) => {
+        const d = new Date(dateStr);
+        const day = String(d.getDate()).padStart(2, "0");
+        const month = String(d.getMonth() + 1).padStart(2, "0");
+        const year = d.getFullYear();
+        const hour = String(d.getHours()).padStart(2, "0");
+        const minute = String(d.getMinutes()).padStart(2, "0");
+        return `${day}-${month}-${year} ${hour}:${minute}`;
+      };
+
+      const newCgdmRecord = {
+        id: Date.now(),
+        division: selectedDivision,
+        pfNo: cgdmPfNo.trim(),
+        majorSection: formMajorSection,
+        section: formSection,
+        stationLocation: formStationLocation,
+        faultyBoards: cgdmFaultyBoards.trim(),
+        failureTime: formatDate(cgdmFailureTime),
+        rectifiedTime: formatDate(cgdmRectifiedTime),
+        duration: cgdmTotalDuration,
+        reasonOfFailure: cgdmReasonOfFailure.trim(),
+        remarks: cgdmRemarks.trim()
+      };
+
+      setSavedCgdmRecords(prev => [newCgdmRecord, ...prev]);
+      setCgdmSaving(false);
+
+      setCgdmPfNo("");
+      setCgdmFaultyBoards("");
+      setCgdmFailureTime("");
+      setCgdmRectifiedTime("");
+      setCgdmReasonOfFailure("");
+      setCgdmRemarks("");
       setFormMajorSection("");
       setFormSection("");
       setFormStationLocation("");
-      setLiFormSuccess(true);
+      setCgdmFormSuccess(true);
 
       // Auto hide success banner after 5 seconds
-      setTimeout(() => setLiFormSuccess(false), 5000);
+      setTimeout(() => setCgdmFormSuccess(false), 5000);
     }, 1200);
   };
+
+  // TIB Auto-calculated duration
+  const tibTotalDuration = useMemo(() => {
+    if (!tibFailureTime || !tibRectifiedTime) return "";
+    const start = new Date(tibFailureTime);
+    const end = new Date(tibRectifiedTime);
+    if (isNaN(start.getTime()) || isNaN(end.getTime())) return "";
+    
+    const diffMs = end.getTime() - start.getTime();
+    if (diffMs < 0) return "RT is earlier than Failure Time";
+    
+    const diffMinutes = Math.floor(diffMs / (1000 * 60));
+    const hrs = Math.floor(diffMinutes / 60);
+    const mins = diffMinutes % 60;
+    
+    return `${hrs} Hrs ${mins} Min`;
+  }, [tibFailureTime, tibRectifiedTime]);
+
+  // Handle Save TIB Form
+  const handleSaveTibRecord = (e: React.FormEvent) => {
+    e.preventDefault();
+    const errors: Record<string, string> = {};
+
+    if (!tibNoOfFaulty.trim()) {
+      errors.tibNoOfFaulty = "Number of faulty TIB boards is required";
+    } else {
+      const val = parseInt(tibNoOfFaulty, 10);
+      if (isNaN(val) || val < 0) {
+        errors.tibNoOfFaulty = "Must be a valid positive number";
+      }
+    }
+    if (!tibFailureTime) errors.tibFailureTime = "Failure Date & Time is required";
+    if (!tibRectifiedTime) errors.tibRectifiedTime = "Rectification Time (RT) is required";
+    if (!tibReasonOfFailure.trim()) errors.tibReasonOfFailure = "Reason of failure is required";
+
+    if (!formMajorSection) errors.formMajorSection = "Major Section is required";
+    if (!formSection) errors.formSection = "Section is required";
+    if (!formStationLocation) errors.formStationLocation = "Location of faulty TIB is required";
+
+    if (tibFailureTime && tibRectifiedTime) {
+      const start = new Date(tibFailureTime);
+      const end = new Date(tibRectifiedTime);
+      if (end.getTime() < start.getTime()) {
+        errors.tibRectifiedTime = "Rectification Time cannot be earlier than Failure Time";
+      }
+    }
+
+    if (Object.keys(errors).length > 0) {
+      setTibFormErrors(errors);
+      return;
+    }
+
+    setTibFormErrors({});
+    setTibSaving(true);
+
+    // Simulate loading state (1.2 seconds)
+    setTimeout(() => {
+      // Date formatter: DD-MM-YYYY HH:MM
+      const formatDate = (dateStr: string) => {
+        const d = new Date(dateStr);
+        const day = String(d.getDate()).padStart(2, "0");
+        const month = String(d.getMonth() + 1).padStart(2, "0");
+        const year = d.getFullYear();
+        const hour = String(d.getHours()).padStart(2, "0");
+        const minute = String(d.getMinutes()).padStart(2, "0");
+        return `${day}-${month}-${year} ${hour}:${minute}`;
+      };
+
+      const newTibRecord = {
+        id: Date.now(),
+        division: selectedDivision,
+        noOfFaulty: tibNoOfFaulty.trim(),
+        majorSection: formMajorSection,
+        section: formSection,
+        stationLocation: formStationLocation,
+        failureTime: formatDate(tibFailureTime),
+        rectifiedTime: formatDate(tibRectifiedTime),
+        duration: tibTotalDuration,
+        reasonOfFailure: tibReasonOfFailure.trim(),
+        remarks: tibRemarks.trim()
+      };
+
+      setSavedTibRecords(prev => [newTibRecord, ...prev]);
+      setTibSaving(false);
+
+      setTibNoOfFaulty("");
+      setTibFailureTime("");
+      setTibRectifiedTime("");
+      setTibReasonOfFailure("");
+      setTibRemarks("");
+      setFormMajorSection("");
+      setFormSection("");
+      setFormStationLocation("");
+      setTibFormSuccess(true);
+
+      // Auto hide success banner after 5 seconds
+      setTimeout(() => setTibFormSuccess(false), 5000);
+    }, 1200);
+  };
+
+  // CCTV Monitoring Auto-calculated duration
+  const cctvmTotalDuration = useMemo(() => {
+    if (!cctvmFailureTime || !cctvmRectifiedTime) return "";
+    const start = new Date(cctvmFailureTime);
+    const end = new Date(cctvmRectifiedTime);
+    if (isNaN(start.getTime()) || isNaN(end.getTime())) return "";
+    
+    const diffMs = end.getTime() - start.getTime();
+    if (diffMs < 0) return "RT is earlier than Failure Time";
+    
+    const diffMinutes = Math.floor(diffMs / (1000 * 60));
+    const hrs = Math.floor(diffMinutes / 60);
+    const mins = diffMinutes % 60;
+    
+    return `${hrs} Hrs ${mins} Min`;
+  }, [cctvmFailureTime, cctvmRectifiedTime]);
+
+  // Handle Save CCTV Monitoring Form
+  const handleSaveCctvmRecord = (e: React.FormEvent) => {
+    e.preventDefault();
+    const errors: Record<string, string> = {};
+
+    if (!cctvmTotalNotWorkingLocation.trim()) {
+      errors.cctvmTotalNotWorkingLocation = "Total CCTV / Not Working CCTV (NOS) (Location) is required";
+    }
+    if (!cctvmWarRoomFailed) {
+      errors.cctvmWarRoomFailed = "Live Feed To War Room Failed status is required";
+    }
+    if (!cctvmFailureTime) errors.cctvmFailureTime = "Failure Date & Time is required";
+    if (!cctvmRectifiedTime) errors.cctvmRectifiedTime = "Rectification Time (RT) is required";
+    if (!cctvmReasonOfFailure.trim()) errors.cctvmReasonOfFailure = "Reason of failure is required";
+
+    if (!formMajorSection) errors.formMajorSection = "Major Section is required";
+    if (!formSection) errors.formSection = "Section is required";
+
+    if (cctvmFailureTime && cctvmRectifiedTime) {
+      const start = new Date(cctvmFailureTime);
+      const end = new Date(cctvmRectifiedTime);
+      if (end.getTime() < start.getTime()) {
+        errors.cctvmRectifiedTime = "Rectification Time cannot be earlier than Failure Time";
+      }
+    }
+
+    if (Object.keys(errors).length > 0) {
+      setCctvmFormErrors(errors);
+      return;
+    }
+
+    setCctvmFormErrors({});
+    setCctvmSaving(true);
+
+    // Simulate loading state (1.2 seconds)
+    setTimeout(() => {
+      // Date formatter: DD-MM-YYYY HH:MM
+      const formatDate = (dateStr: string) => {
+        const d = new Date(dateStr);
+        const day = String(d.getDate()).padStart(2, "0");
+        const month = String(d.getMonth() + 1).padStart(2, "0");
+        const year = d.getFullYear();
+        const hour = String(d.getHours()).padStart(2, "0");
+        const minute = String(d.getMinutes()).padStart(2, "0");
+        return `${day}-${month}-${year} ${hour}:${minute}`;
+      };
+
+      const newCctvmRecord = {
+        id: Date.now(),
+        division: selectedDivision,
+        majorSection: formMajorSection,
+        section: formSection,
+        totalNotWorkingLocation: cctvmTotalNotWorkingLocation.trim(),
+        warRoomFailed: cctvmWarRoomFailed,
+        failureTime: formatDate(cctvmFailureTime),
+        rectifiedTime: formatDate(cctvmRectifiedTime),
+        duration: cctvmTotalDuration,
+        reasonOfFailure: cctvmReasonOfFailure.trim(),
+        remarks: cctvmRemarks.trim()
+      };
+
+      setSavedCctvmRecords(prev => [newCctvmRecord, ...prev]);
+      setCctvmSaving(false);
+
+      setCctvmTotalNotWorkingLocation("");
+      setCctvmWarRoomFailed("");
+      setCctvmFailureTime("");
+      setCctvmRectifiedTime("");
+      setCctvmReasonOfFailure("");
+      setCctvmRemarks("");
+      setFormMajorSection("");
+      setFormSection("");
+      setCctvmFormSuccess(true);
+
+      // Auto hide success banner after 5 seconds
+      setTimeout(() => setCctvmFormSuccess(false), 5000);
+    }, 1200);
+  };
+
+  // CCTV Maintenance Auto-calculated duration
+  const cctvsTotalDuration = useMemo(() => {
+    if (!cctvsFailureTime || !cctvsRectifiedTime) return "";
+    const start = new Date(cctvsFailureTime);
+    const end = new Date(cctvsRectifiedTime);
+    if (isNaN(start.getTime()) || isNaN(end.getTime())) return "";
+    
+    const diffMs = end.getTime() - start.getTime();
+    if (diffMs < 0) return "RT is earlier than Failure Time";
+    
+    const diffMinutes = Math.floor(diffMs / (1000 * 60));
+    const hrs = Math.floor(diffMinutes / 60);
+    const mins = diffMinutes % 60;
+    
+    return `${hrs} Hrs ${mins} Min`;
+  }, [cctvsFailureTime, cctvsRectifiedTime]);
+
+  // Handle Save CCTV Maintenance Form
+  const handleSaveCctvsRecord = (e: React.FormEvent) => {
+    e.preventDefault();
+    const errors: Record<string, string> = {};
+
+    if (!cctvsTotalNotWorkingLocation.trim()) {
+      errors.cctvsTotalNotWorkingLocation = "Total CCTV / Not Working CCTV (NOS) (Location) is required";
+    }
+    if (!cctvsWarRoomFailed) {
+      errors.cctvsWarRoomFailed = "Live Feed To War Room Failed status is required";
+    }
+    if (!cctvsFailureTime) errors.cctvsFailureTime = "Failure Date & Time is required";
+    if (!cctvsRectifiedTime) errors.cctvsRectifiedTime = "Rectification Time (RT) is required";
+    if (!cctvsReasonOfFailure.trim()) errors.cctvsReasonOfFailure = "Reason of failure is required";
+
+    if (!formMajorSection) errors.formMajorSection = "Major Section is required";
+    if (!formSection) errors.formSection = "Section is required";
+
+    if (cctvsFailureTime && cctvsRectifiedTime) {
+      const start = new Date(cctvsFailureTime);
+      const end = new Date(cctvsRectifiedTime);
+      if (end.getTime() < start.getTime()) {
+        errors.cctvsRectifiedTime = "Rectification Time cannot be earlier than Failure Time";
+      }
+    }
+
+    if (Object.keys(errors).length > 0) {
+      setCctvsFormErrors(errors);
+      return;
+    }
+
+    setCctvsFormErrors({});
+    setCctvsSaving(true);
+
+    // Simulate loading state (1.2 seconds)
+    setTimeout(() => {
+      // Date formatter: DD-MM-YYYY HH:MM
+      const formatDate = (dateStr: string) => {
+        const d = new Date(dateStr);
+        const day = String(d.getDate()).padStart(2, "0");
+        const month = String(d.getMonth() + 1).padStart(2, "0");
+        const year = d.getFullYear();
+        const hour = String(d.getHours()).padStart(2, "0");
+        const minute = String(d.getMinutes()).padStart(2, "0");
+        return `${day}-${month}-${year} ${hour}:${minute}`;
+      };
+
+      const newCctvsRecord = {
+        id: Date.now(),
+        division: selectedDivision,
+        majorSection: formMajorSection,
+        section: formSection,
+        totalNotWorkingLocation: cctvsTotalNotWorkingLocation.trim(),
+        warRoomFailed: cctvsWarRoomFailed,
+        failureTime: formatDate(cctvsFailureTime),
+        rectifiedTime: formatDate(cctvsRectifiedTime),
+        duration: cctvsTotalDuration,
+        reasonOfFailure: cctvsReasonOfFailure.trim(),
+        remarks: cctvsRemarks.trim()
+      };
+
+      setSavedCctvsRecords(prev => [newCctvsRecord, ...prev]);
+      setCctvsSaving(false);
+
+      setCctvsTotalNotWorkingLocation("");
+      setCctvsWarRoomFailed("");
+      setCctvsFailureTime("");
+      setCctvsRectifiedTime("");
+      setCctvsReasonOfFailure("");
+      setCctvsRemarks("");
+      setFormMajorSection("");
+      setFormSection("");
+      setCctvsFormSuccess(true);
+
+      // Auto hide success banner after 5 seconds
+      setTimeout(() => setCctvsFormSuccess(false), 5000);
+    }, 1200);
+  };
+
+  // PRS/UTS Auto-calculated duration
+  const puTotalDuration = useMemo(() => {
+    if (!puFailureTime || !puRectifiedTime) return "";
+    const start = new Date(puFailureTime);
+    const end = new Date(puRectifiedTime);
+    if (isNaN(start.getTime()) || isNaN(end.getTime())) return "";
+    
+    const diffMs = end.getTime() - start.getTime();
+    if (diffMs < 0) return "RT is earlier than Failure Time";
+    
+    const diffMinutes = Math.floor(diffMs / (1000 * 60));
+    const hrs = Math.floor(diffMinutes / 60);
+    const mins = diffMinutes % 60;
+    
+    return `${hrs} Hrs ${mins} Min`;
+  }, [puFailureTime, puRectifiedTime]);
+
+  // Handle Save PRS/UTS Form
+  const handleSavePuRecord = (e: React.FormEvent) => {
+    e.preventDefault();
+    const errors: Record<string, string> = {};
+
+    if (!puSystemType) {
+      errors.puSystemType = "System Type (PRS/UTS) is required";
+    }
+    if (!puNatureOfFault) {
+      errors.puNatureOfFault = "Nature of fault is required";
+    }
+    if (!puFailureTime) errors.puFailureTime = "Failure Date & Time is required";
+    if (!puRectifiedTime) errors.puRectifiedTime = "Rectification Time (RT) is required";
+    if (!puReasonOfFailure.trim()) errors.puReasonOfFailure = "Reason of failure is required";
+
+    if (!formMajorSection) errors.formMajorSection = "Major Section is required";
+    if (!formSection) errors.formSection = "Section is required";
+    if (!formStationLocation) errors.formStationLocation = "Station/Location is required";
+
+    if (puFailureTime && puRectifiedTime) {
+      const start = new Date(puFailureTime);
+      const end = new Date(puRectifiedTime);
+      if (end.getTime() < start.getTime()) {
+        errors.puRectifiedTime = "Rectification Time cannot be earlier than Failure Time";
+      }
+    }
+
+    if (Object.keys(errors).length > 0) {
+      setPuFormErrors(errors);
+      return;
+    }
+
+    setPuFormErrors({});
+    setPuSaving(true);
+
+    // Simulate loading state (1.2 seconds)
+    setTimeout(() => {
+      // Date formatter: DD-MM-YYYY HH:MM
+      const formatDate = (dateStr: string) => {
+        const d = new Date(dateStr);
+        const day = String(d.getDate()).padStart(2, "0");
+        const month = String(d.getMonth() + 1).padStart(2, "0");
+        const year = d.getFullYear();
+        const hour = String(d.getHours()).padStart(2, "0");
+        const minute = String(d.getMinutes()).padStart(2, "0");
+        return `${day}-${month}-${year} ${hour}:${minute}`;
+      };
+
+      const newPuRecord = {
+        id: Date.now(),
+        division: selectedDivision,
+        systemType: puSystemType,
+        majorSection: formMajorSection,
+        section: formSection,
+        stationLocation: formStationLocation,
+        natureOfFault: puNatureOfFault,
+        failureTime: formatDate(puFailureTime),
+        rectifiedTime: formatDate(puRectifiedTime),
+        duration: puTotalDuration,
+        reasonOfFailure: puReasonOfFailure.trim(),
+        remarks: puRemarks.trim()
+      };
+
+      setSavedPuRecords(prev => [newPuRecord, ...prev]);
+      setPuSaving(false);
+
+      setPuSystemType("");
+      setPuNatureOfFault("");
+      setPuFailureTime("");
+      setPuRectifiedTime("");
+      setPuReasonOfFailure("");
+      setPuRemarks("");
+      setFormMajorSection("");
+      setFormSection("");
+      setFormStationLocation("");
+      setPuFormSuccess(true);
+
+      // Auto hide success banner after 5 seconds
+      setTimeout(() => setPuFormSuccess(false), 5000);
+    }, 1200);
+  };
+
+
+
+
 
   return (
     <div className="dashboard-container">
@@ -3409,7 +4177,6 @@ export default function Home() {
                       setFormMajorSection("");
                       setFormSection("");
                       setFormStationLocation("");
-                      setNetLocation("");
                     }}
                   >
                     Divisional Maintenance
@@ -3433,7 +4200,6 @@ export default function Home() {
                       setFormMajorSection("Bilaspur HQ");
                       setFormSection("HQ Internet Maintenance");
                       setFormStationLocation("SECR HQ (Bilaspur)");
-                      setNetLocation("Bilaspur HQ");
                     }}
                   >
                     HQ Maintenance
@@ -3462,8 +4228,10 @@ export default function Home() {
 
               {/* Railnet / Internet Monitoring Form */}
               <form className="fault-form" onSubmit={handleSaveNetRecord}>
-                {netActiveTab !== "hq" && (
+                {netActiveTab !== "hq" ? (
+                  /* Divisional Maintenance Tab Layout */
                   <>
+                    {/* Row 1: Major Section & Section */}
                     <div className="form-group-row">
                       {/* Major Section */}
                       <div className="form-group">
@@ -3513,6 +4281,7 @@ export default function Home() {
                       </div>
                     </div>
 
+                    {/* Row 2: Station/Location & ICMS Entry No./Docket No. */}
                     <div className="form-group-row">
                       {/* Station/Location */}
                       <div className="form-group">
@@ -3546,433 +4315,700 @@ export default function Home() {
                         )}
                       </div>
 
-                      {/* Location/Station (Searchable Dropdown) */}
+                      {/* ICMS Entry No./Docket No. */}
+                      <div className="form-group">
+                        <label htmlFor="netIcmsEntryNo" className="form-label">
+                          ICMS Entry No./Docket No. <span className="required">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          id="netIcmsEntryNo"
+                          className={`form-input ${netFormErrors.icmsEntryNo ? "field-error-border" : ""}`}
+                          placeholder="Enter ICMS entry number/docket number"
+                          value={icmsEntryNo}
+                          onChange={(e) => setIcmsEntryNo(e.target.value)}
+                        />
+                        {netFormErrors.icmsEntryNo && (
+                          <span className="error-text">{netFormErrors.icmsEntryNo}</span>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Row 3: Bandwidth & Last Testing Time */}
+                    <div className="form-group-row">
+                      <div className="form-group">
+                        <label htmlFor="netBandwidth" className="form-label">
+                          Bandwidth <span className="required">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          id="netBandwidth"
+                          className={`form-input ${netFormErrors.netBandwidth ? "field-error-border" : ""}`}
+                          placeholder="Example: 100 Mbps, 1 Gbps"
+                          value={netBandwidth}
+                          onChange={(e) => setNetBandwidth(e.target.value)}
+                        />
+                        {netFormErrors.netBandwidth && (
+                          <span className="error-text">{netFormErrors.netBandwidth}</span>
+                        )}
+                      </div>
+
+                      <div className="form-group">
+                        <label htmlFor="netTestingTime" className="form-label">
+                          Last Testing Time <span className="required">*</span>
+                        </label>
+                        <input
+                          type="datetime-local"
+                          id="netTestingTime"
+                          className={`form-input ${netFormErrors.netTestingTime ? "field-error-border" : ""}`}
+                          value={netTestingTime}
+                          onChange={(e) => setNetTestingTime(e.target.value)}
+                        />
+                        {netFormErrors.netTestingTime && (
+                          <span className="error-text">{netFormErrors.netTestingTime}</span>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Row 4: Nature of Fault & Audit Report */}
+                    <div className="form-group-row">
+                      <div className="form-group">
+                        <label htmlFor="netFaultNature" className="form-label">
+                          Nature of Fault <span className="required">*</span>
+                        </label>
+                        <select
+                          id="netFaultNature"
+                          className={`form-input ${netFormErrors.netFaultNature ? "field-error-border" : ""}`}
+                          style={{ height: "42px", appearance: "auto" }}
+                          value={netFaultNature}
+                          onChange={(e) => {
+                            setNetFaultNature(e.target.value);
+                            if (e.target.value !== "Other") setNetCustomFaultNature("");
+                          }}
+                        >
+                          <option value="">Select Nature of Fault</option>
+                          <option value="Slow Internet">Slow Internet</option>
+                          <option value="No Connectivity">No Connectivity</option>
+                          <option value="Packet Loss">Packet Loss</option>
+                          <option value="High Latency">High Latency</option>
+                          <option value="Link Down">Link Down</option>
+                          <option value="Frequent Disconnection">Frequent Disconnection</option>
+                          <option value="Bandwidth Degradation">Bandwidth Degradation</option>
+                          <option value="Equipment Failure">Equipment Failure</option>
+                          <option value="Other">Other</option>
+                        </select>
+                        {netFormErrors.netFaultNature && (
+                          <span className="error-text">{netFormErrors.netFaultNature}</span>
+                        )}
+                      </div>
+
+                      <div className="form-group">
+                        <label htmlFor="netAuditReport" className="form-label">
+                          Audit Report <span className="required">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          id="netAuditReport"
+                          className={`form-input ${netFormErrors.netAuditReport ? "field-error-border" : ""}`}
+                          placeholder="Enter Audit Report details"
+                          value={netAuditReport}
+                          onChange={(e) => setNetAuditReport(e.target.value)}
+                        />
+                        {netFormErrors.netAuditReport && (
+                          <span className="error-text">{netFormErrors.netAuditReport}</span>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Conditional Row: Custom Nature of Fault */}
+                    {netFaultNature === "Other" && (
+                      <div className="form-group full-width" style={{ animation: "fadeIn 0.15s ease-out" }}>
+                        <label htmlFor="netCustomFaultNature" className="form-label">
+                          Other Nature of Fault <span className="required">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          id="netCustomFaultNature"
+                          className={`form-input ${netFormErrors.netCustomFaultNature ? "field-error-border" : ""}`}
+                          placeholder="Enter fault details"
+                          value={netCustomFaultNature}
+                          onChange={(e) => setNetCustomFaultNature(e.target.value)}
+                        />
+                        {netFormErrors.netCustomFaultNature && (
+                          <span className="error-text">{netFormErrors.netCustomFaultNature}</span>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Row 5: Attach File / Report & Download Link Speed */}
+                    <div className="form-group-row">
                       <div className="form-group">
                         <label className="form-label">
-                          {selectedCircuit?.name === "Railnet / Internet" ? "Location/Station" : "Location"} <span className="required">*</span>
+                          Attach File / Report
                         </label>
-                        <div className="multiselect-container" ref={netLocRef}>
+                        <div className="file-upload-wrapper" style={{ display: 'flex', gap: '10px', alignItems: 'center', height: '42px' }}>
+                          <input
+                            type="file"
+                            id="netFileAttachment"
+                            style={{ display: "none" }}
+                            onChange={(e) => {
+                              if (e.target.files && e.target.files[0]) {
+                                setNetAttachment(e.target.files[0]);
+                              }
+                            }}
+                          />
                           <button
                             type="button"
-                            className={`multiselect-trigger ${netLocDropdownOpen ? "open" : ""}`}
-                            onClick={() => setNetLocDropdownOpen(!netLocDropdownOpen)}
+                            className="all-ok-button"
+                            style={{
+                              margin: 0,
+                              padding: "10px 16px",
+                              backgroundColor: "#f3f4f6",
+                              color: "#374151",
+                              border: "1px solid #d1d5db",
+                              borderRadius: "6px",
+                              cursor: "pointer",
+                              display: "flex",
+                              alignItems: "center",
+                              gap: "8px",
+                              fontWeight: "500",
+                              transition: "all 0.2s"
+                            }}
+                            onClick={() => document.getElementById("netFileAttachment")?.click()}
+                            onMouseOver={(e) => {
+                              e.currentTarget.style.backgroundColor = "#e5e7eb";
+                            }}
+                            onMouseOut={(e) => {
+                              e.currentTarget.style.backgroundColor = "#f3f4f6";
+                            }}
                           >
-                            <span>{netLocation ? netLocation : selectedCircuit?.name === "Railnet / Internet" ? "Select Location/Station" : "Select Location"}</span>
+                            <svg
+                              width="14"
+                              height="14"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2.5"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            >
+                              <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path>
+                            </svg>
+                            Choose File
                           </button>
-                          {netLocDropdownOpen && (
+                          <span style={{ fontSize: "13px", color: netAttachment ? "#1e293b" : "#64748b", fontWeight: netAttachment ? "500" : "normal", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: "160px" }}>
+                            {netAttachment ? netAttachment.name : "No file attached"}
+                          </span>
+                          {netAttachment && (
+                            <button
+                              type="button"
+                              style={{
+                                background: "none",
+                                border: "none",
+                                color: "#ef4444",
+                                cursor: "pointer",
+                                display: "flex",
+                                alignItems: "center",
+                                padding: "4px"
+                              }}
+                              onClick={() => setNetAttachment(null)}
+                              title="Remove file"
+                            >
+                              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                                <line x1="18" y1="6" x2="6" y2="18"></line>
+                                <line x1="6" y1="6" x2="18" y2="18"></line>
+                              </svg>
+                            </button>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="form-group">
+                        <label htmlFor="netDnSpeed" className="form-label">Download Link Speed (Mbps)</label>
+                        <input
+                          type="text"
+                          id="netDnSpeed"
+                          className={`form-input ${netFormErrors.netDnSpeed ? "field-error-border" : ""}`}
+                          placeholder="Enter Download Link Speed"
+                          value={netDnSpeed}
+                          onChange={(e) => setNetDnSpeed(e.target.value)}
+                        />
+                        {netFormErrors.netDnSpeed && (
+                          <span className="error-text">{netFormErrors.netDnSpeed}</span>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Row 6: Upload Link Speed & Failure Date & Time */}
+                    <div className="form-group-row">
+                      <div className="form-group">
+                        <label htmlFor="netUpSpeed" className="form-label">Upload Link Speed (Mbps)</label>
+                        <input
+                          type="text"
+                          id="netUpSpeed"
+                          className={`form-input ${netFormErrors.netUpSpeed ? "field-error-border" : ""}`}
+                          placeholder="Enter Upload Link Speed"
+                          value={netUpSpeed}
+                          onChange={(e) => setNetUpSpeed(e.target.value)}
+                        />
+                        {netFormErrors.netUpSpeed && (
+                          <span className="error-text">{netFormErrors.netUpSpeed}</span>
+                        )}
+                      </div>
+
+                      <div className="form-group">
+                        <label htmlFor="netFailureTime" className="form-label">
+                          Failure Date & Time <span className="required">*</span>
+                        </label>
+                        <input
+                          type="datetime-local"
+                          id="netFailureTime"
+                          className={`form-input ${netFormErrors.netFailureTime ? "field-error-border" : ""}`}
+                          value={netFailureTime}
+                          onChange={(e) => setNetFailureTime(e.target.value)}
+                        />
+                        {netFormErrors.netFailureTime && (
+                          <span className="error-text">{netFormErrors.netFailureTime}</span>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Row 7: Rectification Time (RT) & Duration of Failure */}
+                    <div className="form-group-row">
+                      <div className="form-group">
+                        <label htmlFor="netRectificationTime" className="form-label">
+                          Rectification Time (RT) <span className="required">*</span>
+                        </label>
+                        <input
+                          type="datetime-local"
+                          id="netRectificationTime"
+                          className={`form-input ${netFormErrors.netRectificationTime ? "field-error-border" : ""}`}
+                          value={netRectificationTime}
+                          onChange={(e) => setNetRectificationTime(e.target.value)}
+                        />
+                        {netFormErrors.netRectificationTime && (
+                          <span className="error-text">{netFormErrors.netRectificationTime}</span>
+                        )}
+                      </div>
+
+                      <div className="form-group">
+                        <label htmlFor="netTotalDuration" className="form-label">Duration of Failure</label>
+                        <input
+                          type="text"
+                          id="netTotalDuration"
+                          className="form-input"
+                          value={netTotalDuration}
+                          readOnly
+                          placeholder="XX Hrs XX Min"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Row 8: Reason of Failure */}
+                    <div className="form-group-row">
+                      <div className="form-group">
+                        <label className="form-label">
+                          Reason of Failure <span className="required">*</span>
+                        </label>
+                        <div className="multiselect-container" ref={netReasonsRef}>
+                          <button
+                            type="button"
+                            className={`multiselect-trigger ${netReasonsDropdownOpen ? "open" : ""}`}
+                            onClick={() => setNetReasonsDropdownOpen(!netReasonsDropdownOpen)}
+                          >
+                            <span>
+                              {netSelectedReasons.length === 0
+                                ? "Select Reason(s)..."
+                                : netSelectedReasons.join(", ")}
+                            </span>
+                          </button>
+                          {netReasonsDropdownOpen && (
                             <div className="multiselect-menu">
-                              <div className="circuit-dropdown-search-wrapper" style={{ position: "relative" }}>
-                                <span className="circuit-dropdown-search-icon">
-                                  <svg
-                                    width="12"
-                                    height="12"
-                                    viewBox="0 0 24 24"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    strokeWidth="2.5"
-                                  >
-                                    <circle cx="11" cy="11" r="8"></circle>
-                                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                                  </svg>
-                                </span>
-                                <input
-                                  type="text"
-                                  placeholder={selectedCircuit?.name === "Railnet / Internet" ? "Filter location/station..." : "Filter location..."}
-                                  className="circuit-dropdown-search"
-                                  value={netLocSearchQuery}
-                                  onChange={(e) => setNetLocSearchQuery(e.target.value)}
-                                  autoFocus
-                                  onClick={(e) => e.stopPropagation()}
-                                />
-                              </div>
-                              <div style={{ maxHeight: "170px", overflowY: "auto" }}>
-                                {filteredLocations.length > 0 ? (
-                                  filteredLocations.map((loc) => (
-                                    <div
-                                      key={loc}
-                                      className="dropdown-item"
-                                      style={{
-                                        padding: "8px 12px",
-                                        fontSize: "13.5px",
-                                        backgroundColor: netLocation === loc ? "#EFF6FF" : "transparent",
-                                        color: netLocation === loc ? "var(--primary-color)" : "var(--text-color)"
-                                      }}
-                                      onClick={() => {
-                                        setNetLocation(loc);
-                                        setNetLocDropdownOpen(false);
-                                        setNetLocSearchQuery("");
-                                      }}
-                                    >
-                                      {loc}
-                                    </div>
-                                  ))
-                                ) : (
-                                  <div style={{ padding: "10px", fontSize: "12.5px", color: "#6B7280", textAlign: "center" }}>
-                                    No locations found.
-                                  </div>
-                                )}
-                              </div>
+                              {[
+                                "Cable Cut",
+                                "Link Failure",
+                                "Equipment Failure (STM)",
+                                "Equipment Failure (Phone)",
+                                "Router Failure",
+                                "Switch Failure",
+                                "OFC Fault",
+                                "Power Failure",
+                                "Configuration Issue",
+                                "ISP Issue",
+                                "Other"
+                              ].map((option) => (
+                                <label key={option} className="multiselect-item">
+                                  <input
+                                    type="checkbox"
+                                    checked={netSelectedReasons.includes(option)}
+                                    onChange={() => {
+                                      if (netSelectedReasons.includes(option)) {
+                                        setNetSelectedReasons(netSelectedReasons.filter((r) => r !== option));
+                                      } else {
+                                        setNetSelectedReasons([...netSelectedReasons, option]);
+                                      }
+                                    }}
+                                  />
+                                  <span>{option}</span>
+                                </label>
+                              ))}
                             </div>
                           )}
                         </div>
-                        {netFormErrors.netLocation && (
-                          <span className="error-text">{netFormErrors.netLocation}</span>
+                        {netFormErrors.reasons && (
+                          <span className="error-text">{netFormErrors.reasons}</span>
+                        )}
+                      </div>
+                    </div>
+                  </>
+                ) : (
+                  /* HQ Maintenance Tab Layout */
+                  <>
+                    {/* Row 1: ICMS Entry No./Docket No. & Bandwidth */}
+                    <div className="form-group-row">
+                      <div className="form-group">
+                        <label htmlFor="netIcmsEntryNo" className="form-label">
+                          ICMS Entry No./Docket No. <span className="required">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          id="netIcmsEntryNo"
+                          className={`form-input ${netFormErrors.icmsEntryNo ? "field-error-border" : ""}`}
+                          placeholder="Enter ICMS entry number/docket number"
+                          value={icmsEntryNo}
+                          onChange={(e) => setIcmsEntryNo(e.target.value)}
+                        />
+                        {netFormErrors.icmsEntryNo && (
+                          <span className="error-text">{netFormErrors.icmsEntryNo}</span>
+                        )}
+                      </div>
+
+                      <div className="form-group">
+                        <label htmlFor="netBandwidth" className="form-label">
+                          Bandwidth <span className="required">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          id="netBandwidth"
+                          className={`form-input ${netFormErrors.netBandwidth ? "field-error-border" : ""}`}
+                          placeholder="Example: 100 Mbps, 1 Gbps"
+                          value={netBandwidth}
+                          onChange={(e) => setNetBandwidth(e.target.value)}
+                        />
+                        {netFormErrors.netBandwidth && (
+                          <span className="error-text">{netFormErrors.netBandwidth}</span>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Row 2: Last Testing Time & Nature of Fault */}
+                    <div className="form-group-row">
+                      <div className="form-group">
+                        <label htmlFor="netTestingTime" className="form-label">
+                          Last Testing Time <span className="required">*</span>
+                        </label>
+                        <input
+                          type="datetime-local"
+                          id="netTestingTime"
+                          className={`form-input ${netFormErrors.netTestingTime ? "field-error-border" : ""}`}
+                          value={netTestingTime}
+                          onChange={(e) => setNetTestingTime(e.target.value)}
+                        />
+                        {netFormErrors.netTestingTime && (
+                          <span className="error-text">{netFormErrors.netTestingTime}</span>
+                        )}
+                      </div>
+
+                      <div className="form-group">
+                        <label htmlFor="netFaultNature" className="form-label">
+                          Nature of Fault <span className="required">*</span>
+                        </label>
+                        <select
+                          id="netFaultNature"
+                          className={`form-input ${netFormErrors.netFaultNature ? "field-error-border" : ""}`}
+                          style={{ height: "42px", appearance: "auto" }}
+                          value={netFaultNature}
+                          onChange={(e) => {
+                            setNetFaultNature(e.target.value);
+                            if (e.target.value !== "Other") setNetCustomFaultNature("");
+                          }}
+                        >
+                          <option value="">Select Nature of Fault</option>
+                          <option value="Slow Internet">Slow Internet</option>
+                          <option value="No Connectivity">No Connectivity</option>
+                          <option value="Packet Loss">Packet Loss</option>
+                          <option value="High Latency">High Latency</option>
+                          <option value="Link Down">Link Down</option>
+                          <option value="Frequent Disconnection">Frequent Disconnection</option>
+                          <option value="Bandwidth Degradation">Bandwidth Degradation</option>
+                          <option value="Equipment Failure">Equipment Failure</option>
+                          <option value="Other">Other</option>
+                        </select>
+                        {netFormErrors.netFaultNature && (
+                          <span className="error-text">{netFormErrors.netFaultNature}</span>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Conditional Row: Custom Nature of Fault */}
+                    {netFaultNature === "Other" && (
+                      <div className="form-group full-width" style={{ animation: "fadeIn 0.15s ease-out" }}>
+                        <label htmlFor="netCustomFaultNature" className="form-label">
+                          Other Nature of Fault <span className="required">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          id="netCustomFaultNature"
+                          className={`form-input ${netFormErrors.netCustomFaultNature ? "field-error-border" : ""}`}
+                          placeholder="Enter fault details"
+                          value={netCustomFaultNature}
+                          onChange={(e) => setNetCustomFaultNature(e.target.value)}
+                        />
+                        {netFormErrors.netCustomFaultNature && (
+                          <span className="error-text">{netFormErrors.netCustomFaultNature}</span>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Row 3: Audit Report & Attach File / Report */}
+                    <div className="form-group-row">
+                      <div className="form-group">
+                        <label htmlFor="netAuditReport" className="form-label">
+                          Audit Report <span className="required">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          id="netAuditReport"
+                          className={`form-input ${netFormErrors.netAuditReport ? "field-error-border" : ""}`}
+                          placeholder="Enter Audit Report details"
+                          value={netAuditReport}
+                          onChange={(e) => setNetAuditReport(e.target.value)}
+                        />
+                        {netFormErrors.netAuditReport && (
+                          <span className="error-text">{netFormErrors.netAuditReport}</span>
+                        )}
+                      </div>
+
+                      <div className="form-group">
+                        <label className="form-label">
+                          Attach File / Report
+                        </label>
+                        <div className="file-upload-wrapper" style={{ display: 'flex', gap: '10px', alignItems: 'center', height: '42px' }}>
+                          <input
+                            type="file"
+                            id="netFileAttachment"
+                            style={{ display: "none" }}
+                            onChange={(e) => {
+                              if (e.target.files && e.target.files[0]) {
+                                setNetAttachment(e.target.files[0]);
+                              }
+                            }}
+                          />
+                          <button
+                            type="button"
+                            className="all-ok-button"
+                            style={{
+                              margin: 0,
+                              padding: "10px 16px",
+                              backgroundColor: "#f3f4f6",
+                              color: "#374151",
+                              border: "1px solid #d1d5db",
+                              borderRadius: "6px",
+                              cursor: "pointer",
+                              display: "flex",
+                              alignItems: "center",
+                              gap: "8px",
+                              fontWeight: "500",
+                              transition: "all 0.2s"
+                            }}
+                            onClick={() => document.getElementById("netFileAttachment")?.click()}
+                            onMouseOver={(e) => {
+                              e.currentTarget.style.backgroundColor = "#e5e7eb";
+                            }}
+                            onMouseOut={(e) => {
+                              e.currentTarget.style.backgroundColor = "#f3f4f6";
+                            }}
+                          >
+                            <svg
+                              width="14"
+                              height="14"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2.5"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            >
+                              <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path>
+                            </svg>
+                            Choose File
+                          </button>
+                          <span style={{ fontSize: "13px", color: netAttachment ? "#1e293b" : "#64748b", fontWeight: netAttachment ? "500" : "normal", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: "160px" }}>
+                            {netAttachment ? netAttachment.name : "No file attached"}
+                          </span>
+                          {netAttachment && (
+                            <button
+                              type="button"
+                              style={{
+                                background: "none",
+                                border: "none",
+                                color: "#ef4444",
+                                cursor: "pointer",
+                                display: "flex",
+                                alignItems: "center",
+                                padding: "4px"
+                              }}
+                              onClick={() => setNetAttachment(null)}
+                              title="Remove file"
+                            >
+                              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                                <line x1="18" y1="6" x2="6" y2="18"></line>
+                                <line x1="6" y1="6" x2="18" y2="18"></line>
+                              </svg>
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Row 4: Download Link Speed & Upload Link Speed */}
+                    <div className="form-group-row">
+                      <div className="form-group">
+                        <label htmlFor="netDnSpeed" className="form-label">Download Link Speed (Mbps)</label>
+                        <input
+                          type="text"
+                          id="netDnSpeed"
+                          className={`form-input ${netFormErrors.netDnSpeed ? "field-error-border" : ""}`}
+                          placeholder="Enter Download Link Speed"
+                          value={netDnSpeed}
+                          onChange={(e) => setNetDnSpeed(e.target.value)}
+                        />
+                        {netFormErrors.netDnSpeed && (
+                          <span className="error-text">{netFormErrors.netDnSpeed}</span>
+                        )}
+                      </div>
+
+                      <div className="form-group">
+                        <label htmlFor="netUpSpeed" className="form-label">Upload Link Speed (Mbps)</label>
+                        <input
+                          type="text"
+                          id="netUpSpeed"
+                          className={`form-input ${netFormErrors.netUpSpeed ? "field-error-border" : ""}`}
+                          placeholder="Enter Upload Link Speed"
+                          value={netUpSpeed}
+                          onChange={(e) => setNetUpSpeed(e.target.value)}
+                        />
+                        {netFormErrors.netUpSpeed && (
+                          <span className="error-text">{netFormErrors.netUpSpeed}</span>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Row 5: Failure Date & Time & Rectification Time (RT) */}
+                    <div className="form-group-row">
+                      <div className="form-group">
+                        <label htmlFor="netFailureTime" className="form-label">
+                          Failure Date & Time <span className="required">*</span>
+                        </label>
+                        <input
+                          type="datetime-local"
+                          id="netFailureTime"
+                          className={`form-input ${netFormErrors.netFailureTime ? "field-error-border" : ""}`}
+                          value={netFailureTime}
+                          onChange={(e) => setNetFailureTime(e.target.value)}
+                        />
+                        {netFormErrors.netFailureTime && (
+                          <span className="error-text">{netFormErrors.netFailureTime}</span>
+                        )}
+                      </div>
+
+                      <div className="form-group">
+                        <label htmlFor="netRectificationTime" className="form-label">
+                          Rectification Time (RT) <span className="required">*</span>
+                        </label>
+                        <input
+                          type="datetime-local"
+                          id="netRectificationTime"
+                          className={`form-input ${netFormErrors.netRectificationTime ? "field-error-border" : ""}`}
+                          value={netRectificationTime}
+                          onChange={(e) => setNetRectificationTime(e.target.value)}
+                        />
+                        {netFormErrors.netRectificationTime && (
+                          <span className="error-text">{netFormErrors.netRectificationTime}</span>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Row 6: Duration of Failure & Reason of Failure */}
+                    <div className="form-group-row">
+                      <div className="form-group">
+                        <label htmlFor="netTotalDuration" className="form-label">Duration of Failure</label>
+                        <input
+                          type="text"
+                          id="netTotalDuration"
+                          className="form-input"
+                          value={netTotalDuration}
+                          readOnly
+                          placeholder="XX Hrs XX Min"
+                        />
+                      </div>
+
+                      <div className="form-group">
+                        <label className="form-label">
+                          Reason of Failure <span className="required">*</span>
+                        </label>
+                        <div className="multiselect-container" ref={netReasonsRef}>
+                          <button
+                            type="button"
+                            className={`multiselect-trigger ${netReasonsDropdownOpen ? "open" : ""}`}
+                            onClick={() => setNetReasonsDropdownOpen(!netReasonsDropdownOpen)}
+                          >
+                            <span>
+                              {netSelectedReasons.length === 0
+                                ? "Select Reason(s)..."
+                                : netSelectedReasons.join(", ")}
+                            </span>
+                          </button>
+                          {netReasonsDropdownOpen && (
+                            <div className="multiselect-menu">
+                              {[
+                                "Cable Cut",
+                                "Link Failure",
+                                "Equipment Failure (STM)",
+                                "Equipment Failure (Phone)",
+                                "Router Failure",
+                                "Switch Failure",
+                                "OFC Fault",
+                                "Power Failure",
+                                "Configuration Issue",
+                                "ISP Issue",
+                                "Other"
+                              ].map((option) => (
+                                <label key={option} className="multiselect-item">
+                                  <input
+                                    type="checkbox"
+                                    checked={netSelectedReasons.includes(option)}
+                                    onChange={() => {
+                                      if (netSelectedReasons.includes(option)) {
+                                        setNetSelectedReasons(netSelectedReasons.filter((r) => r !== option));
+                                      } else {
+                                        setNetSelectedReasons([...netSelectedReasons, option]);
+                                      }
+                                    }}
+                                  />
+                                  <span>{option}</span>
+                                </label>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                        {netFormErrors.reasons && (
+                          <span className="error-text">{netFormErrors.reasons}</span>
                         )}
                       </div>
                     </div>
                   </>
                 )}
-
-                <div className="form-group-row">
-                  {/* ICMS Entry No./Docket No. */}
-                  <div className="form-group">
-                    <label htmlFor="netIcmsEntryNo" className="form-label">
-                      ICMS Entry No./Docket No. <span className="required">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      id="netIcmsEntryNo"
-                      className={`form-input ${netFormErrors.icmsEntryNo ? "field-error-border" : ""}`}
-                      placeholder="Enter ICMS entry number/docket number"
-                      value={icmsEntryNo}
-                      onChange={(e) => setIcmsEntryNo(e.target.value)}
-                    />
-                    {netFormErrors.icmsEntryNo && (
-                      <span className="error-text">{netFormErrors.icmsEntryNo}</span>
-                    )}
-                  </div>
-
-                  {/* Bandwidth */}
-                  <div className="form-group">
-                    <label htmlFor="netBandwidth" className="form-label">
-                      Bandwidth <span className="required">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      id="netBandwidth"
-                      className={`form-input ${netFormErrors.netBandwidth ? "field-error-border" : ""}`}
-                      placeholder="Example: 100 Mbps, 1 Gbps"
-                      value={netBandwidth}
-                      onChange={(e) => setNetBandwidth(e.target.value)}
-                    />
-                    {netFormErrors.netBandwidth && (
-                      <span className="error-text">{netFormErrors.netBandwidth}</span>
-                    )}
-                  </div>
-                </div>
-
-                <div className="form-group-row">
-                  {/* Testing Time */}
-                  <div className="form-group">
-                    <label htmlFor="netTestingTime" className="form-label">
-                      {selectedCircuit?.name === "Railnet / Internet" ? "Last Testing Time" : "Testing Time"} <span className="required">*</span>
-                    </label>
-                    <input
-                      type="datetime-local"
-                      id="netTestingTime"
-                      className={`form-input ${netFormErrors.netTestingTime ? "field-error-border" : ""}`}
-                      value={netTestingTime}
-                      onChange={(e) => setNetTestingTime(e.target.value)}
-                    />
-                    {netFormErrors.netTestingTime && (
-                      <span className="error-text">{netFormErrors.netTestingTime}</span>
-                    )}
-                  </div>
-
-                  {/* Nature of Fault */}
-                  <div className="form-group">
-                    <label htmlFor="netFaultNature" className="form-label">
-                      Nature of Fault <span className="required">*</span>
-                    </label>
-                    <select
-                      id="netFaultNature"
-                      className={`form-input ${netFormErrors.netFaultNature ? "field-error-border" : ""}`}
-                      style={{ height: "42px", appearance: "auto" }}
-                      value={netFaultNature}
-                      onChange={(e) => {
-                        setNetFaultNature(e.target.value);
-                        if (e.target.value !== "Other") setNetCustomFaultNature("");
-                      }}
-                    >
-                      <option value="">Select Nature of Fault</option>
-                      <option value="Slow Internet">Slow Internet</option>
-                      <option value="No Connectivity">No Connectivity</option>
-                      <option value="Packet Loss">Packet Loss</option>
-                      <option value="High Latency">High Latency</option>
-                      <option value="Link Down">Link Down</option>
-                      <option value="Frequent Disconnection">Frequent Disconnection</option>
-                      <option value="Bandwidth Degradation">Bandwidth Degradation</option>
-                      <option value="Equipment Failure">Equipment Failure</option>
-                      <option value="Other">Other</option>
-                    </select>
-                    {netFormErrors.netFaultNature && (
-                      <span className="error-text">{netFormErrors.netFaultNature}</span>
-                    )}
-                  </div>
-                </div>
-
-                {/* Custom Nature of Fault textbox */}
-                {netFaultNature === "Other" && (
-                  <div className="form-group full-width" style={{ animation: "fadeIn 0.15s ease-out" }}>
-                    <label htmlFor="netCustomFaultNature" className="form-label">
-                      Other Nature of Fault <span className="required">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      id="netCustomFaultNature"
-                      className={`form-input ${netFormErrors.netCustomFaultNature ? "field-error-border" : ""}`}
-                      placeholder="Enter fault details"
-                      value={netCustomFaultNature}
-                      onChange={(e) => setNetCustomFaultNature(e.target.value)}
-                    />
-                    {netFormErrors.netCustomFaultNature && (
-                      <span className="error-text">{netFormErrors.netCustomFaultNature}</span>
-                    )}
-                  </div>
-                )}
-
-                {/* Audit Report & Attach File row (only for Railnet / Internet) */}
-                {selectedCircuit?.name === "Railnet / Internet" && (
-                  <div className="form-group-row">
-                    <div className="form-group">
-                      <label htmlFor="netAuditReport" className="form-label">
-                        Audit Report <span className="required">*</span>
-                      </label>
-                      <input
-                        type="text"
-                        id="netAuditReport"
-                        className={`form-input ${netFormErrors.netAuditReport ? "field-error-border" : ""}`}
-                        placeholder="Enter Audit Report details"
-                        value={netAuditReport}
-                        onChange={(e) => setNetAuditReport(e.target.value)}
-                      />
-                      {netFormErrors.netAuditReport && (
-                        <span className="error-text">{netFormErrors.netAuditReport}</span>
-                      )}
-                    </div>
-
-                    <div className="form-group">
-                      <label className="form-label">
-                        Attach File / Report
-                      </label>
-                      <div className="file-upload-wrapper" style={{ display: 'flex', gap: '10px', alignItems: 'center', height: '42px' }}>
-                        <input
-                          type="file"
-                          id="netFileAttachment"
-                          style={{ display: "none" }}
-                          onChange={(e) => {
-                            if (e.target.files && e.target.files[0]) {
-                              setNetAttachment(e.target.files[0]);
-                            }
-                          }}
-                        />
-                        <button
-                          type="button"
-                          className="all-ok-button"
-                          style={{
-                            margin: 0,
-                            padding: "10px 16px",
-                            backgroundColor: "#f3f4f6",
-                            color: "#374151",
-                            border: "1px solid #d1d5db",
-                            borderRadius: "6px",
-                            cursor: "pointer",
-                            display: "flex",
-                            alignItems: "center",
-                            gap: "8px",
-                            fontWeight: "500",
-                            transition: "all 0.2s"
-                          }}
-                          onClick={() => document.getElementById("netFileAttachment")?.click()}
-                          onMouseOver={(e) => {
-                            e.currentTarget.style.backgroundColor = "#e5e7eb";
-                          }}
-                          onMouseOut={(e) => {
-                            e.currentTarget.style.backgroundColor = "#f3f4f6";
-                          }}
-                        >
-                          <svg
-                            width="14"
-                            height="14"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2.5"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                          >
-                            <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path>
-                          </svg>
-                          Choose File
-                        </button>
-                        <span style={{ fontSize: "13px", color: netAttachment ? "#1e293b" : "#64748b", fontWeight: netAttachment ? "500" : "normal", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: "160px" }}>
-                          {netAttachment ? netAttachment.name : "No file attached"}
-                        </span>
-                        {netAttachment && (
-                          <button
-                            type="button"
-                            style={{
-                              background: "none",
-                              border: "none",
-                              color: "#ef4444",
-                              cursor: "pointer",
-                              display: "flex",
-                              alignItems: "center",
-                              padding: "4px"
-                            }}
-                            onClick={() => setNetAttachment(null)}
-                            title="Remove file"
-                          >
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                              <line x1="18" y1="6" x2="6" y2="18"></line>
-                              <line x1="6" y1="6" x2="18" y2="18"></line>
-                            </svg>
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                <div className="form-group-row">
-                  {/* Download Link Speed */}
-                  <div className="form-group">
-                    <label htmlFor="netDnSpeed" className="form-label">Download Link Speed (Mbps)</label>
-                    <input
-                      type="text"
-                      id="netDnSpeed"
-                      className={`form-input ${netFormErrors.netDnSpeed ? "field-error-border" : ""}`}
-                      placeholder="Enter Download Link Speed"
-                      value={netDnSpeed}
-                      onChange={(e) => setNetDnSpeed(e.target.value)}
-                    />
-                    {netFormErrors.netDnSpeed && (
-                      <span className="error-text">{netFormErrors.netDnSpeed}</span>
-                    )}
-                  </div>
-
-                  {/* Upload Link Speed */}
-                  <div className="form-group">
-                    <label htmlFor="netUpSpeed" className="form-label">Upload Link Speed (Mbps)</label>
-                    <input
-                      type="text"
-                      id="netUpSpeed"
-                      className={`form-input ${netFormErrors.netUpSpeed ? "field-error-border" : ""}`}
-                      placeholder="Enter Upload Link Speed"
-                      value={netUpSpeed}
-                      onChange={(e) => setNetUpSpeed(e.target.value)}
-                    />
-                    {netFormErrors.netUpSpeed && (
-                      <span className="error-text">{netFormErrors.netUpSpeed}</span>
-                    )}
-                  </div>
-                </div>
-
-                <div className="form-group-row">
-                  {/* Failure Date & Time */}
-                  <div className="form-group">
-                    <label htmlFor="netFailureTime" className="form-label">
-                      Failure Date & Time <span className="required">*</span>
-                    </label>
-                    <input
-                      type="datetime-local"
-                      id="netFailureTime"
-                      className={`form-input ${netFormErrors.netFailureTime ? "field-error-border" : ""}`}
-                      value={netFailureTime}
-                      onChange={(e) => setNetFailureTime(e.target.value)}
-                    />
-                    {netFormErrors.netFailureTime && (
-                      <span className="error-text">{netFormErrors.netFailureTime}</span>
-                    )}
-                  </div>
-
-                  {/* Rectification Time (RT) */}
-                  <div className="form-group">
-                    <label htmlFor="netRectificationTime" className="form-label">
-                      Rectification Time (RT) <span className="required">*</span>
-                    </label>
-                    <input
-                      type="datetime-local"
-                      id="netRectificationTime"
-                      className={`form-input ${netFormErrors.netRectificationTime ? "field-error-border" : ""}`}
-                      value={netRectificationTime}
-                      onChange={(e) => setNetRectificationTime(e.target.value)}
-                    />
-                    {netFormErrors.netRectificationTime && (
-                      <span className="error-text">{netFormErrors.netRectificationTime}</span>
-                    )}
-                  </div>
-                </div>
-
-                <div className="form-group-row">
-                  {/* Total Duration (Read Only) */}
-                  <div className="form-group">
-                    <label htmlFor="netTotalDuration" className="form-label">Duration of Failure</label>
-                    <input
-                      type="text"
-                      id="netTotalDuration"
-                      className="form-input"
-                      value={netTotalDuration}
-                      readOnly
-                      placeholder="XX Hrs XX Min"
-                    />
-                  </div>
-
-                  {/* Reason of Failure */}
-                  <div className="form-group">
-                    <label className="form-label">
-                      Reason of Failure <span className="required">*</span>
-                    </label>
-                    <div className="multiselect-container" ref={netReasonsRef}>
-                      <button
-                        type="button"
-                        className={`multiselect-trigger ${netReasonsDropdownOpen ? "open" : ""}`}
-                        onClick={() => setNetReasonsDropdownOpen(!netReasonsDropdownOpen)}
-                      >
-                        <span>
-                          {netSelectedReasons.length === 0
-                            ? "Select Reason(s)..."
-                            : netSelectedReasons.join(", ")}
-                        </span>
-                      </button>
-                      {netReasonsDropdownOpen && (
-                        <div className="multiselect-menu">
-                          {[
-                            "Cable Cut",
-                            "Link Failure",
-                            "Equipment Failure (STM)",
-                            "Equipment Failure (Phone)",
-                            "Router Failure",
-                            "Switch Failure",
-                            "OFC Fault",
-                            "Power Failure",
-                            "Configuration Issue",
-                            "ISP Issue",
-                            "Other"
-                          ].map((option) => (
-                            <label key={option} className="multiselect-item">
-                              <input
-                                type="checkbox"
-                                checked={netSelectedReasons.includes(option)}
-                                onChange={() => {
-                                  if (netSelectedReasons.includes(option)) {
-                                    setNetSelectedReasons(netSelectedReasons.filter((r) => r !== option));
-                                  } else {
-                                    setNetSelectedReasons([...netSelectedReasons, option]);
-                                  }
-                                }}
-                              />
-                              <span>{option}</span>
-                            </label>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                    {netFormErrors.reasons && (
-                      <span className="error-text">{netFormErrors.reasons}</span>
-                    )}
-                  </div>
-                </div>
 
                 {/* Other Custom Reason input */}
                 {netSelectedReasons.includes("Other") && (
@@ -4040,7 +5076,6 @@ export default function Home() {
                         remarks: "All link parameters healthy. Zero packet loss."
                       };
                       setSavedNetRecords(prev => [newNetRecord, ...prev]);
-                      setNetLocation("");
                       setNetBandwidth("");
                       setNetTestingTime("");
                       setNetDnSpeed("");
@@ -4792,49 +5827,88 @@ export default function Home() {
 
               {/* Cable Cut Entry Form */}
               <form className="fault-form" onSubmit={handleSaveCcRecord}>
-                {renderHierarchicalFields(ccFormErrors)}
+                
+                {/* Row 1: Major Section & Section */}
                 <div className="form-group-row">
-                  {/* ICMS Entry No./Docket No. */}
                   <div className="form-group">
-                    <label htmlFor="ccIcmsEntryNo" className="form-label">
-                      ICMS Entry No./Docket No. <span className="required">*</span>
+                    <label htmlFor="formMajorSection" className="form-label">
+                      Major Section <span className="required">*</span>
                     </label>
-                    <input
-                      type="text"
-                      id="ccIcmsEntryNo"
-                      className={`form-input ${ccFormErrors.icmsEntryNo ? "field-error-border" : ""}`}
-                      placeholder="Enter ICMS entry number/docket number"
-                      value={icmsEntryNo}
-                      onChange={(e) => setIcmsEntryNo(e.target.value)}
-                    />
-                    {ccFormErrors.icmsEntryNo && (
-                      <span className="error-text">{ccFormErrors.icmsEntryNo}</span>
+                    <select
+                      id="formMajorSection"
+                      className={`form-input ${ccFormErrors.formMajorSection ? "field-error-border" : ""}`}
+                      style={{ height: "42px", appearance: "auto" }}
+                      value={formMajorSection}
+                      onChange={(e) => handleMajorSectionChange(e.target.value)}
+                    >
+                      <option value="">Select Major Section</option>
+                      {selectedDivision && HIERARCHICAL_DATA[selectedDivision] && Object.keys(HIERARCHICAL_DATA[selectedDivision].majorSections).map((mSec) => (
+                        <option key={mSec} value={mSec}>{mSec}</option>
+                      ))}
+                    </select>
+                    {ccFormErrors.formMajorSection && (
+                      <span className="error-text">{ccFormErrors.formMajorSection}</span>
                     )}
                   </div>
-                  {/* Placeholder space to maintain clean alignment */}
-                  <div className="form-group"></div>
+
+                  <div className="form-group">
+                    <label htmlFor="formSection" className="form-label">
+                      Section <span className="required">*</span>
+                    </label>
+                    <select
+                      id="formSection"
+                      className={`form-input ${ccFormErrors.formSection ? "field-error-border" : ""}`}
+                      style={{ height: "42px", appearance: "auto" }}
+                      value={formSection}
+                      onChange={(e) => handleSectionChange(e.target.value)}
+                      disabled={!formMajorSection}
+                    >
+                      <option value="">Select Section</option>
+                      {formMajorSection && selectedDivision && HIERARCHICAL_DATA[selectedDivision]?.majorSections[formMajorSection] && 
+                        Object.keys(HIERARCHICAL_DATA[selectedDivision].majorSections[formMajorSection].sections).map((sec) => (
+                          <option key={sec} value={sec}>{sec}</option>
+                        ))
+                      }
+                    </select>
+                    {ccFormErrors.formSection && (
+                      <span className="error-text">{ccFormErrors.formSection}</span>
+                    )}
+                  </div>
                 </div>
 
+                {/* Row 2: Station/Location & Km.No. */}
                 <div className="form-group-row">
-                  {/* Section name */}
                   <div className="form-group">
-                    <label htmlFor="ccSectionName" className="form-label">
-                      Section Name <span className="required">*</span>
+                    <label htmlFor="formStationLocation" className="form-label">
+                      Station/Location <span className="required">*</span>
                     </label>
-                    <input
-                      type="text"
-                      id="ccSectionName"
-                      className={`form-input ${ccFormErrors.ccSectionName ? "field-error-border" : ""}`}
-                      placeholder="Enter section name (e.g. BSP-CPH Section)"
-                      value={ccSectionName}
-                      onChange={(e) => setCcSectionName(e.target.value)}
-                    />
-                    {ccFormErrors.ccSectionName && (
-                      <span className="error-text">{ccFormErrors.ccSectionName}</span>
+                    <select
+                      id="formStationLocation"
+                      className={`form-input ${ccFormErrors.formStationLocation ? "field-error-border" : ""}`}
+                      style={{ height: "42px", appearance: "auto" }}
+                      value={formStationLocation}
+                      onChange={(e) => handleStationLocationChange(e.target.value)}
+                      disabled={!formMajorSection}
+                    >
+                      <option value="">Select Station/Location</option>
+                      {formMajorSection && selectedDivision && HIERARCHICAL_DATA[selectedDivision]?.majorSections[formMajorSection] && (() => {
+                        const sectionsObj = HIERARCHICAL_DATA[selectedDivision].majorSections[formMajorSection].sections;
+                        if (formSection) {
+                          return sectionsObj[formSection]?.map((stn) => (
+                            <option key={stn} value={stn}>{stn}</option>
+                          ));
+                        } else {
+                          return Object.values(sectionsObj).flat().map((stn) => (
+                            <option key={stn} value={stn}>{stn}</option>
+                          ));
+                        }
+                      })()}
+                    </select>
+                    {ccFormErrors.formStationLocation && (
+                      <span className="error-text">{ccFormErrors.formStationLocation}</span>
                     )}
                   </div>
 
-                  {/* Km.No */}
                   <div className="form-group">
                     <label htmlFor="ccKmNo" className="form-label">
                       Km.No <span className="required">*</span>
@@ -4853,6 +5927,7 @@ export default function Home() {
                   </div>
                 </div>
 
+                {/* Row 3: Cable Type & Cable Cut by Whom */}
                 <div className="form-group-row">
                   {/* Cable Type - Multi select */}
                   <div className="form-group">
@@ -4999,8 +6074,8 @@ export default function Home() {
                   </div>
                 )}
 
+                {/* Row 4: Failure Date & Time & Rectification Time (RT) */}
                 <div className="form-group-row">
-                  {/* Failure Date & Time */}
                   <div className="form-group">
                     <label htmlFor="ccFailureTime" className="form-label">
                       Failure Date & Time <span className="required">*</span>
@@ -5017,7 +6092,6 @@ export default function Home() {
                     )}
                   </div>
 
-                  {/* Rectification Time (RT) */}
                   <div className="form-group">
                     <label htmlFor="ccRectificationTime" className="form-label">
                       Rectification Time (RT) <span className="required">*</span>
@@ -5035,8 +6109,8 @@ export default function Home() {
                   </div>
                 </div>
 
+                {/* Row 5: Duration of Failure & Reason of Failure */}
                 <div className="form-group-row">
-                  {/* Total duration (calculated, read-only) */}
                   <div className="form-group">
                     <label htmlFor="ccDuration" className="form-label">
                       Duration of Failure
@@ -5051,7 +6125,6 @@ export default function Home() {
                     />
                   </div>
 
-                  {/* Reason of failure */}
                   <div className="form-group">
                     <label htmlFor="ccReason" className="form-label">
                       Reason of Failure <span className="required">*</span>
@@ -5102,7 +6175,6 @@ export default function Home() {
                       const newCcRecord = {
                         id: Date.now(),
                         division: selectedDivision,
-                        sectionName: "All Sections OK",
                         kmNo: "None",
                         cableTypes: "OFC (24 Core)",
                         cutByWhom: "Railway Contractor",
@@ -5113,7 +6185,6 @@ export default function Home() {
                         remarks: "All cable infrastructure normal."
                       };
                       setSavedCcRecords(prev => [newCcRecord, ...prev]);
-                      setCcSectionName("");
                       setCcKmNo("");
                       setCcCableTypes([]);
                       setCcCustomCableType("");
@@ -5551,30 +6622,87 @@ export default function Home() {
 
               {/* Walkie-Talkie Repairing Form */}
               <form className="fault-form" onSubmit={handleSaveWtrRecord}>
-                {renderHierarchicalFields(wtrFormErrors)}
+                {/* Row 1: Major Section & Section */}
                 <div className="form-group-row">
-                  {/* ICMS Entry No./Docket No. */}
                   <div className="form-group">
-                    <label htmlFor="wtrIcmsEntryNo" className="form-label">
-                      ICMS Entry No./Docket No. <span className="required">*</span>
+                    <label htmlFor="formMajorSection" className="form-label">
+                      Major Section <span className="required">*</span>
                     </label>
-                    <input
-                      type="text"
-                      id="wtrIcmsEntryNo"
-                      className={`form-input ${wtrFormErrors.icmsEntryNo ? "field-error-border" : ""}`}
-                      placeholder="Enter ICMS entry number/docket number"
-                      value={icmsEntryNo}
-                      onChange={(e) => setIcmsEntryNo(e.target.value)}
-                    />
-                    {wtrFormErrors.icmsEntryNo && (
-                      <span className="error-text">{wtrFormErrors.icmsEntryNo}</span>
+                    <select
+                      id="formMajorSection"
+                      className={`form-input ${wtrFormErrors.formMajorSection ? "field-error-border" : ""}`}
+                      style={{ height: "42px", appearance: "auto" }}
+                      value={formMajorSection}
+                      onChange={(e) => handleMajorSectionChange(e.target.value)}
+                    >
+                      <option value="">Select Major Section</option>
+                      {selectedDivision && HIERARCHICAL_DATA[selectedDivision] && Object.keys(HIERARCHICAL_DATA[selectedDivision].majorSections).map((mSec) => (
+                        <option key={mSec} value={mSec}>{mSec}</option>
+                      ))}
+                    </select>
+                    {wtrFormErrors.formMajorSection && (
+                      <span className="error-text">{wtrFormErrors.formMajorSection}</span>
                     )}
                   </div>
-                  {/* Placeholder space to maintain clean alignment */}
-                  <div className="form-group"></div>
+
+                  <div className="form-group">
+                    <label htmlFor="formSection" className="form-label">
+                      Section <span className="required">*</span>
+                    </label>
+                    <select
+                      id="formSection"
+                      className={`form-input ${wtrFormErrors.formSection ? "field-error-border" : ""}`}
+                      style={{ height: "42px", appearance: "auto" }}
+                      value={formSection}
+                      onChange={(e) => handleSectionChange(e.target.value)}
+                      disabled={!formMajorSection}
+                    >
+                      <option value="">Select Section</option>
+                      {formMajorSection && selectedDivision && HIERARCHICAL_DATA[selectedDivision]?.majorSections[formMajorSection] && 
+                        Object.keys(HIERARCHICAL_DATA[selectedDivision].majorSections[formMajorSection].sections).map((sec) => (
+                          <option key={sec} value={sec}>{sec}</option>
+                        ))
+                      }
+                    </select>
+                    {wtrFormErrors.formSection && (
+                      <span className="error-text">{wtrFormErrors.formSection}</span>
+                    )}
+                  </div>
                 </div>
 
+                {/* Row 2: Station/Location & Date */}
                 <div className="form-group-row">
+                  <div className="form-group">
+                    <label htmlFor="formStationLocation" className="form-label">
+                      Station/Location <span className="required">*</span>
+                    </label>
+                    <select
+                      id="formStationLocation"
+                      className={`form-input ${wtrFormErrors.formStationLocation ? "field-error-border" : ""}`}
+                      style={{ height: "42px", appearance: "auto" }}
+                      value={formStationLocation}
+                      onChange={(e) => handleStationLocationChange(e.target.value)}
+                      disabled={!formMajorSection}
+                    >
+                      <option value="">Select Station/Location</option>
+                      {formMajorSection && selectedDivision && HIERARCHICAL_DATA[selectedDivision]?.majorSections[formMajorSection] && (() => {
+                        const sectionsObj = HIERARCHICAL_DATA[selectedDivision].majorSections[formMajorSection].sections;
+                        if (formSection) {
+                          return sectionsObj[formSection]?.map((stn) => (
+                            <option key={stn} value={stn}>{stn}</option>
+                          ));
+                        } else {
+                          return Object.values(sectionsObj).flat().map((stn) => (
+                            <option key={stn} value={stn}>{stn}</option>
+                          ));
+                        }
+                      })()}
+                    </select>
+                    {wtrFormErrors.formStationLocation && (
+                      <span className="error-text">{wtrFormErrors.formStationLocation}</span>
+                    )}
+                  </div>
+
                   {/* Date */}
                   <div className="form-group">
                     <label htmlFor="wtrDate" className="form-label">
@@ -5591,7 +6719,10 @@ export default function Home() {
                       <span className="error-text">{wtrFormErrors.wtrDate}</span>
                     )}
                   </div>
+                </div>
 
+                {/* Row 3: Opening Balance of Defective Sets & Defective Sets Received from User Dept */}
+                <div className="form-group-row">
                   {/* Opening Balance of Defective Sets */}
                   <div className="form-group">
                     <label htmlFor="wtrOpeningBalance" className="form-label">
@@ -5610,9 +6741,7 @@ export default function Home() {
                       <span className="error-text">{wtrFormErrors.wtrOpeningBalance}</span>
                     )}
                   </div>
-                </div>
 
-                <div className="form-group-row">
                   {/* Defective Sets Received from User Department */}
                   <div className="form-group">
                     <label htmlFor="wtrReceivedFromUser" className="form-label">
@@ -5631,7 +6760,10 @@ export default function Home() {
                       <span className="error-text">{wtrFormErrors.wtrReceivedFromUser}</span>
                     )}
                   </div>
+                </div>
 
+                {/* Row 4: Sets Sent to Firm for Repair & Repaired Sets Received from Firm */}
+                <div className="form-group-row">
                   {/* Sets Sent to Firm for Repair */}
                   <div className="form-group">
                     <label htmlFor="wtrSentToFirm" className="form-label">
@@ -5650,9 +6782,7 @@ export default function Home() {
                       <span className="error-text">{wtrFormErrors.wtrSentToFirm}</span>
                     )}
                   </div>
-                </div>
 
-                <div className="form-group-row">
                   {/* Repaired Sets Received from Firm */}
                   <div className="form-group">
                     <label htmlFor="wtrRepairedFromFirm" className="form-label">
@@ -5671,7 +6801,10 @@ export default function Home() {
                       <span className="error-text">{wtrFormErrors.wtrRepairedFromFirm}</span>
                     )}
                   </div>
+                </div>
 
+                {/* Row 5: Sets Returned to User Department & Pending Repair Sets (Calculated, read-only) */}
+                <div className="form-group-row">
                   {/* Sets Returned to User Department */}
                   <div className="form-group">
                     <label htmlFor="wtrReturnedToUser" className="form-label">
@@ -5690,9 +6823,7 @@ export default function Home() {
                       <span className="error-text">{wtrFormErrors.wtrReturnedToUser}</span>
                     )}
                   </div>
-                </div>
 
-                <div className="form-group-row">
                   {/* Pending Repair Sets (Auto calculated, read-only) */}
                   <div className="form-group">
                     <label htmlFor="wtrPendingRepair" className="form-label">
@@ -5708,7 +6839,10 @@ export default function Home() {
                       style={{ backgroundColor: "#F3F4F6" }}
                     />
                   </div>
+                </div>
 
+                {/* Row 6: Sets Proposed for Condemnation & Sets Condemned */}
+                <div className="form-group-row">
                   {/* Sets Proposed for Condemnation */}
                   <div className="form-group">
                     <label htmlFor="wtrProposedCondemnation" className="form-label">
@@ -5727,9 +6861,7 @@ export default function Home() {
                       <span className="error-text">{wtrFormErrors.wtrProposedCondemnation}</span>
                     )}
                   </div>
-                </div>
 
-                <div className="form-group-row">
                   {/* Sets Condemned */}
                   <div className="form-group">
                     <label htmlFor="wtrCondemned" className="form-label">
@@ -5748,7 +6880,10 @@ export default function Home() {
                       <span className="error-text">{wtrFormErrors.wtrCondemned}</span>
                     )}
                   </div>
+                </div>
 
+                {/* Row 7: Total Sets Condemned This Year & Repair Status */}
+                <div className="form-group-row">
                   {/* Total Sets Condemned This Year */}
                   <div className="form-group">
                     <label htmlFor="wtrTotalCondemnedYear" className="form-label">
@@ -5765,62 +6900,6 @@ export default function Home() {
                     />
                     {wtrFormErrors.wtrTotalCondemnedYear && (
                       <span className="error-text">{wtrFormErrors.wtrTotalCondemnedYear}</span>
-                    )}
-                  </div>
-                </div>
-
-                <div className="form-group-row">
-                  {/* Fault Type - Multi select dropdown */}
-                  <div className="form-group">
-                    <label className="form-label">
-                      Fault Type <span className="required">*</span>
-                    </label>
-                    <div className="multiselect-container" ref={wtrFaultTypesRef}>
-                      <button
-                        type="button"
-                        className={`multiselect-trigger ${wtrFaultTypesOpen ? "open" : ""}`}
-                        onClick={() => setWtrFaultTypesOpen(!wtrFaultTypesOpen)}
-                      >
-                        <span>
-                          {wtrFaultTypes.length === 0
-                            ? "Select Fault Type(s)..."
-                            : wtrFaultTypes.join(", ")}
-                        </span>
-                      </button>
-                      {wtrFaultTypesOpen && (
-                        <div className="multiselect-menu">
-                          {[
-                            "Battery Fault",
-                            "Antenna Fault",
-                            "Speaker Fault",
-                            "Microphone Fault",
-                            "PTT Switch Fault",
-                            "Charging Fault",
-                            "Display Fault",
-                            "Software Fault",
-                            "Physical Damage",
-                            "Other"
-                          ].map((option) => (
-                            <label key={option} className="multiselect-item">
-                              <input
-                                type="checkbox"
-                                checked={wtrFaultTypes.includes(option)}
-                                onChange={() => {
-                                  if (wtrFaultTypes.includes(option)) {
-                                    setWtrFaultTypes(wtrFaultTypes.filter((c) => c !== option));
-                                  } else {
-                                    setWtrFaultTypes([...wtrFaultTypes, option]);
-                                  }
-                                }}
-                              />
-                              <span>{option}</span>
-                            </label>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                    {wtrFormErrors.wtrFaultTypes && (
-                      <span className="error-text">{wtrFormErrors.wtrFaultTypes}</span>
                     )}
                   </div>
 
@@ -5845,6 +6924,60 @@ export default function Home() {
                       <span className="error-text">{wtrFormErrors.wtrRepairStatus}</span>
                     )}
                   </div>
+                </div>
+
+                {/* Row 8: Fault Type (Full Width) */}
+                <div className="form-group full-width">
+                  <label className="form-label">
+                    Fault Type <span className="required">*</span>
+                  </label>
+                  <div className="multiselect-container" ref={wtrFaultTypesRef}>
+                    <button
+                      type="button"
+                      className={`multiselect-trigger ${wtrFaultTypesOpen ? "open" : ""}`}
+                      onClick={() => setWtrFaultTypesOpen(!wtrFaultTypesOpen)}
+                    >
+                      <span>
+                        {wtrFaultTypes.length === 0
+                          ? "Select Fault Type(s)..."
+                          : wtrFaultTypes.join(", ")}
+                      </span>
+                    </button>
+                    {wtrFaultTypesOpen && (
+                      <div className="multiselect-menu">
+                        {[
+                          "Battery Fault",
+                          "Antenna Fault",
+                          "Speaker Fault",
+                          "Microphone Fault",
+                          "PTT Switch Fault",
+                          "Charging Fault",
+                          "Display Fault",
+                          "Software Fault",
+                          "Physical Damage",
+                          "Other"
+                        ].map((option) => (
+                          <label key={option} className="multiselect-item">
+                            <input
+                              type="checkbox"
+                              checked={wtrFaultTypes.includes(option)}
+                              onChange={() => {
+                                if (wtrFaultTypes.includes(option)) {
+                                  setWtrFaultTypes(wtrFaultTypes.filter((c) => c !== option));
+                                } else {
+                                  setWtrFaultTypes([...wtrFaultTypes, option]);
+                                }
+                              }}
+                            />
+                            <span>{option}</span>
+                          </label>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                  {wtrFormErrors.wtrFaultTypes && (
+                    <span className="error-text">{wtrFormErrors.wtrFaultTypes}</span>
+                  )}
                 </div>
 
                 {/* Conditional Text input for Other Fault description */}
@@ -5990,49 +7123,88 @@ export default function Home() {
 
               {/* Low Insulation Form */}
               <form className="fault-form" onSubmit={handleSaveLiRecord}>
-                {renderHierarchicalFields(liFormErrors)}
+                
+                {/* Row 1: Major Section & Section */}
                 <div className="form-group-row">
-                  {/* ICMS Entry No./Docket No. */}
                   <div className="form-group">
-                    <label htmlFor="liIcmsEntryNo" className="form-label">
-                      ICMS Entry No./Docket No. <span className="required">*</span>
+                    <label htmlFor="formMajorSection" className="form-label">
+                      Major Section <span className="required">*</span>
                     </label>
-                    <input
-                      type="text"
-                      id="liIcmsEntryNo"
-                      className={`form-input ${liFormErrors.icmsEntryNo ? "field-error-border" : ""}`}
-                      placeholder="Enter ICMS entry number/docket number"
-                      value={icmsEntryNo}
-                      onChange={(e) => setIcmsEntryNo(e.target.value)}
-                    />
-                    {liFormErrors.icmsEntryNo && (
-                      <span className="error-text">{liFormErrors.icmsEntryNo}</span>
+                    <select
+                      id="formMajorSection"
+                      className={`form-input ${liFormErrors.formMajorSection ? "field-error-border" : ""}`}
+                      style={{ height: "42px", appearance: "auto" }}
+                      value={formMajorSection}
+                      onChange={(e) => handleMajorSectionChange(e.target.value)}
+                    >
+                      <option value="">Select Major Section</option>
+                      {selectedDivision && HIERARCHICAL_DATA[selectedDivision] && Object.keys(HIERARCHICAL_DATA[selectedDivision].majorSections).map((mSec) => (
+                        <option key={mSec} value={mSec}>{mSec}</option>
+                      ))}
+                    </select>
+                    {liFormErrors.formMajorSection && (
+                      <span className="error-text">{liFormErrors.formMajorSection}</span>
                     )}
                   </div>
-                  {/* Placeholder space to maintain clean alignment */}
-                  <div className="form-group"></div>
+
+                  <div className="form-group">
+                    <label htmlFor="formSection" className="form-label">
+                      Section <span className="required">*</span>
+                    </label>
+                    <select
+                      id="formSection"
+                      className={`form-input ${liFormErrors.formSection ? "field-error-border" : ""}`}
+                      style={{ height: "42px", appearance: "auto" }}
+                      value={formSection}
+                      onChange={(e) => handleSectionChange(e.target.value)}
+                      disabled={!formMajorSection}
+                    >
+                      <option value="">Select Section</option>
+                      {formMajorSection && selectedDivision && HIERARCHICAL_DATA[selectedDivision]?.majorSections[formMajorSection] && 
+                        Object.keys(HIERARCHICAL_DATA[selectedDivision].majorSections[formMajorSection].sections).map((sec) => (
+                          <option key={sec} value={sec}>{sec}</option>
+                        ))
+                      }
+                    </select>
+                    {liFormErrors.formSection && (
+                      <span className="error-text">{liFormErrors.formSection}</span>
+                    )}
+                  </div>
                 </div>
 
+                {/* Row 2: Station/Location & Km.No */}
                 <div className="form-group-row">
-                  {/* Section name */}
                   <div className="form-group">
-                    <label htmlFor="liSectionName" className="form-label">
-                      Section Name <span className="required">*</span>
+                    <label htmlFor="formStationLocation" className="form-label">
+                      Station/Location <span className="required">*</span>
                     </label>
-                    <input
-                      type="text"
-                      id="liSectionName"
-                      className={`form-input ${liFormErrors.liSectionName ? "field-error-border" : ""}`}
-                      placeholder="Enter section name (e.g. CPH-RIG Section)"
-                      value={liSectionName}
-                      onChange={(e) => setLiSectionName(e.target.value)}
-                    />
-                    {liFormErrors.liSectionName && (
-                      <span className="error-text">{liFormErrors.liSectionName}</span>
+                    <select
+                      id="formStationLocation"
+                      className={`form-input ${liFormErrors.formStationLocation ? "field-error-border" : ""}`}
+                      style={{ height: "42px", appearance: "auto" }}
+                      value={formStationLocation}
+                      onChange={(e) => handleStationLocationChange(e.target.value)}
+                      disabled={!formMajorSection}
+                    >
+                      <option value="">Select Station/Location</option>
+                      {formMajorSection && selectedDivision && HIERARCHICAL_DATA[selectedDivision]?.majorSections[formMajorSection] && (() => {
+                        const sectionsObj = HIERARCHICAL_DATA[selectedDivision].majorSections[formMajorSection].sections;
+                        if (formSection) {
+                          return sectionsObj[formSection]?.map((stn) => (
+                            <option key={stn} value={stn}>{stn}</option>
+                          ));
+                        } else {
+                          return Object.values(sectionsObj).flat().map((stn) => (
+                            <option key={stn} value={stn}>{stn}</option>
+                          ));
+                        }
+                      })()}
+                    </select>
+                    {liFormErrors.formStationLocation && (
+                      <span className="error-text">{liFormErrors.formStationLocation}</span>
                     )}
                   </div>
 
-                  {/* Km.No */}
                   <div className="form-group">
                     <label htmlFor="liKmNo" className="form-label">
                       Km.No <span className="required">*</span>
@@ -6051,68 +7223,47 @@ export default function Home() {
                   </div>
                 </div>
 
+                {/* Row 3: Type of Cable & Total no. of Insulation Faults(Date & Time) */}
                 <div className="form-group-row">
-                  {/* Total no. of insulation Fault */}
                   <div className="form-group">
-                    <label htmlFor="liTotalFaults" className="form-label">
-                      Total no. of Insulation Faults <span className="required">*</span>
+                    <label htmlFor="liCableType" className="form-label">
+                      Type of Cable <span className="required">*</span>
                     </label>
                     <input
-                      type="number"
-                      id="liTotalFaults"
-                      min="0"
-                      className={`form-input ${liFormErrors.liTotalFaults ? "field-error-border" : ""}`}
-                      placeholder="Total count of insulation faults"
-                      value={liTotalFaults}
-                      onChange={(e) => setLiTotalFaults(e.target.value)}
+                      type="text"
+                      id="liCableType"
+                      className={`form-input ${liFormErrors.liCableType ? "field-error-border" : ""}`}
+                      placeholder="Enter Type of Cable (e.g. 6 Quad Cable)"
+                      value={liCableType}
+                      onChange={(e) => setLiCableType(e.target.value)}
                     />
-                    {liFormErrors.liTotalFaults && (
-                      <span className="error-text">{liFormErrors.liTotalFaults}</span>
+                    {liFormErrors.liCableType && (
+                      <span className="error-text">{liFormErrors.liCableType}</span>
                     )}
                   </div>
 
-                  {/* Fault Date & Time */}
                   <div className="form-group">
-                    <label htmlFor="liFaultTime" className="form-label">
-                      Fault Date & Time <span className="required">*</span>
+                    <label htmlFor="liFaultsTime" className="form-label">
+                      Total no. of Insulation Faults(Date & Time) <span className="required">*</span>
                     </label>
                     <input
                       type="datetime-local"
-                      id="liFaultTime"
-                      className={`form-input ${liFormErrors.liFaultTime ? "field-error-border" : ""}`}
-                      value={liFaultTime}
-                      onChange={(e) => setLiFaultTime(e.target.value)}
+                      id="liFaultsTime"
+                      className={`form-input ${liFormErrors.liFaultsTime ? "field-error-border" : ""}`}
+                      value={liFaultsTime}
+                      onChange={(e) => setLiFaultsTime(e.target.value)}
                     />
-                    {liFormErrors.liFaultTime && (
-                      <span className="error-text">{liFormErrors.liFaultTime}</span>
+                    {liFormErrors.liFaultsTime && (
+                      <span className="error-text">{liFormErrors.liFaultsTime}</span>
                     )}
                   </div>
                 </div>
 
+                {/* Row 4: Low Insulation rectified (Date & Time) & Balance Low Insulation Fault To be rectified */}
                 <div className="form-group-row">
-                  {/* Low Insulation Rectified */}
-                  <div className="form-group">
-                    <label htmlFor="liRectified" className="form-label">
-                      Low Insulation Rectified <span className="required">*</span>
-                    </label>
-                    <input
-                      type="number"
-                      id="liRectified"
-                      min="0"
-                      className={`form-input ${liFormErrors.liRectified ? "field-error-border" : ""}`}
-                      placeholder="Rectified faults count"
-                      value={liRectified}
-                      onChange={(e) => setLiRectified(e.target.value)}
-                    />
-                    {liFormErrors.liRectified && (
-                      <span className="error-text">{liFormErrors.liRectified}</span>
-                    )}
-                  </div>
-
-                  {/* Low Insulation Rectified Date & Time */}
                   <div className="form-group">
                     <label htmlFor="liRectifiedTime" className="form-label">
-                      Low Insulation Rectified Date & Time
+                      Low Insulation rectified (Date & Time)
                     </label>
                     <input
                       type="datetime-local"
@@ -6125,71 +7276,390 @@ export default function Home() {
                       <span className="error-text">{liFormErrors.liRectifiedTime}</span>
                     )}
                   </div>
-                </div>
 
-                <div className="form-group-row">
-                  {/* Balance low insulation fault to be rectified */}
                   <div className="form-group">
                     <label htmlFor="liBalanceFaults" className="form-label">
-                      Balance low insulation faults to be rectified (Calculated)
+                      Balance Low Insulation Fault To be rectified <span className="required">*</span>
                     </label>
                     <input
                       type="text"
                       id="liBalanceFaults"
-                      className="form-input"
+                      className={`form-input ${liFormErrors.liBalanceFaults ? "field-error-border" : ""}`}
+                      placeholder="Enter balance faults count"
                       value={liBalanceFaults}
+                      onChange={(e) => setLiBalanceFaults(e.target.value)}
+                    />
+                    {liFormErrors.liBalanceFaults && (
+                      <span className="error-text">{liFormErrors.liBalanceFaults}</span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Row 5: Action Plan & TDC to rectify Low Insulation & Remarks */}
+                <div className="form-group-row">
+                  <div className="form-group">
+                    <label htmlFor="liActionPlan" className="form-label">
+                      Action Plan & TDC to rectify Low Insulation <span className="required">*</span>
+                    </label>
+                    <textarea
+                      id="liActionPlan"
+                      className={`form-textarea ${liFormErrors.liActionPlan ? "field-error-border" : ""}`}
+                      style={{ height: "65px" }}
+                      placeholder="Enter Action Plan & TDC"
+                      value={liActionPlan}
+                      onChange={(e) => setLiActionPlan(e.target.value)}
+                    />
+                    {liFormErrors.liActionPlan && (
+                      <span className="error-text">{liFormErrors.liActionPlan}</span>
+                    )}
+                  </div>
+
+                  <div className="form-group">
+                    <label htmlFor="liRemarks" className="form-label">Remarks</label>
+                    <textarea
+                      id="liRemarks"
+                      className="form-textarea"
+                      style={{ height: "65px" }}
+                      placeholder="Enter observations, cable quad details, or testing measurements"
+                      value={liRemarks}
+                      onChange={(e) => setLiRemarks(e.target.value)}
+                    />
+                  </div>
+                </div>
+
+                {/* Save button with Loading State */}
+                <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", gap: "12px" }}>
+                  <button
+                    type="button"
+                    className="all-ok-button"
+                    onClick={() => {
+                      const nowStr = new Date().toISOString().slice(0, 16);
+                      const formatDatetime = (dateStr: string) => {
+                        if (!dateStr) return "";
+                        const d = new Date(dateStr);
+                        if (isNaN(d.getTime())) return dateStr;
+                        const day = String(d.getDate()).padStart(2, "0");
+                        const month = String(d.getMonth() + 1).padStart(2, "0");
+                        const year = d.getFullYear();
+                        const hour = String(d.getHours()).padStart(2, "0");
+                        const minute = String(d.getMinutes()).padStart(2, "0");
+                        return `${day}-${month}-${year} ${hour}:${minute}`;
+                      };
+                      const newLiRecord = {
+                        id: Date.now(),
+                        division: selectedDivision,
+                        cableType: "None",
+                        kmNo: "None",
+                        faultsTime: formatDatetime(nowStr),
+                        rectifiedTime: formatDatetime(nowStr),
+                        balanceFaults: "0",
+                        actionPlan: "No low insulation faults found.",
+                        remarks: "All OK."
+                      };
+                      setSavedLiRecords(prev => [newLiRecord, ...prev]);
+                      setLiCableType("");
+                      setLiKmNo("");
+                      setLiFaultsTime("");
+                      setLiRectifiedTime("");
+                      setLiBalanceFaults("");
+                      setLiActionPlan("");
+                      setLiRemarks("");
+                      moveToNextCircuit();
+                    }}
+                  >
+                    All OK
+                  </button>
+                  <button 
+                    type="submit" 
+                    className={`save-button ${liSaving ? "save-button-loading" : ""}`}
+                    disabled={liSaving}
+                  >
+                    {liSaving ? (
+                      <>
+                        <span className="spinner"></span>
+                        <span>Saving...</span>
+                      </>
+                    ) : (
+                      "Save"
+                    )}
+                  </button>
+                </div>
+              </form>
+
+
+
+
+            </div>
+          ) : selectedCircuit.name === "Temporary Joints" ? (
+            /* Temporary Joints Form Workspace */
+            <div className="workspace-content">
+              {/* Workspace Title bar */}
+              <div className="workspace-title-section">
+                <div className="workspace-title-left">
+                  <h2>Temporary Joints</h2>
+                </div>
+              </div>
+
+              {/* Success Notification Alert */}
+              {tjFormSuccess && (
+                <div className="alert-banner">
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="3"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                  </svg>
+                  <span>✅ Temporary Joints Record Saved Successfully</span>
+                </div>
+              )}
+
+              {/* Temporary Joints Form */}
+              <form className="fault-form" onSubmit={handleSaveTjRecord}>
+                <div className="form-group-row">
+                  <div className="form-group">
+                    <label htmlFor="formMajorSection" className="form-label">
+                      Major Section <span className="required">*</span>
+                    </label>
+                    <select
+                      id="formMajorSection"
+                      className={`form-input ${tjFormErrors.formMajorSection ? "field-error-border" : ""}`}
+                      style={{ height: "42px", appearance: "auto" }}
+                      value={formMajorSection}
+                      onChange={(e) => handleMajorSectionChange(e.target.value)}
+                    >
+                      <option value="">Select Major Section</option>
+                      {selectedDivision && HIERARCHICAL_DATA[selectedDivision] && Object.keys(HIERARCHICAL_DATA[selectedDivision].majorSections).map((mSec) => (
+                        <option key={mSec} value={mSec}>{mSec}</option>
+                      ))}
+                    </select>
+                    {tjFormErrors.formMajorSection && (
+                      <span className="error-text">{tjFormErrors.formMajorSection}</span>
+                    )}
+                  </div>
+
+                  <div className="form-group">
+                    <label htmlFor="formSection" className="form-label">
+                      Section <span className="required">*</span>
+                    </label>
+                    <select
+                      id="formSection"
+                      className={`form-input ${tjFormErrors.formSection ? "field-error-border" : ""}`}
+                      style={{ height: "42px", appearance: "auto" }}
+                      value={formSection}
+                      onChange={(e) => handleSectionChange(e.target.value)}
+                      disabled={!formMajorSection}
+                    >
+                      <option value="">Select Section</option>
+                      {formMajorSection && selectedDivision && HIERARCHICAL_DATA[selectedDivision]?.majorSections[formMajorSection] && 
+                        Object.keys(HIERARCHICAL_DATA[selectedDivision].majorSections[formMajorSection].sections).map((sec) => (
+                          <option key={sec} value={sec}>{sec}</option>
+                        ))
+                      }
+                    </select>
+                    {tjFormErrors.formSection && (
+                      <span className="error-text">{tjFormErrors.formSection}</span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Row 2: Section/ Yard Name & Km.No. */}
+                <div className="form-group-row">
+                  <div className="form-group">
+                    <label htmlFor="tjSectionYardName" className="form-label">
+                      Section/ Yard Name <span className="required">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      id="tjSectionYardName"
+                      className={`form-input ${tjFormErrors.tjSectionYardName ? "field-error-border" : ""}`}
+                      placeholder="Enter Section/ Yard name (e.g. CPH-RIG Section)"
+                      value={tjSectionYardName}
+                      onChange={(e) => setTjSectionYardName(e.target.value)}
+                    />
+                    {tjFormErrors.tjSectionYardName && (
+                      <span className="error-text">{tjFormErrors.tjSectionYardName}</span>
+                    )}
+                  </div>
+
+                  <div className="form-group">
+                    <label htmlFor="tjKmNo" className="form-label">
+                      Km.No. <span className="required">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      id="tjKmNo"
+                      className={`form-input ${tjFormErrors.tjKmNo ? "field-error-border" : ""}`}
+                      placeholder="Enter Kilometer number (e.g. 732/18)"
+                      value={tjKmNo}
+                      onChange={(e) => setTjKmNo(e.target.value)}
+                    />
+                    {tjFormErrors.tjKmNo && (
+                      <span className="error-text">{tjFormErrors.tjKmNo}</span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Row 3: Type of Cable & Total No. of Temporary Joints */}
+                <div className="form-group-row">
+                  <div className="form-group">
+                    <label htmlFor="tjCableType" className="form-label">
+                      Type of Cable <span className="required">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      id="tjCableType"
+                      className={`form-input ${tjFormErrors.tjCableType ? "field-error-border" : ""}`}
+                      placeholder="Enter Type of Cable (e.g. OFC (24 Core))"
+                      value={tjCableType}
+                      onChange={(e) => setTjCableType(e.target.value)}
+                    />
+                    {tjFormErrors.tjCableType && (
+                      <span className="error-text">{tjFormErrors.tjCableType}</span>
+                    )}
+                  </div>
+
+                  <div className="form-group">
+                    <label htmlFor="tjTotalJoints" className="form-label">
+                      Total No. of Temporary Joints <span className="required">*</span>
+                    </label>
+                    <input
+                      type="number"
+                      id="tjTotalJoints"
+                      min="0"
+                      className={`form-input ${tjFormErrors.tjTotalJoints ? "field-error-border" : ""}`}
+                      placeholder="Total count of temporary joints"
+                      value={tjTotalJoints}
+                      onChange={(e) => setTjTotalJoints(e.target.value)}
+                    />
+                    {tjFormErrors.tjTotalJoints && (
+                      <span className="error-text">{tjFormErrors.tjTotalJoints}</span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Row 4: Date & Time & Temporary Joints Rectified */}
+                <div className="form-group-row">
+                  <div className="form-group">
+                    <label htmlFor="tjJointsTime" className="form-label">
+                      Date & Time <span className="required">*</span>
+                    </label>
+                    <input
+                      type="datetime-local"
+                      id="tjJointsTime"
+                      className={`form-input ${tjFormErrors.tjJointsTime ? "field-error-border" : ""}`}
+                      value={tjJointsTime}
+                      onChange={(e) => setTjJointsTime(e.target.value)}
+                    />
+                    {tjFormErrors.tjJointsTime && (
+                      <span className="error-text">{tjFormErrors.tjJointsTime}</span>
+                    )}
+                  </div>
+
+                  <div className="form-group">
+                    <label htmlFor="tjRectified" className="form-label">
+                      Temporary Joints Rectified <span className="required">*</span>
+                    </label>
+                    <input
+                      type="number"
+                      id="tjRectified"
+                      min="0"
+                      className={`form-input ${tjFormErrors.tjRectified ? "field-error-border" : ""}`}
+                      placeholder="Rectified joints count"
+                      value={tjRectified}
+                      onChange={(e) => setTjRectified(e.target.value)}
+                    />
+                    {tjFormErrors.tjRectified && (
+                      <span className="error-text">{tjFormErrors.tjRectified}</span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Row 5: Temporary Joints Rectified (Date & Time) & Balance Temporary Joints */}
+                <div className="form-group-row">
+                  <div className="form-group">
+                    <label htmlFor="tjRectifiedTime" className="form-label">
+                      Temporary Joints Rectified (Date & Time)
+                    </label>
+                    <input
+                      type="datetime-local"
+                      id="tjRectifiedTime"
+                      className={`form-input ${tjFormErrors.tjRectifiedTime ? "field-error-border" : ""}`}
+                      value={tjRectifiedTime}
+                      onChange={(e) => setTjRectifiedTime(e.target.value)}
+                    />
+                    {tjFormErrors.tjRectifiedTime && (
+                      <span className="error-text">{tjFormErrors.tjRectifiedTime}</span>
+                    )}
+                  </div>
+
+                  <div className="form-group">
+                    <label htmlFor="tjBalanceJoints" className="form-label">
+                      Balance Temporary Joints
+                    </label>
+                    <input
+                      type="text"
+                      id="tjBalanceJoints"
+                      className="form-input"
+                      value={tjBalanceJoints}
                       readOnly
                       placeholder="0"
                       style={{ backgroundColor: "#F3F4F6" }}
                     />
                   </div>
+                </div>
 
-                  {/* Target Date of Completion (TDC) */}
+                {/* Row 6: Target Date of Completion (TDC) & Action Plans & TDC to Rectify */}
+                <div className="form-group-row">
                   <div className="form-group">
-                    <label htmlFor="liTdc" className="form-label">
+                    <label htmlFor="tjTdc" className="form-label">
                       Target Date of Completion (TDC) <span className="required">*</span>
                     </label>
                     <input
                       type="date"
-                      id="liTdc"
-                      className={`form-input ${liFormErrors.liTdc ? "field-error-border" : ""}`}
-                      value={liTdc}
-                      onChange={(e) => setLiTdc(e.target.value)}
+                      id="tjTdc"
+                      className={`form-input ${tjFormErrors.tjTdc ? "field-error-border" : ""}`}
+                      value={tjTdc}
+                      onChange={(e) => setTjTdc(e.target.value)}
                     />
-                    {liFormErrors.liTdc && (
-                      <span className="error-text">{liFormErrors.liTdc}</span>
+                    {tjFormErrors.tjTdc && (
+                      <span className="error-text">{tjFormErrors.tjTdc}</span>
+                    )}
+                  </div>
+
+                  <div className="form-group">
+                    <label htmlFor="tjActionPlan" className="form-label">
+                      Action Plans & TDC to Rectify the Temporary Joints <span className="required">*</span>
+                    </label>
+                    <textarea
+                      id="tjActionPlan"
+                      className={`form-textarea ${tjFormErrors.tjActionPlan ? "field-error-border" : ""}`}
+                      style={{ height: "42px" }}
+                      placeholder="Enter Action Plan"
+                      value={tjActionPlan}
+                      onChange={(e) => setTjActionPlan(e.target.value)}
+                    />
+                    {tjFormErrors.tjActionPlan && (
+                      <span className="error-text">{tjFormErrors.tjActionPlan}</span>
                     )}
                   </div>
                 </div>
 
-                {/* Action Plan */}
+                {/* Row 7: Remarks */}
                 <div className="form-group full-width">
-                  <label htmlFor="liActionPlan" className="form-label">
-                    Action Plan to Rectify Low Insulation <span className="required">*</span>
-                  </label>
+                  <label htmlFor="tjRemarks" className="form-label">Remarks</label>
                   <textarea
-                    id="liActionPlan"
+                    id="tjRemarks"
                     className="form-textarea"
                     style={{ height: "65px" }}
-                    placeholder="Enter action plan (e.g. cable meggering, conductor pair shifting, joint card replacements)"
-                    value={liActionPlan}
-                    onChange={(e) => setLiActionPlan(e.target.value)}
-                  />
-                  {liFormErrors.liActionPlan && (
-                    <span className="error-text">{liFormErrors.liActionPlan}</span>
-                  )}
-                </div>
-
-                {/* Remarks */}
-                <div className="form-group full-width">
-                  <label htmlFor="liRemarks" className="form-label">Remarks</label>
-                  <textarea
-                    id="liRemarks"
-                    className="form-textarea"
-                    style={{ height: "65px" }}
-                    placeholder="Enter observations, cable quad details, or testing measurements"
-                    value={liRemarks}
-                    onChange={(e) => setLiRemarks(e.target.value)}
+                    placeholder="Enter observations, cable splice details, or testing measurements"
+                    value={tjRemarks}
+                    onChange={(e) => setTjRemarks(e.target.value)}
                   />
                 </div>
 
@@ -6221,30 +7691,32 @@ export default function Home() {
                         const year = d.getFullYear();
                         return `${year}-${month}-${day}`;
                       };
-                      const newLiRecord = {
+                      const newTjRecord = {
                         id: Date.now(),
                         division: selectedDivision,
-                        sectionName: "All Sections",
+                        sectionYardName: "All Sections",
                         kmNo: "None",
-                        totalFaults: "0",
-                        faultTime: formatDatetime(nowStr),
+                        cableType: "None",
+                        totalJoints: "0",
+                        jointsTime: formatDatetime(nowStr),
                         rectified: "0",
                         rectifiedTime: formatDatetime(nowStr),
-                        balanceFaults: "0",
-                        actionPlan: "No low insulation faults found. Regular megger testing and monitoring.",
+                        balanceJoints: "0",
+                        actionPlan: "No temporary joints pending permanent jointing.",
                         tdc: formatDate(todayStr),
                         remarks: "All OK."
                       };
-                      setSavedLiRecords(prev => [newLiRecord, ...prev]);
-                      setLiSectionName("");
-                      setLiKmNo("");
-                      setLiTotalFaults("");
-                      setLiFaultTime("");
-                      setLiRectified("");
-                      setLiRectifiedTime("");
-                      setLiActionPlan("");
-                      setLiTdc("");
-                      setLiRemarks("");
+                      setSavedTjRecords(prev => [newTjRecord, ...prev]);
+                      setTjSectionYardName("");
+                      setTjKmNo("");
+                      setTjCableType("");
+                      setTjTotalJoints("");
+                      setTjJointsTime("");
+                      setTjRectified("");
+                      setTjRectifiedTime("");
+                      setTjActionPlan("");
+                      setTjTdc("");
+                      setTjRemarks("");
                       moveToNextCircuit();
                     }}
                   >
@@ -6252,10 +7724,10 @@ export default function Home() {
                   </button>
                   <button 
                     type="submit" 
-                    className={`save-button ${liSaving ? "save-button-loading" : ""}`}
-                    disabled={liSaving}
+                    className={`save-button ${tjSaving ? "save-button-loading" : ""}`}
+                    disabled={tjSaving}
                   >
-                    {liSaving ? (
+                    {tjSaving ? (
                       <>
                         <span className="spinner"></span>
                         <span>Saving...</span>
@@ -6266,10 +7738,1373 @@ export default function Home() {
                   </button>
                 </div>
               </form>
+            </div>
+          ) : selectedCircuit.name === "CGDM" ? (
+            /* CGDM Form Workspace */
+            <div className="workspace-content">
+              {/* Workspace Title bar */}
+              <div className="workspace-title-section">
+                <div className="workspace-title-left">
+                  <h2>CGDM</h2>
+                </div>
+              </div>
 
+              {/* Success Notification Alert */}
+              {cgdmFormSuccess && (
+                <div className="alert-banner">
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="3"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                  </svg>
+                  <span>✅ CGDM Record Saved Successfully</span>
+                </div>
+              )}
 
+              {/* CGDM Dedicated Entry Form */}
+              <form className="fault-form" onSubmit={handleSaveCgdmRecord}>
+                
+                {/* Row 1: Major Section & Section */}
+                <div className="form-group-row">
+                  <div className="form-group">
+                    <label htmlFor="formMajorSection" className="form-label">
+                      Major Section <span className="required">*</span>
+                    </label>
+                    <select
+                      id="formMajorSection"
+                      className={`form-input ${cgdmFormErrors.formMajorSection ? "field-error-border" : ""}`}
+                      style={{ height: "42px", appearance: "auto" }}
+                      value={formMajorSection}
+                      onChange={(e) => handleMajorSectionChange(e.target.value)}
+                    >
+                      <option value="">Select Major Section</option>
+                      {selectedDivision && HIERARCHICAL_DATA[selectedDivision] && Object.keys(HIERARCHICAL_DATA[selectedDivision].majorSections).map((mSec) => (
+                        <option key={mSec} value={mSec}>{mSec}</option>
+                      ))}
+                    </select>
+                    {cgdmFormErrors.formMajorSection && (
+                      <span className="error-text">{cgdmFormErrors.formMajorSection}</span>
+                    )}
+                  </div>
 
+                  <div className="form-group">
+                    <label htmlFor="formSection" className="form-label">
+                      Section <span className="required">*</span>
+                    </label>
+                    <select
+                      id="formSection"
+                      className={`form-input ${cgdmFormErrors.formSection ? "field-error-border" : ""}`}
+                      style={{ height: "42px", appearance: "auto" }}
+                      value={formSection}
+                      onChange={(e) => handleSectionChange(e.target.value)}
+                      disabled={!formMajorSection}
+                    >
+                      <option value="">Select Section</option>
+                      {formMajorSection && selectedDivision && HIERARCHICAL_DATA[selectedDivision]?.majorSections[formMajorSection] && 
+                        Object.keys(HIERARCHICAL_DATA[selectedDivision].majorSections[formMajorSection].sections).map((sec) => (
+                          <option key={sec} value={sec}>{sec}</option>
+                        ))
+                      }
+                    </select>
+                    {cgdmFormErrors.formSection && (
+                      <span className="error-text">{cgdmFormErrors.formSection}</span>
+                    )}
+                  </div>
+                </div>
 
+                {/* Row 2: Faulty Station Name & PF NO. */}
+                <div className="form-group-row">
+                  <div className="form-group">
+                    <label htmlFor="formStationLocation" className="form-label">
+                      Faulty Station Name <span className="required">*</span>
+                    </label>
+                    <select
+                      id="formStationLocation"
+                      className={`form-input ${cgdmFormErrors.formStationLocation ? "field-error-border" : ""}`}
+                      style={{ height: "42px", appearance: "auto" }}
+                      value={formStationLocation}
+                      onChange={(e) => handleStationLocationChange(e.target.value)}
+                      disabled={!formMajorSection}
+                    >
+                      <option value="">Select Station</option>
+                      {formMajorSection && selectedDivision && HIERARCHICAL_DATA[selectedDivision]?.majorSections[formMajorSection] && (() => {
+                        const sectionsObj = HIERARCHICAL_DATA[selectedDivision].majorSections[formMajorSection].sections;
+                        if (formSection) {
+                          return sectionsObj[formSection]?.map((stn) => (
+                            <option key={stn} value={stn}>{stn}</option>
+                          ));
+                        } else {
+                          return Object.values(sectionsObj).flat().map((stn) => (
+                            <option key={stn} value={stn}>{stn}</option>
+                          ));
+                        }
+                      })()}
+                    </select>
+                    {cgdmFormErrors.formStationLocation && (
+                      <span className="error-text">{cgdmFormErrors.formStationLocation}</span>
+                    )}
+                  </div>
+
+                  <div className="form-group">
+                    <label htmlFor="cgdmPfNo" className="form-label">
+                      PF NO. <span className="required">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      id="cgdmPfNo"
+                      className={`form-input ${cgdmFormErrors.cgdmPfNo ? "field-error-border" : ""}`}
+                      placeholder="Enter Platform Number (e.g. 2)"
+                      value={cgdmPfNo}
+                      onChange={(e) => setCgdmPfNo(e.target.value)}
+                    />
+                    {cgdmFormErrors.cgdmPfNo && (
+                      <span className="error-text">{cgdmFormErrors.cgdmPfNo}</span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Row 3: No. of faulty board & Failure (Date & Time) */}
+                <div className="form-group-row">
+                  <div className="form-group">
+                    <label htmlFor="cgdmFaultyBoards" className="form-label">
+                      No. of faulty board <span className="required">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      id="cgdmFaultyBoards"
+                      className={`form-input ${cgdmFormErrors.cgdmFaultyBoards ? "field-error-border" : ""}`}
+                      placeholder="Enter number of faulty boards"
+                      value={cgdmFaultyBoards}
+                      onChange={(e) => setCgdmFaultyBoards(e.target.value)}
+                    />
+                    {cgdmFormErrors.cgdmFaultyBoards && (
+                      <span className="error-text">{cgdmFormErrors.cgdmFaultyBoards}</span>
+                    )}
+                  </div>
+
+                  <div className="form-group">
+                    <label htmlFor="cgdmFailureTime" className="form-label">
+                      Failure (Date & Time) <span className="required">*</span>
+                    </label>
+                    <input
+                      type="datetime-local"
+                      id="cgdmFailureTime"
+                      className={`form-input ${cgdmFormErrors.cgdmFailureTime ? "field-error-border" : ""}`}
+                      value={cgdmFailureTime}
+                      onChange={(e) => setCgdmFailureTime(e.target.value)}
+                    />
+                    {cgdmFormErrors.cgdmFailureTime && (
+                      <span className="error-text">{cgdmFormErrors.cgdmFailureTime}</span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Row 4: Rectification Time(RT) (Date & Time) & Total Duration (Hrs.Min.) */}
+                <div className="form-group-row">
+                  <div className="form-group">
+                    <label htmlFor="cgdmRectifiedTime" className="form-label">
+                      Rectification Time(RT) (Date & Time) <span className="required">*</span>
+                    </label>
+                    <input
+                      type="datetime-local"
+                      id="cgdmRectifiedTime"
+                      className={`form-input ${cgdmFormErrors.cgdmRectifiedTime ? "field-error-border" : ""}`}
+                      value={cgdmRectifiedTime}
+                      onChange={(e) => setCgdmRectifiedTime(e.target.value)}
+                    />
+                    {cgdmFormErrors.cgdmRectifiedTime && (
+                      <span className="error-text">{cgdmFormErrors.cgdmRectifiedTime}</span>
+                    )}
+                  </div>
+
+                  <div className="form-group">
+                    <label htmlFor="cgdmDuration" className="form-label">
+                      Total Duration (Hrs.Min.)
+                    </label>
+                    <input
+                      type="text"
+                      id="cgdmDuration"
+                      className="form-input"
+                      value={cgdmTotalDuration}
+                      readOnly
+                      placeholder="XX Hrs XX Min"
+                    />
+                  </div>
+                </div>
+
+                {/* Row 5: Reason Of Failure & Remarks */}
+                <div className="form-group-row">
+                  <div className="form-group">
+                    <label htmlFor="cgdmReason" className="form-label">
+                      Reason Of Failure <span className="required">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      id="cgdmReason"
+                      className={`form-input ${cgdmFormErrors.cgdmReasonOfFailure ? "field-error-border" : ""}`}
+                      placeholder="Enter reason of failure"
+                      value={cgdmReasonOfFailure}
+                      onChange={(e) => setCgdmReasonOfFailure(e.target.value)}
+                    />
+                    {cgdmFormErrors.cgdmReasonOfFailure && (
+                      <span className="error-text">{cgdmFormErrors.cgdmReasonOfFailure}</span>
+                    )}
+                  </div>
+
+                  <div className="form-group">
+                    <label htmlFor="cgdmRemarks" className="form-label">Remarks</label>
+                    <textarea
+                      id="cgdmRemarks"
+                      className="form-textarea"
+                      style={{ height: "42px" }}
+                      placeholder="Enter observations or restoration details"
+                      value={cgdmRemarks}
+                      onChange={(e) => setCgdmRemarks(e.target.value)}
+                    />
+                  </div>
+                </div>
+
+                {/* Save button with Loading State */}
+                <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", gap: "12px" }}>
+                  <button
+                    type="button"
+                    className="all-ok-button"
+                    onClick={() => {
+                      const nowStr = new Date().toISOString().slice(0, 16);
+                      const formatDate = (dateStr: string) => {
+                        const d = new Date(dateStr);
+                        const day = String(d.getDate()).padStart(2, "0");
+                        const month = String(d.getMonth() + 1).padStart(2, "0");
+                        const year = d.getFullYear();
+                        const hour = String(d.getHours()).padStart(2, "0");
+                        const minute = String(d.getMinutes()).padStart(2, "0");
+                        return `${day}-${month}-${year} ${hour}:${minute}`;
+                      };
+                      const newCgdmRecord = {
+                        id: Date.now(),
+                        division: selectedDivision,
+                        pfNo: "None",
+                        faultyBoards: "0",
+                        failureTime: formatDate(nowStr),
+                        rectifiedTime: formatDate(nowStr),
+                        duration: "0 Hrs 0 Min",
+                        reasonOfFailure: "No failures reported.",
+                        remarks: "All systems healthy."
+                      };
+                      setSavedCgdmRecords(prev => [newCgdmRecord, ...prev]);
+                      setCgdmPfNo("");
+                      setCgdmFaultyBoards("");
+                      setCgdmFailureTime("");
+                      setCgdmRectifiedTime("");
+                      setCgdmReasonOfFailure("");
+                      setCgdmRemarks("");
+                      moveToNextCircuit();
+                    }}
+                  >
+                    All OK
+                  </button>
+                  <button 
+                    type="submit" 
+                    className={`save-button ${cgdmSaving ? "save-button-loading" : ""}`}
+                    disabled={cgdmSaving}
+                  >
+                    {cgdmSaving ? (
+                      <>
+                        <span className="spinner"></span>
+                        <span>Saving...</span>
+                      </>
+                    ) : (
+                      "Save"
+                    )}
+                  </button>
+                </div>
+              </form>
+            </div>
+          ) : selectedCircuit.name === "TIB" ? (
+            /* TIB Form Workspace */
+            <div className="workspace-content">
+              {/* Workspace Title bar */}
+              <div className="workspace-title-section">
+                <div className="workspace-title-left">
+                  <h2>TIB</h2>
+                </div>
+              </div>
+
+              {/* Success Notification Alert */}
+              {tibFormSuccess && (
+                <div className="alert-banner">
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="3"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                  </svg>
+                  <span>✅ TIB Record Saved Successfully</span>
+                </div>
+              )}
+
+              {/* TIB Dedicated Entry Form */}
+              <form className="fault-form" onSubmit={handleSaveTibRecord}>
+                
+                {/* Row 1: Major Section & Section */}
+                <div className="form-group-row">
+                  <div className="form-group">
+                    <label htmlFor="formMajorSection" className="form-label">
+                      Major Section <span className="required">*</span>
+                    </label>
+                    <select
+                      id="formMajorSection"
+                      className={`form-input ${tibFormErrors.formMajorSection ? "field-error-border" : ""}`}
+                      style={{ height: "42px", appearance: "auto" }}
+                      value={formMajorSection}
+                      onChange={(e) => handleMajorSectionChange(e.target.value)}
+                    >
+                      <option value="">Select Major Section</option>
+                      {selectedDivision && HIERARCHICAL_DATA[selectedDivision] && Object.keys(HIERARCHICAL_DATA[selectedDivision].majorSections).map((mSec) => (
+                        <option key={mSec} value={mSec}>{mSec}</option>
+                      ))}
+                    </select>
+                    {tibFormErrors.formMajorSection && (
+                      <span className="error-text">{tibFormErrors.formMajorSection}</span>
+                    )}
+                  </div>
+
+                  <div className="form-group">
+                    <label htmlFor="formSection" className="form-label">
+                      Section <span className="required">*</span>
+                    </label>
+                    <select
+                      id="formSection"
+                      className={`form-input ${tibFormErrors.formSection ? "field-error-border" : ""}`}
+                      style={{ height: "42px", appearance: "auto" }}
+                      value={formSection}
+                      onChange={(e) => handleSectionChange(e.target.value)}
+                      disabled={!formMajorSection}
+                    >
+                      <option value="">Select Section</option>
+                      {formMajorSection && selectedDivision && HIERARCHICAL_DATA[selectedDivision]?.majorSections[formMajorSection] && 
+                        Object.keys(HIERARCHICAL_DATA[selectedDivision].majorSections[formMajorSection].sections).map((sec) => (
+                          <option key={sec} value={sec}>{sec}</option>
+                        ))
+                      }
+                    </select>
+                    {tibFormErrors.formSection && (
+                      <span className="error-text">{tibFormErrors.formSection}</span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Row 2: Location of faulty TIB & No. Of Faulty TIB */}
+                <div className="form-group-row">
+                  <div className="form-group">
+                    <label htmlFor="formStationLocation" className="form-label">
+                      Location of faulty TIB <span className="required">*</span>
+                    </label>
+                    <select
+                      id="formStationLocation"
+                      className={`form-input ${tibFormErrors.formStationLocation ? "field-error-border" : ""}`}
+                      style={{ height: "42px", appearance: "auto" }}
+                      value={formStationLocation}
+                      onChange={(e) => handleStationLocationChange(e.target.value)}
+                      disabled={!formMajorSection}
+                    >
+                      <option value="">Select Station</option>
+                      {formMajorSection && selectedDivision && HIERARCHICAL_DATA[selectedDivision]?.majorSections[formMajorSection] && (() => {
+                        const sectionsObj = HIERARCHICAL_DATA[selectedDivision].majorSections[formMajorSection].sections;
+                        if (formSection) {
+                          return sectionsObj[formSection]?.map((stn) => (
+                            <option key={stn} value={stn}>{stn}</option>
+                          ));
+                        } else {
+                          return Object.values(sectionsObj).flat().map((stn) => (
+                            <option key={stn} value={stn}>{stn}</option>
+                          ));
+                        }
+                      })()}
+                    </select>
+                    {tibFormErrors.formStationLocation && (
+                      <span className="error-text">{tibFormErrors.formStationLocation}</span>
+                    )}
+                  </div>
+
+                  <div className="form-group">
+                    <label htmlFor="tibNoOfFaulty" className="form-label">
+                      No. Of Faulty TIB <span className="required">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      id="tibNoOfFaulty"
+                      className={`form-input ${tibFormErrors.tibNoOfFaulty ? "field-error-border" : ""}`}
+                      placeholder="Enter number of faulty TIBs"
+                      value={tibNoOfFaulty}
+                      onChange={(e) => setTibNoOfFaulty(e.target.value)}
+                    />
+                    {tibFormErrors.tibNoOfFaulty && (
+                      <span className="error-text">{tibFormErrors.tibNoOfFaulty}</span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Row 3: Failure (Date & Time) & Rectification Time( RT) */}
+                <div className="form-group-row">
+                  <div className="form-group">
+                    <label htmlFor="tibFailureTime" className="form-label">
+                      Failure (Date & Time) <span className="required">*</span>
+                    </label>
+                    <input
+                      type="datetime-local"
+                      id="tibFailureTime"
+                      className={`form-input ${tibFormErrors.tibFailureTime ? "field-error-border" : ""}`}
+                      value={tibFailureTime}
+                      onChange={(e) => setTibFailureTime(e.target.value)}
+                    />
+                    {tibFormErrors.tibFailureTime && (
+                      <span className="error-text">{tibFormErrors.tibFailureTime}</span>
+                    )}
+                  </div>
+
+                  <div className="form-group">
+                    <label htmlFor="tibRectifiedTime" className="form-label">
+                      Rectification Time( RT) <span className="required">*</span>
+                    </label>
+                    <input
+                      type="datetime-local"
+                      id="tibRectifiedTime"
+                      className={`form-input ${tibFormErrors.tibRectifiedTime ? "field-error-border" : ""}`}
+                      value={tibRectifiedTime}
+                      onChange={(e) => setTibRectifiedTime(e.target.value)}
+                    />
+                    {tibFormErrors.tibRectifiedTime && (
+                      <span className="error-text">{tibFormErrors.tibRectifiedTime}</span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Row 4: Total Duration (Hrs.Min.) & Reason Of Failure */}
+                <div className="form-group-row">
+                  <div className="form-group">
+                    <label htmlFor="tibDuration" className="form-label">
+                      Total Duration (Hrs.Min.)
+                    </label>
+                    <input
+                      type="text"
+                      id="tibDuration"
+                      className="form-input"
+                      value={tibTotalDuration}
+                      readOnly
+                      placeholder="XX Hrs XX Min"
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label htmlFor="tibReason" className="form-label">
+                      Reason Of Failure <span className="required">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      id="tibReason"
+                      className={`form-input ${tibFormErrors.tibReasonOfFailure ? "field-error-border" : ""}`}
+                      placeholder="Enter reason of failure"
+                      value={tibReasonOfFailure}
+                      onChange={(e) => setTibReasonOfFailure(e.target.value)}
+                    />
+                    {tibFormErrors.tibReasonOfFailure && (
+                      <span className="error-text">{tibFormErrors.tibReasonOfFailure}</span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Row 5: Remarks */}
+                <div className="form-group full-width">
+                  <label htmlFor="tibRemarks" className="form-label">Remarks</label>
+                  <textarea
+                    id="tibRemarks"
+                    className="form-textarea"
+                    style={{ height: "65px" }}
+                    placeholder="Enter observations or restoration details"
+                    value={tibRemarks}
+                    onChange={(e) => setTibRemarks(e.target.value)}
+                  />
+                </div>
+
+                {/* Save button with Loading State */}
+                <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", gap: "12px" }}>
+                  <button
+                    type="button"
+                    className="all-ok-button"
+                    onClick={() => {
+                      const nowStr = new Date().toISOString().slice(0, 16);
+                      const formatDate = (dateStr: string) => {
+                        const d = new Date(dateStr);
+                        const day = String(d.getDate()).padStart(2, "0");
+                        const month = String(d.getMonth() + 1).padStart(2, "0");
+                        const year = d.getFullYear();
+                        const hour = String(d.getHours()).padStart(2, "0");
+                        const minute = String(d.getMinutes()).padStart(2, "0");
+                        return `${day}-${month}-${year} ${hour}:${minute}`;
+                      };
+                      const newTibRecord = {
+                        id: Date.now(),
+                        division: selectedDivision,
+                        noOfFaulty: "0",
+                        failureTime: formatDate(nowStr),
+                        rectifiedTime: formatDate(nowStr),
+                        duration: "0 Hrs 0 Min",
+                        reasonOfFailure: "No failures reported.",
+                        remarks: "All systems healthy."
+                      };
+                      setSavedTibRecords(prev => [newTibRecord, ...prev]);
+                      setTibNoOfFaulty("");
+                      setTibFailureTime("");
+                      setTibRectifiedTime("");
+                      setTibReasonOfFailure("");
+                      setTibRemarks("");
+                      moveToNextCircuit();
+                    }}
+                  >
+                    All OK
+                  </button>
+                  <button 
+                    type="submit" 
+                    className={`save-button ${tibSaving ? "save-button-loading" : ""}`}
+                    disabled={tibSaving}
+                  >
+                    {tibSaving ? (
+                      <>
+                        <span className="spinner"></span>
+                        <span>Saving...</span>
+                      </>
+                    ) : (
+                      "Save"
+                    )}
+                  </button>
+                </div>
+              </form>
+            </div>
+          ) : selectedCircuit.name === "CCTV Monitoring" ? (
+            /* CCTV Monitoring Form Workspace */
+            <div className="workspace-content">
+              {/* Workspace Title bar */}
+              <div className="workspace-title-section">
+                <div className="workspace-title-left">
+                  <h2>CCTV Monitoring</h2>
+                </div>
+              </div>
+
+              {/* Success Notification Alert */}
+              {cctvmFormSuccess && (
+                <div className="alert-banner">
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="3"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                  </svg>
+                  <span>✅ CCTV Monitoring Record Saved Successfully</span>
+                </div>
+              )}
+
+              {/* CCTV Monitoring Dedicated Entry Form */}
+              <form className="fault-form" onSubmit={handleSaveCctvmRecord}>
+                
+                {/* Row 1: Major Section & Section */}
+                <div className="form-group-row">
+                  <div className="form-group">
+                    <label htmlFor="formMajorSection" className="form-label">
+                      Major Section <span className="required">*</span>
+                    </label>
+                    <select
+                      id="formMajorSection"
+                      className={`form-input ${cctvmFormErrors.formMajorSection ? "field-error-border" : ""}`}
+                      style={{ height: "42px", appearance: "auto" }}
+                      value={formMajorSection}
+                      onChange={(e) => handleMajorSectionChange(e.target.value)}
+                    >
+                      <option value="">Select Major Section</option>
+                      {selectedDivision && HIERARCHICAL_DATA[selectedDivision] && Object.keys(HIERARCHICAL_DATA[selectedDivision].majorSections).map((mSec) => (
+                        <option key={mSec} value={mSec}>{mSec}</option>
+                      ))}
+                    </select>
+                    {cctvmFormErrors.formMajorSection && (
+                      <span className="error-text">{cctvmFormErrors.formMajorSection}</span>
+                    )}
+                  </div>
+
+                  <div className="form-group">
+                    <label htmlFor="formSection" className="form-label">
+                      Section <span className="required">*</span>
+                    </label>
+                    <select
+                      id="formSection"
+                      className={`form-input ${cctvmFormErrors.formSection ? "field-error-border" : ""}`}
+                      style={{ height: "42px", appearance: "auto" }}
+                      value={formSection}
+                      onChange={(e) => handleSectionChange(e.target.value)}
+                      disabled={!formMajorSection}
+                    >
+                      <option value="">Select Section</option>
+                      {formMajorSection && selectedDivision && HIERARCHICAL_DATA[selectedDivision]?.majorSections[formMajorSection] && 
+                        Object.keys(HIERARCHICAL_DATA[selectedDivision].majorSections[formMajorSection].sections).map((sec) => (
+                          <option key={sec} value={sec}>{sec}</option>
+                        ))
+                      }
+                    </select>
+                    {cctvmFormErrors.formSection && (
+                      <span className="error-text">{cctvmFormErrors.formSection}</span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Row 2: Total CCTV/ Not working CCTV (NOS) (Location) & Live Feed To War Room Failed */}
+                <div className="form-group-row">
+                  <div className="form-group">
+                    <label htmlFor="cctvmTotalNotWorkingLocation" className="form-label">
+                      Total CCTV/ Not working CCTV (NOS) (Location) <span className="required">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      id="cctvmTotalNotWorkingLocation"
+                      className={`form-input ${cctvmFormErrors.cctvmTotalNotWorkingLocation ? "field-error-border" : ""}`}
+                      placeholder="e.g. Total: 16 / Not Working: 2 (PF-1)"
+                      value={cctvmTotalNotWorkingLocation}
+                      onChange={(e) => setCctvmTotalNotWorkingLocation(e.target.value)}
+                    />
+                    {cctvmFormErrors.cctvmTotalNotWorkingLocation && (
+                      <span className="error-text">{cctvmFormErrors.cctvmTotalNotWorkingLocation}</span>
+                    )}
+                  </div>
+
+                  <div className="form-group">
+                    <label htmlFor="cctvmWarRoomFailed" className="form-label">
+                      Live Feed To War Room Failed <span className="required">*</span>
+                    </label>
+                    <select
+                      id="cctvmWarRoomFailed"
+                      className={`form-input ${cctvmFormErrors.cctvmWarRoomFailed ? "field-error-border" : ""}`}
+                      style={{ height: "42px", appearance: "auto" }}
+                      value={cctvmWarRoomFailed}
+                      onChange={(e) => setCctvmWarRoomFailed(e.target.value)}
+                    >
+                      <option value="">Select Status</option>
+                      <option value="Yes">Yes</option>
+                      <option value="No">No</option>
+                    </select>
+                    {cctvmFormErrors.cctvmWarRoomFailed && (
+                      <span className="error-text">{cctvmFormErrors.cctvmWarRoomFailed}</span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Row 3: Failure (Date & Time) & Rectification Time(RT) (Date & Time) */}
+                <div className="form-group-row">
+                  <div className="form-group">
+                    <label htmlFor="cctvmFailureTime" className="form-label">
+                      Failure (Date & Time) <span className="required">*</span>
+                    </label>
+                    <input
+                      type="datetime-local"
+                      id="cctvmFailureTime"
+                      className={`form-input ${cctvmFormErrors.cctvmFailureTime ? "field-error-border" : ""}`}
+                      value={cctvmFailureTime}
+                      onChange={(e) => setCctvmFailureTime(e.target.value)}
+                    />
+                    {cctvmFormErrors.cctvmFailureTime && (
+                      <span className="error-text">{cctvmFormErrors.cctvmFailureTime}</span>
+                    )}
+                  </div>
+
+                  <div className="form-group">
+                    <label htmlFor="cctvmRectifiedTime" className="form-label">
+                      Rectification Time(RT) (Date & Time) <span className="required">*</span>
+                    </label>
+                    <input
+                      type="datetime-local"
+                      id="cctvmRectifiedTime"
+                      className={`form-input ${cctvmFormErrors.cctvmRectifiedTime ? "field-error-border" : ""}`}
+                      value={cctvmRectifiedTime}
+                      onChange={(e) => setCctvmRectifiedTime(e.target.value)}
+                    />
+                    {cctvmFormErrors.cctvmRectifiedTime && (
+                      <span className="error-text">{cctvmFormErrors.cctvmRectifiedTime}</span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Row 4: Total Duration (Hrs.Min.) & Reason Of Failure */}
+                <div className="form-group-row">
+                  <div className="form-group">
+                    <label htmlFor="cctvmDuration" className="form-label">
+                      Total Duration (Hrs.Min.)
+                    </label>
+                    <input
+                      type="text"
+                      id="cctvmDuration"
+                      className="form-input"
+                      value={cctvmTotalDuration}
+                      readOnly
+                      placeholder="XX Hrs XX Min"
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label htmlFor="cctvmReason" className="form-label">
+                      Reason Of Failure <span className="required">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      id="cctvmReason"
+                      className={`form-input ${cctvmFormErrors.cctvmReasonOfFailure ? "field-error-border" : ""}`}
+                      placeholder="Enter reason of failure"
+                      value={cctvmReasonOfFailure}
+                      onChange={(e) => setCctvmReasonOfFailure(e.target.value)}
+                    />
+                    {cctvmFormErrors.cctvmReasonOfFailure && (
+                      <span className="error-text">{cctvmFormErrors.cctvmReasonOfFailure}</span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Row 5: Remarks */}
+                <div className="form-group full-width">
+                  <label htmlFor="cctvmRemarks" className="form-label">Remarks</label>
+                  <textarea
+                    id="cctvmRemarks"
+                    className="form-textarea"
+                    style={{ height: "65px" }}
+                    placeholder="Enter observations or restoration details"
+                    value={cctvmRemarks}
+                    onChange={(e) => setCctvmRemarks(e.target.value)}
+                  />
+                </div>
+
+                {/* Save button with Loading State */}
+                <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", gap: "12px" }}>
+                  <button
+                    type="button"
+                    className="all-ok-button"
+                    onClick={() => {
+                      const nowStr = new Date().toISOString().slice(0, 16);
+                      const formatDate = (dateStr: string) => {
+                        const d = new Date(dateStr);
+                        const day = String(d.getDate()).padStart(2, "0");
+                        const month = String(d.getMonth() + 1).padStart(2, "0");
+                        const year = d.getFullYear();
+                        const hour = String(d.getHours()).padStart(2, "0");
+                        const minute = String(d.getMinutes()).padStart(2, "0");
+                        return `${day}-${month}-${year} ${hour}:${minute}`;
+                      };
+                      const newCctvmRecord = {
+                        id: Date.now(),
+                        division: selectedDivision,
+                        totalNotWorkingLocation: "All CCTV working normally.",
+                        warRoomFailed: "No",
+                        failureTime: formatDate(nowStr),
+                        rectifiedTime: formatDate(nowStr),
+                        duration: "0 Hrs 0 Min",
+                        reasonOfFailure: "No failures reported.",
+                        remarks: "All systems healthy."
+                      };
+                      setSavedCctvmRecords(prev => [newCctvmRecord, ...prev]);
+                      setCctvmTotalNotWorkingLocation("");
+                      setCctvmWarRoomFailed("");
+                      setCctvmFailureTime("");
+                      setCctvmRectifiedTime("");
+                      setCctvmReasonOfFailure("");
+                      setCctvmRemarks("");
+                      moveToNextCircuit();
+                    }}
+                  >
+                    All OK
+                  </button>
+                  <button 
+                    type="submit" 
+                    className={`save-button ${cctvmSaving ? "save-button-loading" : ""}`}
+                    disabled={cctvmSaving}
+                  >
+                    {cctvmSaving ? (
+                      <>
+                        <span className="spinner"></span>
+                        <span>Saving...</span>
+                      </>
+                    ) : (
+                      "Save"
+                    )}
+                  </button>
+                </div>
+              </form>
+            </div>
+          ) : selectedCircuit.name === "CCTV Maintenance" ? (
+            /* CCTV Maintenance Form Workspace */
+            <div className="workspace-content">
+              {/* Workspace Title bar */}
+              <div className="workspace-title-section">
+                <div className="workspace-title-left">
+                  <h2>CCTV Maintenance</h2>
+                </div>
+              </div>
+
+              {/* Success Notification Alert */}
+              {cctvsFormSuccess && (
+                <div className="alert-banner">
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="3"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                  </svg>
+                  <span>✅ CCTV Maintenance Record Saved Successfully</span>
+                </div>
+              )}
+
+              {/* CCTV Maintenance Dedicated Entry Form */}
+              <form className="fault-form" onSubmit={handleSaveCctvsRecord}>
+                
+                {/* Row 1: Major Section & Section */}
+                <div className="form-group-row">
+                  <div className="form-group">
+                    <label htmlFor="formMajorSection" className="form-label">
+                      Major Section <span className="required">*</span>
+                    </label>
+                    <select
+                      id="formMajorSection"
+                      className={`form-input ${cctvsFormErrors.formMajorSection ? "field-error-border" : ""}`}
+                      style={{ height: "42px", appearance: "auto" }}
+                      value={formMajorSection}
+                      onChange={(e) => handleMajorSectionChange(e.target.value)}
+                    >
+                      <option value="">Select Major Section</option>
+                      {selectedDivision && HIERARCHICAL_DATA[selectedDivision] && Object.keys(HIERARCHICAL_DATA[selectedDivision].majorSections).map((mSec) => (
+                        <option key={mSec} value={mSec}>{mSec}</option>
+                      ))}
+                    </select>
+                    {cctvsFormErrors.formMajorSection && (
+                      <span className="error-text">{cctvsFormErrors.formMajorSection}</span>
+                    )}
+                  </div>
+
+                  <div className="form-group">
+                    <label htmlFor="formSection" className="form-label">
+                      Section <span className="required">*</span>
+                    </label>
+                    <select
+                      id="formSection"
+                      className={`form-input ${cctvsFormErrors.formSection ? "field-error-border" : ""}`}
+                      style={{ height: "42px", appearance: "auto" }}
+                      value={formSection}
+                      onChange={(e) => handleSectionChange(e.target.value)}
+                      disabled={!formMajorSection}
+                    >
+                      <option value="">Select Section</option>
+                      {formMajorSection && selectedDivision && HIERARCHICAL_DATA[selectedDivision]?.majorSections[formMajorSection] && 
+                        Object.keys(HIERARCHICAL_DATA[selectedDivision].majorSections[formMajorSection].sections).map((sec) => (
+                          <option key={sec} value={sec}>{sec}</option>
+                        ))
+                      }
+                    </select>
+                    {cctvsFormErrors.formSection && (
+                      <span className="error-text">{cctvsFormErrors.formSection}</span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Row 2: Total CCTV/ Not working CCTV (NOS) (Location) & Live Feed To War Room Failed */}
+                <div className="form-group-row">
+                  <div className="form-group">
+                    <label htmlFor="cctvsTotalNotWorkingLocation" className="form-label">
+                      Total CCTV/ Not working CCTV (NOS) (Location) <span className="required">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      id="cctvsTotalNotWorkingLocation"
+                      className={`form-input ${cctvsFormErrors.cctvsTotalNotWorkingLocation ? "field-error-border" : ""}`}
+                      placeholder="e.g. Total: 24 / Not Working: 2 (Bhilai Bazar)"
+                      value={cctvsTotalNotWorkingLocation}
+                      onChange={(e) => setCctvsTotalNotWorkingLocation(e.target.value)}
+                    />
+                    {cctvsFormErrors.cctvsTotalNotWorkingLocation && (
+                      <span className="error-text">{cctvsFormErrors.cctvsTotalNotWorkingLocation}</span>
+                    )}
+                  </div>
+
+                  <div className="form-group">
+                    <label htmlFor="cctvsWarRoomFailed" className="form-label">
+                      Live Feed To War Room Failed <span className="required">*</span>
+                    </label>
+                    <select
+                      id="cctvsWarRoomFailed"
+                      className={`form-input ${cctvsFormErrors.cctvsWarRoomFailed ? "field-error-border" : ""}`}
+                      style={{ height: "42px", appearance: "auto" }}
+                      value={cctvsWarRoomFailed}
+                      onChange={(e) => setCctvsWarRoomFailed(e.target.value)}
+                    >
+                      <option value="">Select Status</option>
+                      <option value="Yes">Yes</option>
+                      <option value="No">No</option>
+                    </select>
+                    {cctvsFormErrors.cctvsWarRoomFailed && (
+                      <span className="error-text">{cctvsWarRoomFailed}</span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Row 3: Failure (Date & Time) & Rectification Time(RT) (Date & Time) */}
+                <div className="form-group-row">
+                  <div className="form-group">
+                    <label htmlFor="cctvsFailureTime" className="form-label">
+                      Failure (Date & Time) <span className="required">*</span>
+                    </label>
+                    <input
+                      type="datetime-local"
+                      id="cctvsFailureTime"
+                      className={`form-input ${cctvsFormErrors.cctvsFailureTime ? "field-error-border" : ""}`}
+                      value={cctvsFailureTime}
+                      onChange={(e) => setCctvsFailureTime(e.target.value)}
+                    />
+                    {cctvsFormErrors.cctvsFailureTime && (
+                      <span className="error-text">{cctvsFormErrors.cctvsFailureTime}</span>
+                    )}
+                  </div>
+
+                  <div className="form-group">
+                    <label htmlFor="cctvsRectifiedTime" className="form-label">
+                      Rectification Time(RT) (Date & Time) <span className="required">*</span>
+                    </label>
+                    <input
+                      type="datetime-local"
+                      id="cctvsRectifiedTime"
+                      className={`form-input ${cctvsFormErrors.cctvsRectifiedTime ? "field-error-border" : ""}`}
+                      value={cctvsRectifiedTime}
+                      onChange={(e) => setCctvsRectifiedTime(e.target.value)}
+                    />
+                    {cctvsFormErrors.cctvsRectifiedTime && (
+                      <span className="error-text">{cctvsFormErrors.cctvsRectifiedTime}</span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Row 4: Total Duration (Hrs.Min.) & Reason Of Failure */}
+                <div className="form-group-row">
+                  <div className="form-group">
+                    <label htmlFor="cctvsDuration" className="form-label">
+                      Total Duration (Hrs.Min.)
+                    </label>
+                    <input
+                      type="text"
+                      id="cctvsDuration"
+                      className="form-input"
+                      value={cctvsTotalDuration}
+                      readOnly
+                      placeholder="XX Hrs XX Min"
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label htmlFor="cctvsReason" className="form-label">
+                      Reason Of Failure <span className="required">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      id="cctvsReason"
+                      className={`form-input ${cctvsFormErrors.cctvsReasonOfFailure ? "field-error-border" : ""}`}
+                      placeholder="Enter reason of failure"
+                      value={cctvsReasonOfFailure}
+                      onChange={(e) => setCctvsReasonOfFailure(e.target.value)}
+                    />
+                    {cctvsFormErrors.cctvsReasonOfFailure && (
+                      <span className="error-text">{cctvsFormErrors.cctvsReasonOfFailure}</span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Row 5: Remarks */}
+                <div className="form-group full-width">
+                  <label htmlFor="cctvsRemarks" className="form-label">Remarks</label>
+                  <textarea
+                    id="cctvsRemarks"
+                    className="form-textarea"
+                    style={{ height: "65px" }}
+                    placeholder="Enter observations or restoration details"
+                    value={cctvsRemarks}
+                    onChange={(e) => setCctvsRemarks(e.target.value)}
+                  />
+                </div>
+
+                {/* Save button with Loading State */}
+                <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", gap: "12px" }}>
+                  <button
+                    type="button"
+                    className="all-ok-button"
+                    onClick={() => {
+                      const nowStr = new Date().toISOString().slice(0, 16);
+                      const formatDate = (dateStr: string) => {
+                        const d = new Date(dateStr);
+                        const day = String(d.getDate()).padStart(2, "0");
+                        const month = String(d.getMonth() + 1).padStart(2, "0");
+                        const year = d.getFullYear();
+                        const hour = String(d.getHours()).padStart(2, "0");
+                        const minute = String(d.getMinutes()).padStart(2, "0");
+                        return `${day}-${month}-${year} ${hour}:${minute}`;
+                      };
+                      const newCctvsRecord = {
+                        id: Date.now(),
+                        division: selectedDivision,
+                        totalNotWorkingLocation: "All CCTV working normally.",
+                        warRoomFailed: "No",
+                        failureTime: formatDate(nowStr),
+                        rectifiedTime: formatDate(nowStr),
+                        duration: "0 Hrs 0 Min",
+                        reasonOfFailure: "No failures reported.",
+                        remarks: "All systems healthy."
+                      };
+                      setSavedCctvsRecords(prev => [newCctvsRecord, ...prev]);
+                      setCctvsTotalNotWorkingLocation("");
+                      setCctvsWarRoomFailed("");
+                      setCctvsFailureTime("");
+                      setCctvsRectifiedTime("");
+                      setCctvsReasonOfFailure("");
+                      setCctvsRemarks("");
+                      moveToNextCircuit();
+                    }}
+                  >
+                    All OK
+                  </button>
+                  <button 
+                    type="submit" 
+                    className={`save-button ${cctvsSaving ? "save-button-loading" : ""}`}
+                    disabled={cctvsSaving}
+                  >
+                    {cctvsSaving ? (
+                      <>
+                        <span className="spinner"></span>
+                        <span>Saving...</span>
+                      </>
+                    ) : (
+                      "Save"
+                    )}
+                  </button>
+                </div>
+              </form>
+            </div>
+          ) : selectedCircuit.name === "PRS/UTS" ? (
+            /* PRS/UTS Form Workspace */
+            <div className="workspace-content">
+              {/* Workspace Title bar */}
+              <div className="workspace-title-section">
+                <div className="workspace-title-left">
+                  <h2>PRS/UTS</h2>
+                </div>
+              </div>
+
+              {/* Success Notification Alert */}
+              {puFormSuccess && (
+                <div className="alert-banner">
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="3"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                  </svg>
+                  <span>✅ PRS/UTS Record Saved Successfully</span>
+                </div>
+              )}
+
+              {/* PRS/UTS Dedicated Entry Form */}
+              <form className="fault-form" onSubmit={handleSavePuRecord}>
+                
+                {/* Row 1 (Full Width): PRS/UTS Dropdown Selection */}
+                <div className="form-group full-width">
+                  <label htmlFor="puSystemType" className="form-label">
+                    PRS/UTS <span className="required">*</span>
+                  </label>
+                  <select
+                    id="puSystemType"
+                    className={`form-input ${puFormErrors.puSystemType ? "field-error-border" : ""}`}
+                    style={{ height: "42px", appearance: "auto" }}
+                    value={puSystemType}
+                    onChange={(e) => setPuSystemType(e.target.value)}
+                  >
+                    <option value="">Select System Type</option>
+                    <option value="PRS">PRS</option>
+                    <option value="UTS">UTS</option>
+                  </select>
+                  {puFormErrors.puSystemType && (
+                    <span className="error-text">{puFormErrors.puSystemType}</span>
+                  )}
+                </div>
+
+                {/* Row 2: Major Section & Section */}
+                <div className="form-group-row">
+                  <div className="form-group">
+                    <label htmlFor="formMajorSection" className="form-label">
+                      Major Section <span className="required">*</span>
+                    </label>
+                    <select
+                      id="formMajorSection"
+                      className={`form-input ${puFormErrors.formMajorSection ? "field-error-border" : ""}`}
+                      style={{ height: "42px", appearance: "auto" }}
+                      value={formMajorSection}
+                      onChange={(e) => handleMajorSectionChange(e.target.value)}
+                    >
+                      <option value="">Select Major Section</option>
+                      {selectedDivision && HIERARCHICAL_DATA[selectedDivision] && Object.keys(HIERARCHICAL_DATA[selectedDivision].majorSections).map((mSec) => (
+                        <option key={mSec} value={mSec}>{mSec}</option>
+                      ))}
+                    </select>
+                    {puFormErrors.formMajorSection && (
+                      <span className="error-text">{puFormErrors.formMajorSection}</span>
+                    )}
+                  </div>
+
+                  <div className="form-group">
+                    <label htmlFor="formSection" className="form-label">
+                      Section <span className="required">*</span>
+                    </label>
+                    <select
+                      id="formSection"
+                      className={`form-input ${puFormErrors.formSection ? "field-error-border" : ""}`}
+                      style={{ height: "42px", appearance: "auto" }}
+                      value={formSection}
+                      onChange={(e) => handleSectionChange(e.target.value)}
+                      disabled={!formMajorSection}
+                    >
+                      <option value="">Select Section</option>
+                      {formMajorSection && selectedDivision && HIERARCHICAL_DATA[selectedDivision]?.majorSections[formMajorSection] && 
+                        Object.keys(HIERARCHICAL_DATA[selectedDivision].majorSections[formMajorSection].sections).map((sec) => (
+                          <option key={sec} value={sec}>{sec}</option>
+                        ))
+                      }
+                    </select>
+                    {puFormErrors.formSection && (
+                      <span className="error-text">{puFormErrors.formSection}</span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Row 3: Station/Location & Nature Of Fault */}
+                <div className="form-group-row">
+                  <div className="form-group">
+                    <label htmlFor="formStationLocation" className="form-label">
+                      Station/Location <span className="required">*</span>
+                    </label>
+                    <select
+                      id="formStationLocation"
+                      className={`form-input ${puFormErrors.formStationLocation ? "field-error-border" : ""}`}
+                      style={{ height: "42px", appearance: "auto" }}
+                      value={formStationLocation}
+                      onChange={(e) => handleStationLocationChange(e.target.value)}
+                      disabled={!formMajorSection}
+                    >
+                      <option value="">Select Station/Location</option>
+                      {formMajorSection && selectedDivision && HIERARCHICAL_DATA[selectedDivision]?.majorSections[formMajorSection] && (() => {
+                        const sectionsObj = HIERARCHICAL_DATA[selectedDivision].majorSections[formMajorSection].sections;
+                        if (formSection) {
+                          return sectionsObj[formSection]?.map((stn) => (
+                            <option key={stn} value={stn}>{stn}</option>
+                          ));
+                        } else {
+                          return Object.values(sectionsObj).flat().map((stn) => (
+                            <option key={stn} value={stn}>{stn}</option>
+                          ));
+                        }
+                      })()}
+                    </select>
+                    {puFormErrors.formStationLocation && (
+                      <span className="error-text">{puFormErrors.formStationLocation}</span>
+                    )}
+                  </div>
+
+                  <div className="form-group">
+                    <label htmlFor="puNatureOfFault" className="form-label">
+                      Nature Of Fault (Equipment/ link (RLY/BJNK)) <span className="required">*</span>
+                    </label>
+                    <select
+                      id="puNatureOfFault"
+                      className={`form-input ${puFormErrors.puNatureOfFault ? "field-error-border" : ""}`}
+                      style={{ height: "42px", appearance: "auto" }}
+                      value={puNatureOfFault}
+                      onChange={(e) => setPuNatureOfFault(e.target.value)}
+                    >
+                      <option value="">Select Nature Of Fault</option>
+                      <option value="Equipment">Equipment</option>
+                      <option value="Link (RLY)">Link (RLY)</option>
+                      <option value="Link (BJNK)">Link (BJNK)</option>
+                    </select>
+                    {puFormErrors.puNatureOfFault && (
+                      <span className="error-text">{puFormErrors.puNatureOfFault}</span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Row 4: Failure (Date & Time) & Rectification Time(RT) (Date & Time) */}
+                <div className="form-group-row">
+                  <div className="form-group">
+                    <label htmlFor="puFailureTime" className="form-label">
+                      Failure (Date & Time) <span className="required">*</span>
+                    </label>
+                    <input
+                      type="datetime-local"
+                      id="puFailureTime"
+                      className={`form-input ${puFormErrors.puFailureTime ? "field-error-border" : ""}`}
+                      value={puFailureTime}
+                      onChange={(e) => setPuFailureTime(e.target.value)}
+                    />
+                    {puFormErrors.puFailureTime && (
+                      <span className="error-text">{puFormErrors.puFailureTime}</span>
+                    )}
+                  </div>
+
+                  <div className="form-group">
+                    <label htmlFor="puRectifiedTime" className="form-label">
+                      Rectification Time(RT) (Date & Time) <span className="required">*</span>
+                    </label>
+                    <input
+                      type="datetime-local"
+                      id="puRectifiedTime"
+                      className={`form-input ${puFormErrors.puRectifiedTime ? "field-error-border" : ""}`}
+                      value={puRectifiedTime}
+                      onChange={(e) => setPuRectifiedTime(e.target.value)}
+                    />
+                    {puFormErrors.puRectifiedTime && (
+                      <span className="error-text">{puFormErrors.puRectifiedTime}</span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Row 5: Total Duration (Hrs.Min.) & Reason Of Failure */}
+                <div className="form-group-row">
+                  <div className="form-group">
+                    <label htmlFor="puDuration" className="form-label">
+                      Total Duration (Hrs.Min.)
+                    </label>
+                    <input
+                      type="text"
+                      id="puDuration"
+                      className="form-input"
+                      value={puTotalDuration}
+                      readOnly
+                      placeholder="XX Hrs XX Min"
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label htmlFor="puReason" className="form-label">
+                      Reason Of Failure <span className="required">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      id="puReason"
+                      className={`form-input ${puFormErrors.puReasonOfFailure ? "field-error-border" : ""}`}
+                      placeholder="Enter reason of failure"
+                      value={puReasonOfFailure}
+                      onChange={(e) => setPuReasonOfFailure(e.target.value)}
+                    />
+                    {puFormErrors.puReasonOfFailure && (
+                      <span className="error-text">{puFormErrors.puReasonOfFailure}</span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Row 6: Remarks */}
+                <div className="form-group full-width">
+                  <label htmlFor="puRemarks" className="form-label">Remarks</label>
+                  <textarea
+                    id="puRemarks"
+                    className="form-textarea"
+                    style={{ height: "65px" }}
+                    placeholder="Enter observations or restoration details"
+                    value={puRemarks}
+                    onChange={(e) => setPuRemarks(e.target.value)}
+                  />
+                </div>
+
+                {/* Save button with Loading State */}
+                <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", gap: "12px" }}>
+                  <button
+                    type="button"
+                    className="all-ok-button"
+                    onClick={() => {
+                      const nowStr = new Date().toISOString().slice(0, 16);
+                      const formatDate = (dateStr: string) => {
+                        const d = new Date(dateStr);
+                        const day = String(d.getDate()).padStart(2, "0");
+                        const month = String(d.getMonth() + 1).padStart(2, "0");
+                        const year = d.getFullYear();
+                        const hour = String(d.getHours()).padStart(2, "0");
+                        const minute = String(d.getMinutes()).padStart(2, "0");
+                        return `${day}-${month}-${year} ${hour}:${minute}`;
+                      };
+                      const newPuRecord = {
+                        id: Date.now(),
+                        division: selectedDivision,
+                        systemType: "PRS",
+                        totalNotWorkingLocation: "All PRS/UTS terminals working normally.",
+                        warRoomFailed: "No",
+                        natureOfFault: "Equipment",
+                        failureTime: formatDate(nowStr),
+                        rectifiedTime: formatDate(nowStr),
+                        duration: "0 Hrs 0 Min",
+                        reasonOfFailure: "No failures reported.",
+                        remarks: "All systems healthy."
+                      };
+                      setSavedPuRecords(prev => [newPuRecord, ...prev]);
+                      setPuSystemType("");
+                      setPuNatureOfFault("");
+                      setPuFailureTime("");
+                      setPuRectifiedTime("");
+                      setPuReasonOfFailure("");
+                      setPuRemarks("");
+                      moveToNextCircuit();
+                    }}
+                  >
+                    All OK
+                  </button>
+                  <button 
+                    type="submit" 
+                    className={`save-button ${puSaving ? "save-button-loading" : ""}`}
+                    disabled={puSaving}
+                  >
+                    {puSaving ? (
+                      <>
+                        <span className="spinner"></span>
+                        <span>Saving...</span>
+                      </>
+                    ) : (
+                      "Save"
+                    )}
+                  </button>
+                </div>
+              </form>
             </div>
           ) : (
             /* Active Workspace View */
