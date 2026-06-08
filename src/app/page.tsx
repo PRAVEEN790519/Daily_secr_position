@@ -314,7 +314,7 @@ export default function Home() {
       "bilaspur_tr": { username: "bilaspur_tr", password: "password", role: "testroom", division: "Bilaspur" },
       "raipur_tr": { username: "raipur_tr", password: "password", role: "testroom", division: "Raipur" },
       "nagpur_tr": { username: "nagpur_tr", password: "password", role: "testroom", division: "Nagpur" },
-      "9876543210": { username: "Bilaspur Test Room", role: "testroom", division: "Bilaspur", mobile: "9876543210" },
+      "9793975397": { username: "Bilaspur Test Room", role: "testroom", division: "Bilaspur", mobile: "9793975397" },
       "9876543211": { username: "Raipur Test Room", role: "testroom", division: "Raipur", mobile: "9876543211" },
       "9876543212": { username: "Nagpur Test Room", role: "testroom", division: "Nagpur", mobile: "9876543212" }
     };
