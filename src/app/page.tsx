@@ -266,14 +266,104 @@ const HIERARCHICAL_DATA: Record<string, {
   }
 };
 
+interface UserProfile {
+  username: string;
+  role: "admin" | "testroom";
+  division?: string;
+}
+
 export default function Home() {
+  const [currentUser, setCurrentUser] = useState<UserProfile | null>(null);
+  const [authUsername, setAuthUsername] = useState<string>("");
+  const [authPassword, setAuthPassword] = useState<string>("");
+  const [authMobileNumber, setAuthMobileNumber] = useState<string>("");
+  const [authOtpCode, setAuthOtpCode] = useState<string>("");
+  const [otpSentCode, setOtpSentCode] = useState<string>("");
+  const [otpMode, setOtpMode] = useState<boolean>(false);
+  const [authTab, setAuthTab] = useState<"user" | "admin">("user");
+  const [isSignupMode, setIsSignupMode] = useState<boolean>(false);
+  const [signupMobile, setSignupMobile] = useState<string>("");
+  const [signupName, setSignupName] = useState<string>("");
+  const [signupDivision, setSignupDivision] = useState<string>("Bilaspur");
+  const [signupRole, setSignupRole] = useState<"admin" | "testroom">("testroom");
+  const [signupPassword, setSignupPassword] = useState<string>("");
+  const [authError, setAuthError] = useState<string>("");
+  const [authSuccessMsg, setAuthSuccessMsg] = useState<string>("");
+  const [userMenuOpen, setUserMenuOpen] = useState<boolean>(false);
+  const userMenuRef = useRef<HTMLDivElement>(null);
+
+  const [activeNavTab, setActiveNavTab] = useState<string>("recordform");
   const [selectedDivision, setSelectedDivision] = useState<string>("Bilaspur");
   const [divisionDropdownOpen, setDivisionDropdownOpen] = useState<boolean>(false);
   const [selectedCircuit, setSelectedCircuit] = useState<Circuit | null>(null);
   const [showSidebarOnMobile, setShowSidebarOnMobile] = useState<boolean>(true);
   const [openDropdownCategory, setOpenDropdownCategory] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>("");
-  const [liveTime, setLiveTime] = useState<string>("");
+
+  // Initialize mock credentials and check active session
+  useEffect(() => {
+    let savedUsers: Record<string, any> = {};
+    try {
+      savedUsers = JSON.parse(localStorage.getItem("secr_users") || "{}");
+    } catch (e) {
+      savedUsers = {};
+    }
+
+    const defaultUsers = {
+      "admin": { username: "admin", password: "password", role: "admin" },
+      "bilaspur_tr": { username: "bilaspur_tr", password: "password", role: "testroom", division: "Bilaspur" },
+      "raipur_tr": { username: "raipur_tr", password: "password", role: "testroom", division: "Raipur" },
+      "nagpur_tr": { username: "nagpur_tr", password: "password", role: "testroom", division: "Nagpur" },
+      "9876543210": { username: "Bilaspur Test Room", role: "testroom", division: "Bilaspur", mobile: "9876543210" },
+      "9876543211": { username: "Raipur Test Room", role: "testroom", division: "Raipur", mobile: "9876543211" },
+      "9876543212": { username: "Nagpur Test Room", role: "testroom", division: "Nagpur", mobile: "9876543212" }
+    };
+
+    let updated = false;
+    Object.entries(defaultUsers).forEach(([key, udata]) => {
+      if (!savedUsers[key]) {
+        savedUsers[key] = udata;
+        updated = true;
+      }
+    });
+
+    if (updated || !localStorage.getItem("secr_users")) {
+      localStorage.setItem("secr_users", JSON.stringify(savedUsers));
+    }
+
+    const savedUser = localStorage.getItem("secr_current_user");
+    if (savedUser) {
+      try {
+        const parsed = JSON.parse(savedUser) as UserProfile;
+        setCurrentUser(parsed);
+        if (parsed.role === "testroom" && parsed.division) {
+          setSelectedDivision(parsed.division);
+        }
+      } catch (e) {
+        console.error("Failed to parse saved user", e);
+      }
+    }
+  }, []);
+
+  // Lock division if the current user is a Test Room user
+  useEffect(() => {
+    if (currentUser && currentUser.role === "testroom" && currentUser.division) {
+      setSelectedDivision(currentUser.division);
+    }
+  }, [currentUser]);
+
+  // Click outside listener to close user menu dropdown
+  useEffect(() => {
+    const handleClickOutsideMenu = (event: MouseEvent) => {
+      if (userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) {
+        setUserMenuOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutsideMenu);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutsideMenu);
+    };
+  }, []);
 
   // States for hierarchical Major Section, Section, Station/Location
   const [formMajorSection, setFormMajorSection] = useState<string>("");
@@ -980,26 +1070,7 @@ export default function Home() {
     };
   }, []);
 
-  // Set initial client-side clock time and keep it updated
-  useEffect(() => {
-    const updateTime = () => {
-      const date = new Date();
-      const options: Intl.DateTimeFormatOptions = {
-        day: "numeric",
-        month: "short",
-        year: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-        second: "2-digit",
-        hour12: true,
-      };
-      setLiveTime(date.toLocaleString("en-US", options));
-    };
 
-    updateTime();
-    const interval = setInterval(updateTime, 1000);
-    return () => clearInterval(interval);
-  }, []);
 
   // Toggle category dropdown and clear search
   const handleToggleCategoryDropdown = (category: string) => {
@@ -1292,6 +1363,485 @@ export default function Home() {
     const dynamicLogs = userLogs[logKey] || [];
     return [...dynamicLogs, ...activeStatus.recentLogs];
   }, [selectedCircuit, selectedDivision, activeStatus, userLogs]);
+
+  // Consolidated History Registry
+  const allSavedHistory = useMemo(() => {
+    const history: any[] = [];
+    
+    // 1. Standard faults
+    savedFaults.forEach(f => {
+      const circ = CIRCUITS_DATABASE.find(c => c.id === f.circuitId);
+      history.push({
+        id: `FLT-${f.id}`,
+        timestamp: f.failureTime || f.timestamp || "N/A",
+        division: f.division,
+        category: circ?.category || "Communication & Voice",
+        circuitName: circ?.name || f.circuitFailed || "Voice Circuit",
+        status: f.rectificationTime ? "Rectified" : "Active Outage",
+        details: `Failed: ${f.circuitFailed || "N/A"}. Reason: ${f.reasons || "N/A"}. Duration: ${f.duration || "N/A"}`,
+        remarks: f.remarks
+      });
+    });
+
+    // 2. Exchange faults
+    savedExchFaults.forEach(f => {
+      history.push({
+        id: `EXC-${f.id}`,
+        timestamp: f.failureTime || "N/A",
+        division: f.division,
+        category: "Exchange",
+        circuitName: f.exchangeName || "Exchange",
+        status: f.rectificationTime ? "Rectified" : "Active Outage",
+        details: `Fault: ${f.faultName || "N/A"}. Reason: ${f.reasons || "N/A"}. Duration: ${f.duration || "N/A"}`,
+        remarks: f.remarks
+      });
+    });
+
+    // 3. Railnet / Internet
+    savedNetRecords.forEach(f => {
+      history.push({
+        id: `NET-${f.id}`,
+        timestamp: f.testingTime || f.failureTime || "N/A",
+        division: f.division,
+        category: "Network & Internet",
+        circuitName: "Railnet / Internet",
+        status: "Tested",
+        details: `Bandwidth: ${f.bandwidth || "N/A"}. Speed Dn/Up: ${f.dnSpeed || "N/A"}/${f.upSpeed || "N/A"} Mbps. Nature: ${f.faultNature || "Normal"}. Duration: ${f.duration || "N/A"}`,
+        remarks: f.remarks
+      });
+    });
+
+    // 4. Rail Madad
+    savedMadadRecords.forEach(f => {
+      history.push({
+        id: `MAD-${f.id}`,
+        timestamp: f.caseTime || "N/A",
+        division: f.division,
+        category: "Rail Madad",
+        circuitName: "Rail Madad Portal",
+        status: "Logged",
+        details: `Prev Bal: ${f.balanceLast || "0"}, Recd: ${f.received || "0"}, Complied: ${f.complied || "0"}. Net Bal: ${f.netBalance || "0"}. Description: ${f.description || "N/A"}`,
+        remarks: f.remarks
+      });
+    });
+
+    // 5. Video Phone
+    savedVpRecords.forEach(f => {
+      history.push({
+        id: `VP-${f.id}`,
+        timestamp: f.testingTime || "N/A",
+        division: f.division,
+        category: "Communication & Voice",
+        circuitName: "Railway Board Video Phone",
+        status: "Tested",
+        details: `PHOD Chamber: ${f.phodChamber || "N/A"}. Video/Audio Clarity: ${f.videoClarity || "N/A"}/${f.audioClarity || "N/A"}`,
+        remarks: f.remarks
+      });
+    });
+
+    // 6. Cable Cuts
+    savedCcRecords.forEach(f => {
+      history.push({
+        id: `CC-${f.id}`,
+        timestamp: f.failureTime || "N/A",
+        division: f.division,
+        category: "Cable Infrastructure",
+        circuitName: "Cable Cut (OFC & Quad)",
+        status: f.rectificationTime ? "Rectified" : "Active Cut",
+        details: `Km: ${f.kmNo || "N/A"}. Cables: ${f.cableTypes || "N/A"}. Cut By: ${f.cutByWhom || "N/A"}`,
+        remarks: f.remarks
+      });
+    });
+
+    // 7. Walkie-Talkie Testing
+    savedWtRecords.forEach(f => {
+      history.push({
+        id: `WT-${f.id}`,
+        timestamp: f.testingDate || "N/A",
+        division: f.division,
+        category: "Testing & Maintenance",
+        circuitName: "Walkie-Talkie Testing",
+        status: "Tested",
+        details: `Lobby: ${f.wtStationLobby || "N/A"}. Make: ${f.makeModel || "N/A"}. Total to Test: ${f.totalToBeTested || "0"}, Tested: ${f.totalTested || "0"}, Bal: ${f.balanceToTest || "0"}`,
+        remarks: f.remarks
+      });
+    });
+
+    // 8. Walkie-Talkie Repairing
+    savedWtrRecords.forEach(f => {
+      history.push({
+        id: `WTR-${f.id}`,
+        timestamp: f.date || "N/A",
+        division: f.division,
+        category: "Testing & Maintenance",
+        circuitName: "Walkie-Talkie Repairing",
+        status: f.repairStatus || "Logged",
+        details: `Op Bal: ${f.openingBalance || "0"}, Recd: ${f.receivedFromUser || "0"}, Sent: ${f.sentToFirm || "0"}, Repaired: ${f.repairedFromFirm || "0"}, Retd: ${f.returnedToUser || "0"}. Condemned: ${f.condemned || "0"}`,
+        remarks: f.remarks
+      });
+    });
+
+    // 9. Low Insulation
+    savedLiRecords.forEach(f => {
+      history.push({
+        id: `LI-${f.id}`,
+        timestamp: f.faultsTime || "N/A",
+        division: f.division,
+        category: "Cable Infrastructure",
+        circuitName: "Low Insulation",
+        status: f.rectifiedTime ? "Rectified" : "Active Fault",
+        details: `Km: ${f.liKmNo || "N/A"}. Cable: ${f.liCableType || "N/A"}. Bal Faults: ${f.liBalanceFaults || "0"}. Action Plan: ${f.liActionPlan || "N/A"}`,
+        remarks: f.remarks
+      });
+    });
+
+    // 10. Temporary Joints
+    savedTjRecords.forEach(f => {
+      history.push({
+        id: `TJ-${f.id}`,
+        timestamp: f.jointsTime || "N/A",
+        division: f.division,
+        category: "Cable Infrastructure",
+        circuitName: "Temporary Joints",
+        status: f.rectifiedTime ? "Rectified" : "Active",
+        details: `Yard: ${f.tjSectionYardName || "N/A"}. Km: ${f.tjKmNo || "N/A"}. Cable: ${f.tjCableType || "N/A"}. Total Joints: ${f.tjTotalJoints || "0"}, Rectified: ${f.tjRectified || "0"}. TDC: ${f.tjTdc || "N/A"}`,
+        remarks: f.remarks
+      });
+    });
+
+    // 11. CGDM
+    savedCgdmRecords.forEach(f => {
+      history.push({
+        id: `CGDM-${f.id}`,
+        timestamp: f.cgdmFailureTime || "N/A",
+        division: f.division,
+        category: "Display System",
+        circuitName: "CGDM",
+        status: f.cgdmRectifiedTime ? "Rectified" : "Active Outage",
+        details: `PF: ${f.cgdmPfNo || "N/A"}. Faulty Boards: ${f.cgdmFaultyBoards || "0"}. Reason: ${f.cgdmReasonOfFailure || "N/A"}. Duration: ${f.duration || "N/A"}`,
+        remarks: f.remarks
+      });
+    });
+
+    // 12. TIB
+    savedTibRecords.forEach(f => {
+      history.push({
+        id: `TIB-${f.id}`,
+        timestamp: f.tibFailureTime || "N/A",
+        division: f.division,
+        category: "Display System",
+        circuitName: "TIB",
+        status: f.tibRectifiedTime ? "Rectified" : "Active Outage",
+        details: `Faulty Boards: ${f.tibNoOfFaulty || "0"}. Reason: ${f.tibReasonOfFailure || "N/A"}. Duration: ${f.duration || "N/A"}`,
+        remarks: f.remarks
+      });
+    });
+
+    // 13. CCTV Monitoring
+    savedCctvmRecords.forEach(f => {
+      history.push({
+        id: `CCTVM-${f.id}`,
+        timestamp: f.cctvmFailureTime || "N/A",
+        division: f.division,
+        category: "CCTV",
+        circuitName: "CCTV Monitoring",
+        status: f.cctvmRectifiedTime ? "Rectified" : "Active Outage",
+        details: `Not working: ${f.cctvmTotalNotWorkingLocation || "N/A"}. War Room Feed Failed: ${f.cctvmWarRoomFailed || "No"}. Reason: ${f.cctvmReasonOfFailure || "N/A"}. Duration: ${f.duration || "N/A"}`,
+        remarks: f.remarks
+      });
+    });
+
+    // 14. CCTV Maintenance
+    savedCctvsRecords.forEach(f => {
+      history.push({
+        id: `CCTVS-${f.id}`,
+        timestamp: f.cctvsFailureTime || "N/A",
+        division: f.division,
+        category: "CCTV",
+        circuitName: "CCTV Maintenance",
+        status: f.cctvsRectifiedTime ? "Rectified" : "Active Outage",
+        details: `Not working: ${f.cctvsTotalNotWorkingLocation || "N/A"}. War Room Feed Failed: ${f.cctvsWarRoomFailed || "No"}. Reason: ${f.cctvsReasonOfFailure || "N/A"}. Duration: ${f.duration || "N/A"}`,
+        remarks: f.remarks
+      });
+    });
+
+    // 15. PRS/UTS
+    savedPuRecords.forEach(f => {
+      history.push({
+        id: `PU-${f.id}`,
+        timestamp: f.puFailureTime || "N/A",
+        division: f.division,
+        category: "Network & Internet",
+        circuitName: "PRS/UTS",
+        status: f.puRectifiedTime ? "Rectified" : "Active Outage",
+        details: `System Type: ${f.puSystemType || "N/A"}. Nature: ${f.puNatureOfFault || "N/A"}. Reason: ${f.puReasonOfFailure || "N/A"}. Duration: ${f.duration || "N/A"}`,
+        remarks: f.remarks
+      });
+    });
+
+    // 16. Wi-Fi
+    savedWifiRecords.forEach(f => {
+      history.push({
+        id: `WIFI-${f.id}`,
+        timestamp: f.wifiFailureTime || "N/A",
+        division: f.division,
+        category: "Network & Internet",
+        circuitName: "Wi-Fi",
+        status: f.wifiRectifiedTime ? "Rectified" : "Active Outage",
+        details: `Reason: ${f.wifiReasonOfFailure || "N/A"}. Duration: ${f.duration || "N/A"}`,
+        remarks: f.remarks
+      });
+    });
+
+    // Sort by timestamp desc or ID desc
+    return history.sort((a, b) => b.id.localeCompare(a.id));
+  }, [
+    savedFaults, savedExchFaults, savedNetRecords, savedMadadRecords,
+    savedVpRecords, savedCcRecords, savedWtRecords, savedWtrRecords,
+    savedLiRecords, savedTjRecords, savedCgdmRecords, savedTibRecords,
+    savedCctvmRecords, savedCctvsRecords, savedPuRecords, savedWifiRecords
+  ]);
+
+
+  // Submit handler for user login (User Mobile/OTP or Admin Username/Password)
+  const handleAuthSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setAuthError("");
+    setAuthSuccessMsg("");
+
+    const savedUsersStr = localStorage.getItem("secr_users") || "{}";
+    let savedUsers: Record<string, any> = {};
+    try {
+      savedUsers = JSON.parse(savedUsersStr);
+    } catch (err) {
+      savedUsers = {};
+    }
+
+    if (authTab === "user") {
+      // USER MOBILE LOGIN FLOW
+      if (!otpMode) {
+        // Step 1: Send OTP
+        const cleanMobile = authMobileNumber.trim();
+        if (!/^\d{10}$/.test(cleanMobile)) {
+          setAuthError("Please enter a valid 10-digit mobile number.");
+          return;
+        }
+
+        // Generate OTP
+        const generatedOtp = "1234"; // Mock OTP for simplicity
+        setOtpSentCode(generatedOtp);
+        setOtpMode(true);
+        setAuthSuccessMsg(`OTP sent successfully: Code is ${generatedOtp}`);
+      } else {
+        // Step 2: Verify OTP
+        if (authOtpCode !== otpSentCode && authOtpCode !== "1234") {
+          setAuthError("Invalid OTP code. Please enter 1234.");
+          return;
+        }
+
+        // OTP Verified, look up user
+        const cleanMobile = authMobileNumber.trim();
+        let userRecord = savedUsers[cleanMobile];
+
+        // Fallback for default mobile numbers
+        if (!userRecord) {
+          const defaultMobiles: Record<string, any> = {
+            "9876543210": { username: "Bilaspur Test Room", role: "testroom", division: "Bilaspur", mobile: "9876543210" },
+            "9876543211": { username: "Raipur Test Room", role: "testroom", division: "Raipur", mobile: "9876543211" },
+            "9876543212": { username: "Nagpur Test Room", role: "testroom", division: "Nagpur", mobile: "9876543212" }
+          };
+          userRecord = defaultMobiles[cleanMobile];
+          if (userRecord) {
+            savedUsers[cleanMobile] = userRecord;
+            try {
+              localStorage.setItem("secr_users", JSON.stringify(savedUsers));
+            } catch (err) {
+              console.warn("Storage sync failed", err);
+            }
+          }
+        }
+
+        if (!userRecord) {
+          setAuthError("Mobile number is not registered. Please sign up first.");
+          return;
+        }
+
+        const userProfile: UserProfile = {
+          username: userRecord.username,
+          role: "testroom",
+          division: userRecord.division
+        };
+
+        try {
+          localStorage.setItem("secr_current_user", JSON.stringify(userProfile));
+        } catch (err) {
+          console.warn("Session save failed", err);
+        }
+        setCurrentUser(userProfile);
+        if (userProfile.division) {
+          setSelectedDivision(userProfile.division);
+        }
+
+        // Reset inputs
+        setAuthMobileNumber("");
+        setAuthOtpCode("");
+        setOtpSentCode("");
+        setOtpMode(false);
+        setAuthSuccessMsg("");
+      }
+    } else {
+      // ADMIN PASSWORD LOGIN FLOW
+      const cleanUsername = authUsername.trim();
+      const normalizedUsername = cleanUsername.toLowerCase();
+      let userRecord = savedUsers[normalizedUsername];
+
+      // Fallback check for default admin
+      if (!userRecord && normalizedUsername === "admin") {
+        userRecord = { username: "admin", password: "password", role: "admin" };
+        savedUsers[normalizedUsername] = userRecord;
+        try {
+          localStorage.setItem("secr_users", JSON.stringify(savedUsers));
+        } catch (err) {
+          console.warn("Storage sync failed", err);
+        }
+      }
+
+      if (!userRecord || userRecord.password !== authPassword) {
+        setAuthError("Invalid username or password.");
+        return;
+      }
+
+      const userProfile: UserProfile = {
+        username: userRecord.username,
+        role: "admin"
+      };
+
+      try {
+        localStorage.setItem("secr_current_user", JSON.stringify(userProfile));
+      } catch (err) {
+        console.warn("Session save failed", err);
+      }
+      setCurrentUser(userProfile);
+
+      // Reset inputs
+      setAuthUsername("");
+      setAuthPassword("");
+      setAuthError("");
+      setAuthSuccessMsg("");
+    }
+  };
+
+  // Submit handler for Sign Up / Registration
+  const handleSignupSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setAuthError("");
+    setAuthSuccessMsg("");
+
+    const savedUsersStr = localStorage.getItem("secr_users") || "{}";
+    let savedUsers: Record<string, any> = {};
+    try {
+      savedUsers = JSON.parse(savedUsersStr);
+    } catch (err) {
+      savedUsers = {};
+    }
+
+    if (signupRole === "testroom") {
+      const cleanMobile = signupMobile.trim();
+      const cleanName = signupName.trim();
+
+      if (!cleanName) {
+        setAuthError("Please enter your full name.");
+        return;
+      }
+      if (!/^\d{10}$/.test(cleanMobile)) {
+        setAuthError("Please enter a valid 10-digit mobile number.");
+        return;
+      }
+      if (savedUsers[cleanMobile]) {
+        setAuthError("Mobile number is already registered.");
+        return;
+      }
+
+      const newUser = {
+        username: cleanName,
+        role: "testroom",
+        division: signupDivision,
+        mobile: cleanMobile
+      };
+
+      savedUsers[cleanMobile] = newUser;
+      localStorage.setItem("secr_users", JSON.stringify(savedUsers));
+
+      // Auto login
+      const userProfile: UserProfile = {
+        username: cleanName,
+        role: "testroom",
+        division: signupDivision
+      };
+      localStorage.setItem("secr_current_user", JSON.stringify(userProfile));
+      setCurrentUser(userProfile);
+      setSelectedDivision(signupDivision);
+
+      // Reset signup fields
+      setSignupName("");
+      setSignupMobile("");
+      setIsSignupMode(false);
+    } else {
+      // Admin Signup
+      const cleanName = signupName.trim();
+      const normalizedName = cleanName.toLowerCase();
+
+      if (!cleanName) {
+        setAuthError("Please enter username.");
+        return;
+      }
+      if (!signupPassword) {
+        setAuthError("Please enter password.");
+        return;
+      }
+      if (savedUsers[normalizedName]) {
+        setAuthError("Username already exists.");
+        return;
+      }
+
+      const newUser = {
+        username: cleanName,
+        password: signupPassword,
+        role: "admin"
+      };
+
+      savedUsers[normalizedName] = newUser;
+      localStorage.setItem("secr_users", JSON.stringify(savedUsers));
+
+      // Auto login
+      const userProfile: UserProfile = {
+        username: cleanName,
+        role: "admin"
+      };
+      localStorage.setItem("secr_current_user", JSON.stringify(userProfile));
+      setCurrentUser(userProfile);
+
+      // Reset signup fields
+      setSignupName("");
+      setSignupPassword("");
+      setIsSignupMode(false);
+    }
+  };
+
+  // Sign out handler
+  const handleLogout = () => {
+    localStorage.removeItem("secr_current_user");
+    setCurrentUser(null);
+    setUserMenuOpen(false);
+    setAuthMobileNumber("");
+    setAuthOtpCode("");
+    setOtpMode(false);
+    setAuthUsername("");
+    setAuthPassword("");
+    setAuthError("");
+    setAuthSuccessMsg("");
+    setActiveNavTab("recordform");
+  };
 
   // Save new log entry
   const handleSaveLog = (e: React.FormEvent) => {
@@ -3053,9 +3603,325 @@ export default function Home() {
     }, 1200);
   };
 
+  if (!currentUser) {
+    return (
+      <div className="auth-overlay">
+        <div className="auth-card-container">
+          <div className="auth-glass-card">
+            {/* Card Brand Header */}
+            <div className="auth-card-brand">
+              <svg className="auth-brand-icon" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <path d="M3 9h18" strokeLinecap="round" />
+                <path d="M12 3C7.5 3 4.5 6 3 9" strokeLinecap="round" />
+                <path d="M12 3C16.5 3 19.5 6 21 9" strokeLinecap="round" />
+                <rect x="5" y="11" width="2" height="7" rx="0.5" fill="currentColor" stroke="none" />
+                <rect x="9" y="11" width="2" height="7" rx="0.5" fill="currentColor" stroke="none" />
+                <rect x="13" y="11" width="2" height="7" rx="0.5" fill="currentColor" stroke="none" />
+                <rect x="17" y="11" width="2" height="7" rx="0.5" fill="currentColor" stroke="none" />
+                <path d="M2 19h20" strokeLinecap="round" />
+                <path d="M1 21h22" strokeLinecap="round" />
+              </svg>
+              <span className="auth-brand-text">SECR TELECOM</span>
+            </div>
 
+            <p className="auth-card-subtitle">Log in to your account</p>
 
+            {/* Toggle Switch */}
+            <div className="auth-pill-switch">
+              <button
+                type="button"
+                className={`pill-option user ${authTab === "user" ? "active" : ""}`}
+                onClick={() => {
+                  setAuthTab("user");
+                  setAuthError("");
+                  setAuthSuccessMsg("");
+                  setOtpMode(false);
+                  setIsSignupMode(false);
+                }}
+              >
+                USER
+              </button>
+              <button
+                type="button"
+                className={`pill-option admin ${authTab === "admin" ? "active" : ""}`}
+                onClick={() => {
+                  setAuthTab("admin");
+                  setAuthError("");
+                  setAuthSuccessMsg("");
+                  setOtpMode(false);
+                  setIsSignupMode(false);
+                }}
+              >
+                ADMIN
+              </button>
+            </div>
 
+            {/* Feedback Banners */}
+            {authError && <div className="auth-msg-banner error">{authError}</div>}
+            {authSuccessMsg && <div className="auth-msg-banner success">{authSuccessMsg}</div>}
+
+            {/* Signup view */}
+            {isSignupMode ? (
+              <form onSubmit={handleSignupSubmit} className="auth-underlined-form">
+                <div className="form-title-row">
+                  <h3>Sign Up for Access</h3>
+                </div>
+
+                <div className="auth-field-group">
+                  <label>Role</label>
+                  <select
+                    className="auth-underlined-select"
+                    value={signupRole}
+                    onChange={(e) => setSignupRole(e.target.value as "admin" | "testroom")}
+                  >
+                    <option value="testroom">Test Room User</option>
+                    <option value="admin">System Administrator</option>
+                  </select>
+                </div>
+
+                <div className="auth-field-group">
+                  <label>{signupRole === "testroom" ? "FULL NAME" : "USERNAME"}</label>
+                  <input
+                    type="text"
+                    className="auth-underlined-input"
+                    placeholder={signupRole === "testroom" ? "Enter your name" : "Enter admin username"}
+                    value={signupName}
+                    onChange={(e) => setSignupName(e.target.value)}
+                    required
+                  />
+                </div>
+
+                {signupRole === "testroom" ? (
+                  <>
+                    <div className="auth-field-group">
+                      <label>REGISTERED MOBILE NUMBER</label>
+                      <input
+                        type="text"
+                        maxLength={10}
+                        className="auth-underlined-input"
+                        placeholder="Enter 10-digit number"
+                        value={signupMobile}
+                        onChange={(e) => setSignupMobile(e.target.value.replace(/\D/g, ""))}
+                        required
+                      />
+                    </div>
+
+                    <div className="auth-field-group">
+                      <label>ASSIGNED DIVISION</label>
+                      <select
+                        className="auth-underlined-select"
+                        value={signupDivision}
+                        onChange={(e) => setSignupDivision(e.target.value)}
+                      >
+                        <option value="Bilaspur">Bilaspur Division</option>
+                        <option value="Raipur">Raipur Division</option>
+                        <option value="Nagpur">Nagpur Division</option>
+                      </select>
+                    </div>
+                  </>
+                ) : (
+                  <div className="auth-field-group">
+                    <label>PASSWORD</label>
+                    <input
+                      type="password"
+                      className="auth-underlined-input"
+                      placeholder="Enter password"
+                      value={signupPassword}
+                      onChange={(e) => setSignupPassword(e.target.value)}
+                      required
+                    />
+                  </div>
+                )}
+
+                <button type="submit" className="auth-blue-pill-btn">
+                  <span>Sign Up</span>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                    <polyline points="12 5 19 12 12 19"></polyline>
+                  </svg>
+                </button>
+
+                <div className="auth-footer-toggle">
+                  Already have an account?{" "}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsSignupMode(false);
+                      setAuthError("");
+                      setAuthSuccessMsg("");
+                    }}
+                  >
+                    LOG IN
+                  </button>
+                </div>
+              </form>
+            ) : (
+              /* Login view based on Active Tab */
+              <form onSubmit={handleAuthSubmit} className="auth-underlined-form">
+                {authTab === "user" ? (
+                  /* USER MOBILE LOGIN FLOW */
+                  <>
+                    {!otpMode ? (
+                      /* Mobile Step */
+                      <>
+                        <div className="auth-field-group">
+                          <label>REGISTERED MOBILE NUMBER</label>
+                          <input
+                            type="text"
+                            maxLength={10}
+                            className="auth-underlined-input"
+                            placeholder="Enter 10-digit number"
+                            value={authMobileNumber}
+                            onChange={(e) => setAuthMobileNumber(e.target.value.replace(/\D/g, ""))}
+                            required
+                          />
+                        </div>
+
+                        <button type="submit" className="auth-blue-pill-btn">
+                          <span>Get OTP</span>
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                            <polyline points="12 5 19 12 12 19"></polyline>
+                          </svg>
+                        </button>
+                      </>
+                    ) : (
+                      /* OTP Step */
+                      <>
+                        <div className="auth-field-group">
+                          <label>ENTER 4-DIGIT OTP</label>
+                          <input
+                            type="text"
+                            maxLength={4}
+                            className="auth-underlined-input"
+                            placeholder="Enter 4-digit code"
+                            value={authOtpCode}
+                            onChange={(e) => setAuthOtpCode(e.target.value.replace(/\D/g, ""))}
+                            required
+                          />
+                        </div>
+
+                        <div className="auth-field-hint" style={{ fontSize: "11px", color: "#64748b", marginTop: "-6px" }}>
+                          Enter `1234` to verify OTP instantly.
+                        </div>
+
+                        <div style={{ display: "flex", gap: "10px", marginTop: "10px" }}>
+                          <button
+                            type="button"
+                            className="auth-blue-pill-btn"
+                            style={{ flex: 1, backgroundColor: "rgba(15, 23, 42, 0.04)", border: "1px solid rgba(15, 23, 42, 0.08)", color: "#475569" }}
+                            onClick={() => {
+                              setOtpMode(false);
+                              setAuthError("");
+                              setAuthSuccessMsg("");
+                            }}
+                          >
+                            Back
+                          </button>
+                          <button type="submit" className="auth-blue-pill-btn" style={{ flex: 1.5 }}>
+                            <span>Verify OTP</span>
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                              <polyline points="20 6 9 17 4 12"></polyline>
+                            </svg>
+                          </button>
+                        </div>
+                      </>
+                    )}
+
+                    <div className="auth-footer-toggle">
+                      Don't have an account?{" "}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsSignupMode(true);
+                          setAuthError("");
+                          setAuthSuccessMsg("");
+                        }}
+                      >
+                        SIGN UP
+                      </button>
+                    </div>
+                  </>
+                ) : (
+                  /* ADMIN PASSWORD LOGIN FLOW */
+                  <>
+                    <div className="auth-field-group">
+                      <label>USERNAME</label>
+                      <input
+                        type="text"
+                        className="auth-underlined-input"
+                        placeholder="Enter admin username"
+                        value={authUsername}
+                        onChange={(e) => setAuthUsername(e.target.value)}
+                        required
+                      />
+                    </div>
+
+                    <div className="auth-field-group">
+                      <label>PASSWORD</label>
+                      <input
+                        type="password"
+                        className="auth-underlined-input"
+                        placeholder="••••••••"
+                        value={authPassword}
+                        onChange={(e) => setAuthPassword(e.target.value)}
+                        required
+                      />
+                    </div>
+
+                    <button type="submit" className="auth-blue-pill-btn">
+                      <span>Login</span>
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path>
+                        <polyline points="10 17 15 12 10 7"></polyline>
+                        <line x1="15" y1="12" x2="3" y2="12"></line>
+                      </svg>
+                    </button>
+
+                    <div className="auth-footer-toggle">
+                      Don't have an account?{" "}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsSignupMode(true);
+                          setAuthError("");
+                          setAuthSuccessMsg("");
+                        }}
+                      >
+                        SIGN UP
+                      </button>
+                    </div>
+                  </>
+                )}
+              </form>
+            )}
+
+          </div>
+
+          {/* Footer Badge under card */}
+          <div className="auth-badge-footer">
+            <div className="badge-title">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+                <path d="M3 9h18" />
+                <path d="M12 3C7.5 3 4.5 6 3 9" />
+                <path d="M12 3C16.5 3 19.5 6 21 9" />
+                <rect x="5" y="11" width="2" height="7" rx="0.5" fill="currentColor" stroke="none" />
+                <rect x="9" y="11" width="2" height="7" rx="0.5" fill="currentColor" stroke="none" />
+                <rect x="13" y="11" width="2" height="7" rx="0.5" fill="currentColor" stroke="none" />
+                <rect x="17" y="11" width="2" height="7" rx="0.5" fill="currentColor" stroke="none" />
+                <path d="M2 19h20" />
+                <path d="M1 21h22" />
+              </svg>
+              <span>AUTHORIZED PERSONNEL ONLY</span>
+            </div>
+            <p>
+              By logging in, you agree that your session activity, device details, and location will be logged for security and auditing purposes.
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="dashboard-container">
@@ -3064,61 +3930,137 @@ export default function Home() {
         <div className="header-left">
           <div className="secr-logo" title="South East Central Railway">SECR</div>
           <div className="logo-text">
-            <span className="logo-title">South East Central Railway</span>
-            {/* <span className="logo-sub">Telecom Department Operations</span> */}
+            <span className="logo-title" style={{ fontWeight: 800, fontSize: "14px" }}>South East Central Railway</span>
+            <span className="logo-sub" style={{ fontWeight: 700, textTransform: "none", fontSize: "11px", color: "var(--text-secondary)", marginTop: "1px" }}>Daily Telecom Position</span>
           </div>
         </div>
 
         <div className="header-center">
-          <h1>Daily Telecom Position</h1>
+          <nav className="header-navbar">
+            <button
+              type="button"
+              className={`nav-item ${activeNavTab === "dashboard" ? "active" : ""}`}
+              onClick={() => setActiveNavTab("dashboard")}
+            >
+              Dashboard
+            </button>
+            <button
+              type="button"
+              className={`nav-item ${activeNavTab === "recordform" ? "active" : ""}`}
+              onClick={() => setActiveNavTab("recordform")}
+            >
+              Daily Position
+            </button>
+            <button
+              type="button"
+              className={`nav-item ${activeNavTab === "history" ? "active" : ""}`}
+              onClick={() => setActiveNavTab("history")}
+            >
+              History
+            </button>
+          </nav>
         </div>
 
-        <div className="header-right">
-          {/* Live System Time */}
-          <div className="header-clock" title="System Time">
-            <svg
-              width="14"
-              height="14"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <circle cx="12" cy="12" r="10"></circle>
-              <polyline points="12 6 12 12 16 14"></polyline>
-            </svg>
-            <span>{liveTime || "02 Jun 2026 01:53:14 PM"}</span>
-          </div>
+        <div className="header-right" style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+          {/* Division switcher or label based on role */}
+          {currentUser.role === "admin" ? (
+            <div className="select-wrapper" ref={divisionRef}>
+              <button
+                className={`dropdown-trigger ${divisionDropdownOpen ? "open" : ""}`}
+                onClick={() => setDivisionDropdownOpen(!divisionDropdownOpen)}
+                aria-label="Select Division"
+              >
+                <span>{selectedDivision} Division</span>
+              </button>
+              {divisionDropdownOpen && (
+                <div className="dropdown-menu">
+                  {["Bilaspur", "Raipur", "Nagpur"].map((division) => (
+                    <div
+                      key={division}
+                      className={`dropdown-item ${selectedDivision === division ? "active" : ""}`}
+                      onClick={() => {
+                        setSelectedDivision(division);
+                        setDivisionDropdownOpen(false);
+                        setSaveSuccess(false);
+                        setFormMajorSection("");
+                        setFormSection("");
+                        setFormStationLocation("");
+                      }}
+                    >
+                      {division}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="division-badge-lock" title="Your division is locked to this role">
+              <span className="dot active"></span>
+              <span>{currentUser.division} Division</span>
+            </div>
+          )}
 
-          {/* Division Dropdown */}
-          <div className="select-wrapper" ref={divisionRef}>
+          {/* User profile dropdown widget */}
+          <div className="user-profile-widget" ref={userMenuRef}>
             <button
-              className={`dropdown-trigger ${divisionDropdownOpen ? "open" : ""}`}
-              onClick={() => setDivisionDropdownOpen(!divisionDropdownOpen)}
-              aria-label="Select Division"
+              type="button"
+              className="user-profile-trigger"
+              onClick={() => setUserMenuOpen(!userMenuOpen)}
             >
-              <span>{selectedDivision} Division</span>
+              <div className="avatar-circle">
+                {currentUser.username.charAt(0).toUpperCase()}
+              </div>
+              <div className="user-meta-info">
+                <span className="user-name-text">{currentUser.username}</span>
+                <span className="user-role-badge">
+                  {currentUser.role === "admin" ? "Admin" : "Test Room"}
+                </span>
+              </div>
+              <svg
+                width="12"
+                height="12"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="3"
+                className={`chevron-icon ${userMenuOpen ? "open" : ""}`}
+              >
+                <polyline points="6 9 12 15 18 9"></polyline>
+              </svg>
             </button>
-            {divisionDropdownOpen && (
-              <div className="dropdown-menu">
-                {["Bilaspur", "Raipur", "Nagpur"].map((division) => (
-                  <div
-                    key={division}
-                    className={`dropdown-item ${selectedDivision === division ? "active" : ""}`}
-                    onClick={() => {
-                      setSelectedDivision(division);
-                      setDivisionDropdownOpen(false);
-                      setSaveSuccess(false);
-                      setFormMajorSection("");
-                      setFormSection("");
-                      setFormStationLocation("");
-                    }}
+
+            {userMenuOpen && (
+              <div className="user-profile-menu">
+                <div className="menu-header">
+                  <span className="menu-header-name">{currentUser.username}</span>
+                  <span className="menu-header-detail">
+                    {currentUser.role === "admin"
+                      ? "System Administrator"
+                      : `${currentUser.division} Test Room User`}
+                  </span>
+                </div>
+                <div className="menu-divider"></div>
+                <button
+                  type="button"
+                  className="menu-logout-btn"
+                  onClick={handleLogout}
+                >
+                  <svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
                   >
-                    {division}
-                  </div>
-                ))}
+                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                    <polyline points="16 17 21 12 16 7"></polyline>
+                    <line x1="21" y1="12" x2="9" y2="12"></line>
+                  </svg>
+                  <span>Sign Out</span>
+                </button>
               </div>
             )}
           </div>
@@ -3127,9 +4069,11 @@ export default function Home() {
 
       {/* MAIN CONTENT SECTION */}
       <div className="dashboard-content">
-        {/* LEFT PANEL */}
-        <aside className={`left-panel ${(!selectedCircuit || showSidebarOnMobile) ? "mobile-show" : "mobile-hide"}`}>
-          <h2 className="panel-title">Name of Circuit</h2>
+        {activeNavTab === "recordform" ? (
+          <>
+            {/* LEFT PANEL */}
+            <aside className={`left-panel ${(!selectedCircuit || showSidebarOnMobile) ? "mobile-show" : "mobile-hide"}`}>
+              <h2 className="panel-title">Name of Circuit</h2>
           
           <div className="categories-dropdown-list" ref={circuitRef} style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
             {[
@@ -3480,104 +4424,162 @@ export default function Home() {
                       </div>
                     </div>
 
-                    {/* Row 5: Reason of Failure & spacer */}
-                    <div className="form-group-row">
-                      {/* Reason of Failure */}
-                      <div className="form-group">
-                        <label className="form-label">
-                          Reason of Failure <span className="required">*</span>
-                        </label>
-                        <div className="multiselect-container" ref={reasonsRef}>
-                          <button
-                            type="button"
-                            className={`multiselect-trigger ${reasonsDropdownOpen ? "open" : ""}`}
-                            onClick={() => setReasonsDropdownOpen(!reasonsDropdownOpen)}
-                          >
-                            <span>
-                              {selectedReasons.length === 0
-                                ? "Select Reason(s)..."
-                                : selectedReasons.join(", ")}
-                            </span>
-                          </button>
-                          {reasonsDropdownOpen && (
-                            <div className="multiselect-menu">
-                              {(selectedCircuit?.name === "Hotline"
-                                ? [
-                                    "Control Failure",
-                                    "Telephone Failure",
-                                    "Cable Cut",
-                                    "Link Failure",
-                                    "Equipment Failure (STM)",
-                                    "Equipment Failure (Phone)",
-                                    "Power Failure",
-                                    "Configuration Issue",
-                                    "AddExchange",
-                                    "Other"
-                                  ]
-                                : selectedCircuit?.name === "Video Conferencing with Divisions"
-                                ? [
-                                    "Control Failure",
-                                    "Telephone Failure",
-                                    "Cable Cut",
-                                    "Link Failure",
-                                    "Equipment Failure (STM)",
-                                    "Equipment Failure (Phone)",
-                                    "Power Failure",
-                                    "Configuration Issue",
-                                    "Router Failure",
-                                    "Switch failure",
-                                    "Other"
-                                  ]
-                                : selectedCircuit?.name === "Control & ICMS Position" || selectedCircuit?.name === "FOIS (VSAT)"
-                                ? [
-                                    "Control Failure",
-                                    "Telephone Failure",
-                                    "Cable Cut",
-                                    "Link Failure",
-                                    "Equipment Failure (STM)",
-                                    "Equipment Failure (MUX)",
-                                    "Equipment Failure (Phone)",
-                                    "Power Failure",
-                                    "Configuration Issue",
-                                    "Other"
-                                  ]
-                                : [
-                                    "Control Failure",
-                                    "Telephone Failure",
-                                    "Cable Cut",
-                                    "Link Failure",
-                                    "Equipment Failure (STM)",
-                                    "Equipment Failure (Phone)",
-                                    "Power Failure",
-                                    "Configuration Issue",
-                                    "Other"
-                                  ]
-                              ).map((option) => (
-                                <label key={option} className="multiselect-item">
-                                  <input
-                                    type="checkbox"
-                                    checked={selectedReasons.includes(option)}
-                                    onChange={() => {
-                                      if (selectedReasons.includes(option)) {
-                                        setSelectedReasons(selectedReasons.filter((r) => r !== option));
-                                      } else {
-                                        setSelectedReasons([...selectedReasons, option]);
-                                      }
-                                    }}
-                                  />
-                                  <span>{option}</span>
-                                </label>
-                              ))}
-                            </div>
+                    {/* Row 5: Reason of Failure & Remarks (Hotline and VC side-by-side) */}
+                    {selectedCircuit?.name === "Hotline" || selectedCircuit?.name === "Video Conferencing with Divisions" ? (
+                      <div className="form-group-row">
+                        {/* Reason of Failure */}
+                        <div className="form-group">
+                          <label className="form-label">
+                            Reason of Failure <span className="required">*</span>
+                          </label>
+                          <div className="multiselect-container" ref={reasonsRef}>
+                            <button
+                              type="button"
+                              className={`multiselect-trigger ${reasonsDropdownOpen ? "open" : ""}`}
+                              onClick={() => setReasonsDropdownOpen(!reasonsDropdownOpen)}
+                            >
+                              <span>
+                                {selectedReasons.length === 0
+                                  ? "Select Reason(s)..."
+                                  : selectedReasons.join(", ")}
+                              </span>
+                            </button>
+                            {reasonsDropdownOpen && (
+                              <div className="multiselect-menu">
+                                {(selectedCircuit?.name === "Hotline"
+                                  ? [
+                                      "Control Failure",
+                                      "Telephone Failure",
+                                      "Cable Cut",
+                                      "Link Failure",
+                                      "Equipment Failure (STM)",
+                                      "Equipment Failure (Phone)",
+                                      "Power Failure",
+                                      "Configuration Issue",
+                                      "AddExchange",
+                                      "Other"
+                                    ]
+                                  : [
+                                      "Control Failure",
+                                      "Telephone Failure",
+                                      "Cable Cut",
+                                      "Link Failure",
+                                      "Equipment Failure (STM)",
+                                      "Equipment Failure (Phone)",
+                                      "Power Failure",
+                                      "Configuration Issue",
+                                      "Router Failure",
+                                      "Switch failure",
+                                      "Other"
+                                    ]
+                                ).map((option) => (
+                                  <label key={option} className="multiselect-item">
+                                    <input
+                                      type="checkbox"
+                                      checked={selectedReasons.includes(option)}
+                                      onChange={() => {
+                                        if (selectedReasons.includes(option)) {
+                                          setSelectedReasons(selectedReasons.filter((r) => r !== option));
+                                        } else {
+                                          setSelectedReasons([...selectedReasons, option]);
+                                        }
+                                      }}
+                                    />
+                                    <span>{option}</span>
+                                  </label>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                          {formErrors.reasons && (
+                            <span className="error-text">{formErrors.reasons}</span>
                           )}
                         </div>
-                        {formErrors.reasons && (
-                          <span className="error-text">{formErrors.reasons}</span>
-                        )}
-                      </div>
 
-                      <div className="form-group"></div>
-                    </div>
+                        {/* Remarks */}
+                        <div className="form-group">
+                          <label htmlFor="remarks" className="form-label">Remarks</label>
+                          <input
+                            type="text"
+                            id="remarks"
+                            className="form-input"
+                            placeholder="Enter observations, action taken, or additional remarks"
+                            value={remarks}
+                            onChange={(e) => setRemarks(e.target.value)}
+                          />
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="form-group-row">
+                        {/* Reason of Failure */}
+                        <div className="form-group">
+                          <label className="form-label">
+                            Reason of Failure <span className="required">*</span>
+                          </label>
+                          <div className="multiselect-container" ref={reasonsRef}>
+                            <button
+                              type="button"
+                              className={`multiselect-trigger ${reasonsDropdownOpen ? "open" : ""}`}
+                              onClick={() => setReasonsDropdownOpen(!reasonsDropdownOpen)}
+                            >
+                              <span>
+                                {selectedReasons.length === 0
+                                  ? "Select Reason(s)..."
+                                  : selectedReasons.join(", ")}
+                              </span>
+                            </button>
+                            {reasonsDropdownOpen && (
+                              <div className="multiselect-menu">
+                                {(selectedCircuit?.name === "Control & ICMS Position" || selectedCircuit?.name === "FOIS (VSAT)"
+                                  ? [
+                                      "Control Failure",
+                                      "Telephone Failure",
+                                      "Cable Cut",
+                                      "Link Failure",
+                                      "Equipment Failure (STM)",
+                                      "Equipment Failure (MUX)",
+                                      "Equipment Failure (Phone)",
+                                      "Power Failure",
+                                      "Configuration Issue",
+                                      "Other"
+                                    ]
+                                  : [
+                                      "Control Failure",
+                                      "Telephone Failure",
+                                      "Cable Cut",
+                                      "Link Failure",
+                                      "Equipment Failure (STM)",
+                                      "Equipment Failure (Phone)",
+                                      "Power Failure",
+                                      "Configuration Issue",
+                                      "Other"
+                                    ]
+                                ).map((option) => (
+                                  <label key={option} className="multiselect-item">
+                                    <input
+                                      type="checkbox"
+                                      checked={selectedReasons.includes(option)}
+                                      onChange={() => {
+                                        if (selectedReasons.includes(option)) {
+                                          setSelectedReasons(selectedReasons.filter((r) => r !== option));
+                                        } else {
+                                          setSelectedReasons([...selectedReasons, option]);
+                                        }
+                                      }}
+                                    />
+                                    <span>{option}</span>
+                                  </label>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                          {formErrors.reasons && (
+                            <span className="error-text">{formErrors.reasons}</span>
+                          )}
+                        </div>
+                        <div className="form-group"></div>
+                      </div>
+                    )}
                   </>
                 ) : (
                   <>
@@ -3826,17 +4828,19 @@ export default function Home() {
                 )}
 
                 {/* Remarks */}
-                <div className="form-group full-width">
-                  <label htmlFor="remarks" className="form-label">Remarks</label>
-                  <textarea
-                    id="remarks"
-                    className="form-textarea"
-                    style={{ height: "65px" }}
-                    placeholder="Enter observations, action taken, or additional remarks"
-                    value={remarks}
-                    onChange={(e) => setRemarks(e.target.value)}
-                  />
-                </div>
+                {selectedCircuit?.name !== "Hotline" && selectedCircuit?.name !== "Video Conferencing with Divisions" && (
+                  <div className="form-group full-width">
+                    <label htmlFor="remarks" className="form-label">Remarks</label>
+                    <textarea
+                      id="remarks"
+                      className="form-textarea"
+                      style={{ height: "65px" }}
+                      placeholder="Enter observations, action taken, or additional remarks"
+                      value={remarks}
+                      onChange={(e) => setRemarks(e.target.value)}
+                    />
+                  </div>
+                )}
 
                 {/* Save button */}
                 <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", gap: "12px" }}>
@@ -9629,6 +10633,67 @@ export default function Home() {
             </div>
           )}
         </main>
+          </>
+        ) : activeNavTab === "dashboard" ? (
+          <div className="dashboard-view-panel" style={{ width: "100%", padding: "24px", overflowY: "auto", display: "flex", flexDirection: "column", gap: "24px", alignItems: "center", justifyContent: "center", minHeight: "300px" }}>
+            <div style={{ color: "var(--text-secondary)", fontSize: "14px", fontStyle: "italic" }}>
+              Dashboard content will be configured here.
+            </div>
+          </div>
+        ) : (
+          <div className="history-view-panel" style={{ width: "100%", padding: "24px", overflowY: "auto", display: "flex", flexDirection: "column", gap: "20px" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <h2 style={{ fontSize: "20px", fontWeight: 800, textTransform: "uppercase", color: "var(--text-color)" }}>
+                SECR Telecom Operations Log Registry
+              </h2>
+              <span className="badge normal" style={{ padding: "6px 12px", borderRadius: "12px", fontWeight: "700" }}>Total Entries: {allSavedHistory.length}</span>
+            </div>
+
+            {/* Logs Table Card */}
+            <div className="detail-card" style={{ padding: "0", overflow: "hidden" }}>
+              {allSavedHistory.length > 0 ? (
+                <div style={{ overflowX: "auto" }}>
+                  <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "left", margin: 0 }}>
+                    <thead>
+                      <tr style={{ backgroundColor: "#F8FAFC", borderBottom: "1px solid #E2E8F0" }}>
+                        <th style={{ padding: "12px 16px", fontSize: "11px", fontWeight: "700", color: "#64748B", textTransform: "uppercase", borderBottom: "1px solid #E2E8F0" }}>ID</th>
+                        <th style={{ padding: "12px 16px", fontSize: "11px", fontWeight: "700", color: "#64748B", textTransform: "uppercase", borderBottom: "1px solid #E2E8F0" }}>Timestamp</th>
+                        <th style={{ padding: "12px 16px", fontSize: "11px", fontWeight: "700", color: "#64748B", textTransform: "uppercase", borderBottom: "1px solid #E2E8F0" }}>Division</th>
+                        <th style={{ padding: "12px 16px", fontSize: "11px", fontWeight: "700", color: "#64748B", textTransform: "uppercase", borderBottom: "1px solid #E2E8F0" }}>Circuit Category</th>
+                        <th style={{ padding: "12px 16px", fontSize: "11px", fontWeight: "700", color: "#64748B", textTransform: "uppercase", borderBottom: "1px solid #E2E8F0" }}>Circuit/System</th>
+                        <th style={{ padding: "12px 16px", fontSize: "11px", fontWeight: "700", color: "#64748B", textTransform: "uppercase", borderBottom: "1px solid #E2E8F0" }}>Status</th>
+                        <th style={{ padding: "12px 16px", fontSize: "11px", fontWeight: "700", color: "#64748B", textTransform: "uppercase", borderBottom: "1px solid #E2E8F0" }}>Log details</th>
+                        <th style={{ padding: "12px 16px", fontSize: "11px", fontWeight: "700", color: "#64748B", textTransform: "uppercase", borderBottom: "1px solid #E2E8F0" }}>Remarks</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {allSavedHistory.map((h, i) => (
+                        <tr key={h.id} style={{ borderBottom: i === allSavedHistory.length - 1 ? "none" : "1px solid #E2E8F0" }}>
+                          <td style={{ padding: "12px 16px", fontSize: "12px", fontWeight: "700", color: "#2563EB" }}>{h.id}</td>
+                          <td style={{ padding: "12px 16px", fontSize: "12px", color: "#4B5563" }}>{h.timestamp}</td>
+                          <td style={{ padding: "12px 16px", fontSize: "12px", fontWeight: "600", color: "#4B5563" }}>{h.division}</td>
+                          <td style={{ padding: "12px 16px", fontSize: "12px", color: "#6B7280" }}>{h.category}</td>
+                          <td style={{ padding: "12px 16px", fontSize: "12px", fontWeight: "700", color: "#1F2937" }}>{h.circuitName}</td>
+                          <td style={{ padding: "12px 16px", fontSize: "12px" }}>
+                            <span className={`badge ${h.status === "Rectified" || h.status === "Tested" ? "normal" : "critical"}`} style={{ padding: "2px 6px", fontSize: "10px" }}>
+                              {h.status}
+                            </span>
+                          </td>
+                          <td style={{ padding: "12px 16px", fontSize: "12px", color: "#4B5563", maxWidth: "250px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title={h.details}>{h.details}</td>
+                          <td style={{ padding: "12px 16px", fontSize: "12px", color: "#4B5563", maxWidth: "200px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title={h.remarks}>{h.remarks || "-"}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <div style={{ padding: "40px", textAlign: "center", color: "#9CA3AF", fontSize: "14px" }}>
+                  No historical records or logs found in division.
+                </div>
+              )}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* FOOTER SECTION */}
