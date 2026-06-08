@@ -691,6 +691,7 @@ export default function Home() {
   // PRS/UTS form states
   const [puSystemType, setPuSystemType] = useState<string>("");
   const [puNatureOfFault, setPuNatureOfFault] = useState<string>("");
+  const [puCustomNatureOfFault, setPuCustomNatureOfFault] = useState<string>("");
   const [puFailureTime, setPuFailureTime] = useState<string>("");
   const [puRectifiedTime, setPuRectifiedTime] = useState<string>("");
   const [puReasonOfFailure, setPuReasonOfFailure] = useState<string>("");
@@ -1247,6 +1248,7 @@ export default function Home() {
     // Clear PRS/UTS states when switching circuits
     setPuSystemType("");
     setPuNatureOfFault("");
+    setPuCustomNatureOfFault("");
     setPuFailureTime("");
     setPuRectifiedTime("");
     setPuReasonOfFailure("");
@@ -3463,6 +3465,9 @@ export default function Home() {
     if (!puNatureOfFault) {
       errors.puNatureOfFault = "Nature of fault is required";
     }
+    if (puNatureOfFault === "Other" && !puCustomNatureOfFault.trim()) {
+      errors.puCustomNatureOfFault = "Custom nature of fault description is required";
+    }
     if (!puFailureTime) errors.puFailureTime = "Failure Date & Time is required";
     if (!puRectifiedTime) errors.puRectifiedTime = "Rectification Time (RT) is required";
     if (!puReasonOfFailure.trim()) errors.puReasonOfFailure = "Reason of failure is required";
@@ -3507,7 +3512,7 @@ export default function Home() {
         majorSection: formMajorSection,
         section: formSection,
         stationLocation: formStationLocation,
-        natureOfFault: puNatureOfFault,
+        natureOfFault: puNatureOfFault === "Other" ? puCustomNatureOfFault.trim() : puNatureOfFault,
         failureTime: formatDate(puFailureTime),
         rectifiedTime: formatDate(puRectifiedTime),
         duration: puTotalDuration,
@@ -3520,6 +3525,7 @@ export default function Home() {
 
       setPuSystemType("");
       setPuNatureOfFault("");
+      setPuCustomNatureOfFault("");
       setPuFailureTime("");
       setPuRectifiedTime("");
       setPuReasonOfFailure("");
@@ -4424,162 +4430,115 @@ export default function Home() {
                       </div>
                     </div>
 
-                    {/* Row 5: Reason of Failure & Remarks (Hotline and VC side-by-side) */}
-                    {selectedCircuit?.name === "Hotline" || selectedCircuit?.name === "Video Conferencing with Divisions" ? (
-                      <div className="form-group-row">
-                        {/* Reason of Failure */}
-                        <div className="form-group">
-                          <label className="form-label">
-                            Reason of Failure <span className="required">*</span>
-                          </label>
-                          <div className="multiselect-container" ref={reasonsRef}>
-                            <button
-                              type="button"
-                              className={`multiselect-trigger ${reasonsDropdownOpen ? "open" : ""}`}
-                              onClick={() => setReasonsDropdownOpen(!reasonsDropdownOpen)}
-                            >
-                              <span>
-                                {selectedReasons.length === 0
-                                  ? "Select Reason(s)..."
-                                  : selectedReasons.join(", ")}
-                              </span>
-                            </button>
-                            {reasonsDropdownOpen && (
-                              <div className="multiselect-menu">
-                                {(selectedCircuit?.name === "Hotline"
-                                  ? [
-                                      "Control Failure",
-                                      "Telephone Failure",
-                                      "Cable Cut",
-                                      "Link Failure",
-                                      "Equipment Failure (STM)",
-                                      "Equipment Failure (Phone)",
-                                      "Power Failure",
-                                      "Configuration Issue",
-                                      "AddExchange",
-                                      "Other"
-                                    ]
-                                  : [
-                                      "Control Failure",
-                                      "Telephone Failure",
-                                      "Cable Cut",
-                                      "Link Failure",
-                                      "Equipment Failure (STM)",
-                                      "Equipment Failure (Phone)",
-                                      "Power Failure",
-                                      "Configuration Issue",
-                                      "Router Failure",
-                                      "Switch failure",
-                                      "Other"
-                                    ]
-                                ).map((option) => (
-                                  <label key={option} className="multiselect-item">
-                                    <input
-                                      type="checkbox"
-                                      checked={selectedReasons.includes(option)}
-                                      onChange={() => {
-                                        if (selectedReasons.includes(option)) {
-                                          setSelectedReasons(selectedReasons.filter((r) => r !== option));
-                                        } else {
-                                          setSelectedReasons([...selectedReasons, option]);
-                                        }
-                                      }}
-                                    />
-                                    <span>{option}</span>
-                                  </label>
-                                ))}
-                              </div>
-                            )}
-                          </div>
-                          {formErrors.reasons && (
-                            <span className="error-text">{formErrors.reasons}</span>
+                    {/* Row 5: Reason of Failure & Remarks (Side-by-side for all standard circuits) */}
+                    <div className="form-group-row">
+                      {/* Reason of Failure */}
+                      <div className="form-group">
+                        <label className="form-label">
+                          Reason of Failure <span className="required">*</span>
+                        </label>
+                        <div className="multiselect-container" ref={reasonsRef}>
+                          <button
+                            type="button"
+                            className={`multiselect-trigger ${reasonsDropdownOpen ? "open" : ""}`}
+                            onClick={() => setReasonsDropdownOpen(!reasonsDropdownOpen)}
+                          >
+                            <span>
+                              {selectedReasons.length === 0
+                                ? "Select Reason(s)..."
+                                : selectedReasons.join(", ")}
+                            </span>
+                          </button>
+                          {reasonsDropdownOpen && (
+                            <div className="multiselect-menu">
+                              {(selectedCircuit?.name === "Hotline"
+                                ? [
+                                    "Control Failure",
+                                    "Telephone Failure",
+                                    "Cable Cut",
+                                    "Link Failure",
+                                    "Equipment Failure (STM)",
+                                    "Equipment Failure (Phone)",
+                                    "Power Failure",
+                                    "Configuration Issue",
+                                    "AddExchange",
+                                    "Other"
+                                  ]
+                                : selectedCircuit?.name === "Video Conferencing with Divisions"
+                                ? [
+                                    "Control Failure",
+                                    "Telephone Failure",
+                                    "Cable Cut",
+                                    "Link Failure",
+                                    "Equipment Failure (STM)",
+                                    "Equipment Failure (Phone)",
+                                    "Power Failure",
+                                    "Configuration Issue",
+                                    "Router Failure",
+                                    "Switch failure",
+                                    "Other"
+                                  ]
+                                : (selectedCircuit?.name === "Control & ICMS Position" || selectedCircuit?.name === "FOIS (VSAT)")
+                                ? [
+                                    "Control Failure",
+                                    "Telephone Failure",
+                                    "Cable Cut",
+                                    "Link Failure",
+                                    "Equipment Failure (STM)",
+                                    "Equipment Failure (MUX)",
+                                    "Equipment Failure (Phone)",
+                                    "Power Failure",
+                                    "Configuration Issue",
+                                    "Other"
+                                  ]
+                                : [
+                                    "Control Failure",
+                                    "Telephone Failure",
+                                    "Cable Cut",
+                                    "Link Failure",
+                                    "Equipment Failure (STM)",
+                                    "Equipment Failure (Phone)",
+                                    "Power Failure",
+                                    "Configuration Issue",
+                                    "Other"
+                                  ]
+                              ).map((option) => (
+                                <label key={option} className="multiselect-item">
+                                  <input
+                                    type="checkbox"
+                                    checked={selectedReasons.includes(option)}
+                                    onChange={() => {
+                                      if (selectedReasons.includes(option)) {
+                                        setSelectedReasons(selectedReasons.filter((r) => r !== option));
+                                      } else {
+                                        setSelectedReasons([...selectedReasons, option]);
+                                      }
+                                    }}
+                                  />
+                                  <span>{option}</span>
+                                </label>
+                              ))}
+                            </div>
                           )}
                         </div>
+                        {formErrors.reasons && (
+                          <span className="error-text">{formErrors.reasons}</span>
+                        )}
+                      </div>
 
-                        {/* Remarks */}
-                        <div className="form-group">
-                          <label htmlFor="remarks" className="form-label">Remarks</label>
-                          <input
-                            type="text"
-                            id="remarks"
-                            className="form-input"
-                            placeholder="Enter observations, action taken, or additional remarks"
-                            value={remarks}
-                            onChange={(e) => setRemarks(e.target.value)}
-                          />
-                        </div>
+                      {/* Remarks */}
+                      <div className="form-group">
+                        <label htmlFor="remarks" className="form-label">Remarks</label>
+                        <input
+                          type="text"
+                          id="remarks"
+                          className="form-input"
+                          placeholder="Enter observations, action taken, or additional remarks"
+                          value={remarks}
+                          onChange={(e) => setRemarks(e.target.value)}
+                        />
                       </div>
-                    ) : (
-                      <div className="form-group-row">
-                        {/* Reason of Failure */}
-                        <div className="form-group">
-                          <label className="form-label">
-                            Reason of Failure <span className="required">*</span>
-                          </label>
-                          <div className="multiselect-container" ref={reasonsRef}>
-                            <button
-                              type="button"
-                              className={`multiselect-trigger ${reasonsDropdownOpen ? "open" : ""}`}
-                              onClick={() => setReasonsDropdownOpen(!reasonsDropdownOpen)}
-                            >
-                              <span>
-                                {selectedReasons.length === 0
-                                  ? "Select Reason(s)..."
-                                  : selectedReasons.join(", ")}
-                              </span>
-                            </button>
-                            {reasonsDropdownOpen && (
-                              <div className="multiselect-menu">
-                                {(selectedCircuit?.name === "Control & ICMS Position" || selectedCircuit?.name === "FOIS (VSAT)"
-                                  ? [
-                                      "Control Failure",
-                                      "Telephone Failure",
-                                      "Cable Cut",
-                                      "Link Failure",
-                                      "Equipment Failure (STM)",
-                                      "Equipment Failure (MUX)",
-                                      "Equipment Failure (Phone)",
-                                      "Power Failure",
-                                      "Configuration Issue",
-                                      "Other"
-                                    ]
-                                  : [
-                                      "Control Failure",
-                                      "Telephone Failure",
-                                      "Cable Cut",
-                                      "Link Failure",
-                                      "Equipment Failure (STM)",
-                                      "Equipment Failure (Phone)",
-                                      "Power Failure",
-                                      "Configuration Issue",
-                                      "Other"
-                                    ]
-                                ).map((option) => (
-                                  <label key={option} className="multiselect-item">
-                                    <input
-                                      type="checkbox"
-                                      checked={selectedReasons.includes(option)}
-                                      onChange={() => {
-                                        if (selectedReasons.includes(option)) {
-                                          setSelectedReasons(selectedReasons.filter((r) => r !== option));
-                                        } else {
-                                          setSelectedReasons([...selectedReasons, option]);
-                                        }
-                                      }}
-                                    />
-                                    <span>{option}</span>
-                                  </label>
-                                ))}
-                              </div>
-                            )}
-                          </div>
-                          {formErrors.reasons && (
-                            <span className="error-text">{formErrors.reasons}</span>
-                          )}
-                        </div>
-                        <div className="form-group"></div>
-                      </div>
-                    )}
+                    </div>
                   </>
                 ) : (
                   <>
@@ -4828,7 +4787,7 @@ export default function Home() {
                 )}
 
                 {/* Remarks */}
-                {selectedCircuit?.name !== "Hotline" && selectedCircuit?.name !== "Video Conferencing with Divisions" && (
+                {!isStandardFaultCircuit(selectedCircuit) && (
                   <div className="form-group full-width">
                     <label htmlFor="remarks" className="form-label">Remarks</label>
                     <textarea
@@ -5355,8 +5314,26 @@ export default function Home() {
                 {netActiveTab !== "hq" ? (
                   /* Divisional Maintenance Tab Layout */
                   <>
-                    {/* Row 1: Major Section & Section */}
+                    {/* Row 1: ICMS Entry No./Docket No. & Major Section */}
                     <div className="form-group-row">
+                      {/* ICMS Entry No./Docket No. */}
+                      <div className="form-group">
+                        <label htmlFor="netIcmsEntryNo" className="form-label">
+                          ICMS Entry No./Docket No. <span className="required">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          id="netIcmsEntryNo"
+                          className={`form-input ${netFormErrors.icmsEntryNo ? "field-error-border" : ""}`}
+                          placeholder="Enter ICMS entry number/docket number"
+                          value={icmsEntryNo}
+                          onChange={(e) => setIcmsEntryNo(e.target.value)}
+                        />
+                        {netFormErrors.icmsEntryNo && (
+                          <span className="error-text">{netFormErrors.icmsEntryNo}</span>
+                        )}
+                      </div>
+
                       {/* Major Section */}
                       <div className="form-group">
                         <label htmlFor="formMajorSection" className="form-label">
@@ -5378,7 +5355,10 @@ export default function Home() {
                           <span className="error-text">{netFormErrors.formMajorSection}</span>
                         )}
                       </div>
+                    </div>
 
+                    {/* Row 2: Section & Station/Location */}
+                    <div className="form-group-row">
                       {/* Section */}
                       <div className="form-group">
                         <label htmlFor="formSection" className="form-label">
@@ -5403,10 +5383,7 @@ export default function Home() {
                           <span className="error-text">{netFormErrors.formSection}</span>
                         )}
                       </div>
-                    </div>
 
-                    {/* Row 2: Station/Location & ICMS Entry No./Docket No. */}
-                    <div className="form-group-row">
                       {/* Station/Location */}
                       <div className="form-group">
                         <label htmlFor="formStationLocation" className="form-label">
@@ -5436,24 +5413,6 @@ export default function Home() {
                         </select>
                         {netFormErrors.formStationLocation && (
                           <span className="error-text">{netFormErrors.formStationLocation}</span>
-                        )}
-                      </div>
-
-                      {/* ICMS Entry No./Docket No. */}
-                      <div className="form-group">
-                        <label htmlFor="netIcmsEntryNo" className="form-label">
-                          ICMS Entry No./Docket No. <span className="required">*</span>
-                        </label>
-                        <input
-                          type="text"
-                          id="netIcmsEntryNo"
-                          className={`form-input ${netFormErrors.icmsEntryNo ? "field-error-border" : ""}`}
-                          placeholder="Enter ICMS entry number/docket number"
-                          value={icmsEntryNo}
-                          onChange={(e) => setIcmsEntryNo(e.target.value)}
-                        />
-                        {netFormErrors.icmsEntryNo && (
-                          <span className="error-text">{netFormErrors.icmsEntryNo}</span>
                         )}
                       </div>
                     </div>
@@ -5728,7 +5687,7 @@ export default function Home() {
                       </div>
                     </div>
 
-                    {/* Row 8: Reason of Failure */}
+                    {/* Row 8: Reason of Failure & Remarks */}
                     <div className="form-group-row">
                       <div className="form-group">
                         <label className="form-label">
@@ -5782,6 +5741,19 @@ export default function Home() {
                         {netFormErrors.reasons && (
                           <span className="error-text">{netFormErrors.reasons}</span>
                         )}
+                      </div>
+
+                      {/* Remarks */}
+                      <div className="form-group">
+                        <label htmlFor="netRemarks" className="form-label">Remarks</label>
+                        <input
+                          type="text"
+                          id="netRemarks"
+                          className="form-input"
+                          placeholder="Enter observations, troubleshooting details, or additional remarks"
+                          value={netRemarks}
+                          onChange={(e) => setNetRemarks(e.target.value)}
+                        />
                       </div>
                     </div>
                   </>
@@ -6063,7 +6035,7 @@ export default function Home() {
                       </div>
                     </div>
 
-                    {/* Row 6: Duration of Failure & Reason of Failure */}
+                    {/* Row 6: Duration of Failure */}
                     <div className="form-group-row">
                       <div className="form-group">
                         <label htmlFor="netTotalDuration" className="form-label">Duration of Failure</label>
@@ -6076,7 +6048,11 @@ export default function Home() {
                           placeholder="XX Hrs XX Min"
                         />
                       </div>
+                      <div className="form-group"></div>
+                    </div>
 
+                    {/* Row 7: Reason of Failure & Remarks */}
+                    <div className="form-group-row">
                       <div className="form-group">
                         <label className="form-label">
                           Reason of Failure <span className="required">*</span>
@@ -6130,6 +6106,19 @@ export default function Home() {
                           <span className="error-text">{netFormErrors.reasons}</span>
                         )}
                       </div>
+
+                      {/* Remarks */}
+                      <div className="form-group">
+                        <label htmlFor="netRemarks" className="form-label">Remarks</label>
+                        <input
+                          type="text"
+                          id="netRemarks"
+                          className="form-input"
+                          placeholder="Enter observations, troubleshooting details, or additional remarks"
+                          value={netRemarks}
+                          onChange={(e) => setNetRemarks(e.target.value)}
+                        />
+                      </div>
                     </div>
                   </>
                 )}
@@ -6153,19 +6142,6 @@ export default function Home() {
                     )}
                   </div>
                 )}
-
-                {/* Remarks */}
-                <div className="form-group full-width">
-                  <label htmlFor="netRemarks" className="form-label">Remarks</label>
-                  <textarea
-                    id="netRemarks"
-                    className="form-textarea"
-                    style={{ height: "65px" }}
-                    placeholder="Enter observations, testing results, troubleshooting details, corrective action taken, or additional remarks"
-                    value={netRemarks}
-                    onChange={(e) => setNetRemarks(e.target.value)}
-                  />
-                </div>
 
                 {/* Save button with Loading State */}
                 <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", gap: "12px" }}>
@@ -8050,58 +8026,74 @@ export default function Home() {
                   </div>
                 </div>
 
-                {/* Row 8: Fault Type (Full Width) */}
-                <div className="form-group full-width">
-                  <label className="form-label">
-                    Fault Type <span className="required">*</span>
-                  </label>
-                  <div className="multiselect-container" ref={wtrFaultTypesRef}>
-                    <button
-                      type="button"
-                      className={`multiselect-trigger ${wtrFaultTypesOpen ? "open" : ""}`}
-                      onClick={() => setWtrFaultTypesOpen(!wtrFaultTypesOpen)}
-                    >
-                      <span>
-                        {wtrFaultTypes.length === 0
-                          ? "Select Fault Type(s)..."
-                          : wtrFaultTypes.join(", ")}
-                      </span>
-                    </button>
-                    {wtrFaultTypesOpen && (
-                      <div className="multiselect-menu">
-                        {[
-                          "Battery Fault",
-                          "Antenna Fault",
-                          "Speaker Fault",
-                          "Microphone Fault",
-                          "PTT Switch Fault",
-                          "Charging Fault",
-                          "Display Fault",
-                          "Software Fault",
-                          "Physical Damage",
-                          "Other"
-                        ].map((option) => (
-                          <label key={option} className="multiselect-item">
-                            <input
-                              type="checkbox"
-                              checked={wtrFaultTypes.includes(option)}
-                              onChange={() => {
-                                if (wtrFaultTypes.includes(option)) {
-                                  setWtrFaultTypes(wtrFaultTypes.filter((c) => c !== option));
-                                } else {
-                                  setWtrFaultTypes([...wtrFaultTypes, option]);
-                                }
-                              }}
-                            />
-                            <span>{option}</span>
-                          </label>
-                        ))}
-                      </div>
+                {/* Row 8: Fault Type & Action Taken */}
+                <div className="form-group-row">
+                  {/* Fault Type */}
+                  <div className="form-group">
+                    <label className="form-label">
+                      Fault Type <span className="required">*</span>
+                    </label>
+                    <div className="multiselect-container" ref={wtrFaultTypesRef}>
+                      <button
+                        type="button"
+                        className={`multiselect-trigger ${wtrFaultTypesOpen ? "open" : ""}`}
+                        onClick={() => setWtrFaultTypesOpen(!wtrFaultTypesOpen)}
+                      >
+                        <span>
+                          {wtrFaultTypes.length === 0
+                            ? "Select Fault Type(s)..."
+                            : wtrFaultTypes.join(", ")}
+                        </span>
+                      </button>
+                      {wtrFaultTypesOpen && (
+                        <div className="multiselect-menu">
+                          {[
+                            "Battery Fault",
+                            "Antenna Fault",
+                            "Speaker Fault",
+                            "Microphone Fault",
+                            "PTT Switch Fault",
+                            "Charging Fault",
+                            "Display Fault",
+                            "Software Fault",
+                            "Physical Damage",
+                            "Other"
+                          ].map((option) => (
+                            <label key={option} className="multiselect-item">
+                              <input
+                                type="checkbox"
+                                checked={wtrFaultTypes.includes(option)}
+                                onChange={() => {
+                                  if (wtrFaultTypes.includes(option)) {
+                                    setWtrFaultTypes(wtrFaultTypes.filter((c) => c !== option));
+                                  } else {
+                                    setWtrFaultTypes([...wtrFaultTypes, option]);
+                                  }
+                                }}
+                              />
+                              <span>{option}</span>
+                            </label>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                    {wtrFormErrors.wtrFaultTypes && (
+                      <span className="error-text">{wtrFormErrors.wtrFaultTypes}</span>
                     )}
                   </div>
-                  {wtrFormErrors.wtrFaultTypes && (
-                    <span className="error-text">{wtrFormErrors.wtrFaultTypes}</span>
-                  )}
+
+                  {/* Action Taken */}
+                  <div className="form-group">
+                    <label htmlFor="wtrActionTaken" className="form-label">Action Taken</label>
+                    <input
+                      type="text"
+                      id="wtrActionTaken"
+                      className="form-input"
+                      placeholder="Describe action taken to repair defective sets"
+                      value={wtrActionTaken}
+                      onChange={(e) => setWtrActionTaken(e.target.value)}
+                    />
+                  </div>
                 </div>
 
                 {/* Conditional Text input for Other Fault description */}
@@ -8123,19 +8115,6 @@ export default function Home() {
                     )}
                   </div>
                 )}
-
-                {/* Action Taken */}
-                <div className="form-group full-width">
-                  <label htmlFor="wtrActionTaken" className="form-label">Action Taken</label>
-                  <textarea
-                    id="wtrActionTaken"
-                    className="form-textarea"
-                    style={{ height: "65px" }}
-                    placeholder="Describe action taken to repair defective sets"
-                    value={wtrActionTaken}
-                    onChange={(e) => setWtrActionTaken(e.target.value)}
-                  />
-                </div>
 
                 {/* Remarks */}
                 <div className="form-group full-width">
@@ -10083,12 +10062,33 @@ export default function Home() {
                       <option value="Equipment">Equipment</option>
                       <option value="Link (RLY)">Link (RLY)</option>
                       <option value="Link (BJNK)">Link (BJNK)</option>
+                      <option value="Other">Other</option>
                     </select>
                     {puFormErrors.puNatureOfFault && (
                       <span className="error-text">{puFormErrors.puNatureOfFault}</span>
                     )}
                   </div>
                 </div>
+
+                {/* Specify custom Nature of Fault (Conditional) */}
+                {puNatureOfFault === "Other" && (
+                  <div className="form-group full-width" style={{ animation: "fadeIn 0.15s ease-out" }}>
+                    <label htmlFor="puCustomNatureOfFault" className="form-label">
+                      Other Nature Of Fault <span className="required">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      id="puCustomNatureOfFault"
+                      className={`form-input ${puFormErrors.puCustomNatureOfFault ? "field-error-border" : ""}`}
+                      placeholder="Specify manually the nature of fault"
+                      value={puCustomNatureOfFault}
+                      onChange={(e) => setPuCustomNatureOfFault(e.target.value)}
+                    />
+                    {puFormErrors.puCustomNatureOfFault && (
+                      <span className="error-text">{puFormErrors.puCustomNatureOfFault}</span>
+                    )}
+                  </div>
+                )}
 
                 {/* Row 4: Failure (Date & Time) & Rectification Time(RT) (Date & Time) */}
                 <div className="form-group-row">
@@ -10204,6 +10204,7 @@ export default function Home() {
                       setSavedPuRecords(prev => [newPuRecord, ...prev]);
                       setPuSystemType("");
                       setPuNatureOfFault("");
+                      setPuCustomNatureOfFault("");
                       setPuFailureTime("");
                       setPuRectifiedTime("");
                       setPuReasonOfFailure("");
@@ -10393,7 +10394,7 @@ export default function Home() {
                   </div>
                 </div>
 
-                {/* Row 4: Reason of failure */}
+                {/* Row 4: Reason of failure & Remarks (side-by-side) */}
                 <div className="form-group-row">
                   <div className="form-group">
                     <label htmlFor="wifiReason" className="form-label">
@@ -10411,19 +10412,18 @@ export default function Home() {
                       <span className="error-text">{wifiFormErrors.wifiReasonOfFailure}</span>
                     )}
                   </div>
-                </div>
 
-                {/* Row 5: Remarks */}
-                <div className="form-group full-width">
-                  <label htmlFor="wifiRemarks" className="form-label">Remarks</label>
-                  <textarea
-                    id="wifiRemarks"
-                    className="form-textarea"
-                    style={{ height: "65px" }}
-                    placeholder="Enter observations or restoration details"
-                    value={wifiRemarks}
-                    onChange={(e) => setWifiRemarks(e.target.value)}
-                  />
+                  <div className="form-group">
+                    <label htmlFor="wifiRemarks" className="form-label">Remarks</label>
+                    <input
+                      type="text"
+                      id="wifiRemarks"
+                      className="form-input"
+                      placeholder="Enter observations or restoration details"
+                      value={wifiRemarks}
+                      onChange={(e) => setWifiRemarks(e.target.value)}
+                    />
+                  </div>
                 </div>
 
                 {/* Save button with Loading State */}
