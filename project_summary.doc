@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>SECR Telecom Position Dashboard Summary</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Segoe+UI:wght@400;600;700;800&display=swap');
+    
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      color: #1e293b;
+      background-color: #ffffff;
+      line-height: 1.6;
+      margin: 40px;
+      font-size: 13px;
+    }
+    
+    header {
+      border-bottom: 3px solid #2563eb;
+      padding-bottom: 20px;
+      margin-bottom: 30px;
+    }
+    
+    .title-area h1 {
+      font-size: 24px;
+      font-weight: 800;
+      color: #0f172a;
+      margin: 0 0 6px 0;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    .title-area p {
+      margin: 0;
+      font-size: 13px;
+      color: #64748b;
+      font-weight: 500;
+    }
+    
+    h2 {
+      font-size: 16px;
+      font-weight: 750;
+      color: #1e293b;
+      border-bottom: 1px solid #e2e8f0;
+      padding-bottom: 6px;
+      margin-top: 30px;
+      margin-bottom: 15px;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+    
+    h3 {
+      font-size: 14px;
+      font-weight: 700;
+      color: #334155;
+      margin-top: 20px;
+      margin-bottom: 10px;
+    }
+    
+    p {
+      margin-top: 0;
+      margin-bottom: 15px;
+      color: #334155;
+    }
+    
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 25px;
+      margin-top: 10px;
+    }
+    
+    th, td {
+      padding: 10px 12px;
+      text-align: left;
+      border: 1px solid #e2e8f0;
+    }
+    
+    th {
+      background-color: #f8fafc;
+      color: #0f172a;
+      font-weight: 700;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    td {
+      font-size: 13px;
+      color: #334155;
+    }
+    
+    tr:nth-child(even) td {
+      background-color: #fcfdfe;
+    }
+    
+    ul, ol {
+      margin-top: 0;
+      margin-bottom: 20px;
+      padding-left: 20px;
+    }
+    
+    li {
+      margin-bottom: 8px;
+      color: #334155;
+    }
+    
+    code {
+      font-family: Consolas, Monaco, monospace;
+      background-color: #f1f5f9;
+      color: #0f172a;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    
+    .footer {
+      margin-top: 50px;
+      border-top: 1px solid #e2e8f0;
+      padding-top: 15px;
+      text-align: center;
+      font-size: 11px;
+      color: #94a3b8;
+      font-weight: 500;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="title-area">
+      <h1>SECR Telecom Position Dashboard</h1>
+      <p>System Architecture, Data Flows, and Refactored Forms Summary</p>
+    </div>
+  </header>
+
+  <section>
+    <h2>1. Overview</h2>
+    <p>
+      The <strong>South East Central Railway (SECR) Divisional Telecom Position Dashboard</strong> is a Next.js web application designed for telecom engineers to record, monitor, and update the status of telecom circuits, cable infrastructure, and surveillance systems across three railway divisions: <strong>Bilaspur</strong>, <strong>Raipur</strong>, and <strong>Nagpur</strong>.
+    </p>
+  </section>
+
+  <section>
+    <h2>2. Technology Stack</h2>
+    <ul>
+      <li><strong>Core System</strong>: Next.js 16 (React 19, Turbopack) & TypeScript</li>
+      <li><strong>Styling & Design System</strong>: Vanilla CSS for maximum performance, responsiveness, and premium dark/glassmorphic aesthetics</li>
+      <li><strong>State Management</strong>: React Hooks (<code>useState</code>, <code>useMemo</code>, <code>useRef</code>, <code>useEffect</code>) for real-time calculations and zero-latency view updates</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>3. Application Flow & User Operations</h2>
+    <ul>
+      <li><strong>Division Filter Context</strong>: Globally filters major sections, sections, and stations for consistent reporting.</li>
+      <li><strong>Categorized Circuit Workspace Selection</strong>: Selecting a circuit dynamically displays its dedicated entry form in the viewport.</li>
+      <li><strong>Real-time failure duration calculation</strong>: Calculations are performed on-the-fly using <code>useMemo</code>, outputting formatted durations automatically.</li>
+      <li><strong>"All OK" Workflow Accelerator</strong>: Allows one-click logging of 100% healthy status across all elements and automatically advances to the next circuit.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>4. Summary of Refactored Dedicated Forms</h2>
+    <p>
+      Each circuit has been upgraded from generic layouts to customized forms designed for quick data entry and aligned side-by-side:
+    </p>
+    <table>
+      <thead>
+        <tr>
+          <th>Category</th>
+          <th>Circuit Name</th>
+          <th>Custom Features & Forms Layout</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Network & Internet</strong></td>
+          <td><strong>PRS/UTS</strong></td>
+          <td>Consolidated UTS/PRS. Fields: System Type, Major Section/Section, Station, Nature of Fault (Equipment/Link), Failure & Rectification Times, auto-calculated Duration, Reason, and Remarks.</td>
+        </tr>
+        <tr>
+          <td><strong>Network & Internet</strong></td>
+          <td><strong>Railnet / Internet</strong></td>
+          <td>Removed redundant searchable location dropdown. Provides dedicated Divisional Maintenance and HQ Maintenance tab layouts.</td>
+        </tr>
+        <tr>
+          <td><strong>Network & Internet</strong></td>
+          <td><strong>Wi-Fi</strong></td>
+          <td>Dedicated form tracking: Location of faulty AP, Failure & Rectification Times, auto-calculated Duration, Reason of Failure, and Remarks.</td>
+        </tr>
+        <tr>
+          <td><strong>CCTV</strong></td>
+          <td><strong>CCTV Monitoring</strong></td>
+          <td>Dedicated fields: Major Section/Section, Total CCTV/Not working CCTV, Live Feed To War Room Failed status, Failure & Rectification Times, Duration, Reason, and Remarks.</td>
+        </tr>
+        <tr>
+          <td><strong>CCTV</strong></td>
+          <td><strong>CCTV Maintenance</strong></td>
+          <td>Mirror layout of CCTV Monitoring, dedicated to hardware servicing and disk checks.</td>
+        </tr>
+        <tr>
+          <td><strong>Cable Infrastructure</strong></td>
+          <td><strong>Cable Cut (OFC & Quad)</strong></td>
+          <td>Laid out in clean 2-column grid: Major Section/Section, Station/Location, Km.No., Cable Type, Cable Cut by Whom, Failure & Rectification Times, Duration, Reason, and Remarks.</td>
+        </tr>
+        <tr>
+          <td><strong>Cable Infrastructure</strong></td>
+          <td><strong>Temporary Joints</strong></td>
+          <td>Excludes Station/Location field. Tracks Section/Yard, Km.No., cable type, temporary joints count, rectified joints, TDC, Action Plan, and auto-calculates Balance Joints.</td>
+        </tr>
+        <tr>
+          <td><strong>Cable Infrastructure</strong></td>
+          <td><strong>Low Insulation</strong></td>
+          <td>Excludes yard/section text inputs. Pairs Major Section, Section, Station/Location, Km.No., Cable Type, Total Insulation Faults, Rectified Date & Time, Balance Insulation Faults, Action Plan/TDC, and Remarks.</td>
+        </tr>
+        <tr>
+          <td><strong>Display System</strong></td>
+          <td><strong>CGDM</strong></td>
+          <td>Tracks platform number (PF No.), number of faulty guidance boards, Failure Time, Rectification Time, Duration, Reason, and Remarks.</td>
+        </tr>
+        <tr>
+          <td><strong>Display System</strong></td>
+          <td><strong>TIB</strong></td>
+          <td>Tracks location of faulty TIB, number of faulty boards, Failure Time, Rectification Time, Duration, Reason, and Remarks.</td>
+        </tr>
+        <tr>
+          <td><strong>Testing & Maintenance</strong></td>
+          <td><strong>Walkie-Talkie Repairing</strong></td>
+          <td>Excludes icmsEntryNo requirement. Tracks Defective/Repaired set counts, Sets Condemned, target condemnation dates, repair status, action taken, and repair faults.</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>5. Project File Map</h2>
+    <ul>
+      <li><strong>Main Component Logic</strong>: <code>src/app/page.tsx</code></li>
+      <li><strong>Global CSS Styling</strong>: <code>src/app/globals.css</code></li>
+      <li><strong>Tasks Registry</strong>: <code>task.md</code></li>
+      <li><strong>Walkthrough History</strong>: <code>walkthrough.md</code></li>
+    </ul>
+  </section>
+
+  <div class="footer">
+    South East Central Railway © 2026 - Confidential Internal Telecom Document
+  </div>
+
+</body>
+</html>

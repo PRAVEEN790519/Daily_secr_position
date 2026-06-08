@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>SECR Telecom Dashboard Knowledge Transfer (KT)</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Segoe+UI:wght@400;600;700;800&display=swap');
+    
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      color: #1e293b;
+      background-color: #ffffff;
+      line-height: 1.5;
+      margin: 40px;
+      font-size: 13px;
+    }
+    
+    h1 {
+      font-size: 22px;
+      font-weight: 800;
+      color: #0f172a;
+      border-bottom: 2px solid #2563eb;
+      padding-bottom: 10px;
+      margin-top: 0;
+      margin-bottom: 20px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    h2 {
+      font-size: 15px;
+      font-weight: 700;
+      color: #1e293b;
+      border-bottom: 1px solid #cbd5e1;
+      padding-bottom: 5px;
+      margin-top: 25px;
+      margin-bottom: 12px;
+      text-transform: uppercase;
+    }
+    
+    h3 {
+      font-size: 13px;
+      font-weight: 700;
+      color: #334155;
+      margin-top: 15px;
+      margin-bottom: 8px;
+    }
+    
+    p {
+      margin-top: 0;
+      margin-bottom: 12px;
+      color: #334155;
+    }
+    
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 20px;
+      margin-top: 10px;
+    }
+    
+    th, td {
+      padding: 8px 10px;
+      text-align: left;
+      border: 1px solid #cbd5e1;
+    }
+    
+    th {
+      background-color: #f1f5f9;
+      color: #0f172a;
+      font-weight: 700;
+      font-size: 11px;
+      text-transform: uppercase;
+    }
+    
+    td {
+      font-size: 12px;
+      color: #334155;
+    }
+    
+    tr:nth-child(even) td {
+      background-color: #f8fafc;
+    }
+    
+    ul, ol {
+      margin-top: 0;
+      margin-bottom: 15px;
+      padding-left: 20px;
+    }
+    
+    li {
+      margin-bottom: 6px;
+      color: #334155;
+    }
+    
+    code {
+      font-family: Consolas, monospace;
+      background-color: #f1f5f9;
+      color: #0f172a;
+      padding: 1px 4px;
+      border-radius: 3px;
+      font-size: 11px;
+    }
+    
+    pre {
+      background-color: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      padding: 12px;
+      overflow-x: auto;
+      margin-bottom: 20px;
+      font-family: Consolas, monospace;
+      font-size: 11px;
+    }
+    
+    .footer {
+      margin-top: 40px;
+      border-top: 1px solid #cbd5e1;
+      padding-top: 10px;
+      text-align: center;
+      font-size: 10px;
+      color: #94a3b8;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Knowledge Transfer (KT) Document: SECR Telecom Dashboard</h1>
+
+  <h2>1. Project Overview</h2>
+  <p>
+    The <strong>SECR Divisional Telecom Position Dashboard</strong> is a high-performance single-page web console designed for railway telecom operators and maintenance engineers to record, monitor, and report the operational status of communication circuits, display systems, VHF radios, and cable media assets. The dashboard filters all reporting context across three operational railway divisions: <strong>Bilaspur</strong>, <strong>Raipur</strong>, and <strong>Nagpur</strong>.
+  </p>
+
+  <h2>2. Current Architecture</h2>
+  <ul>
+    <li><strong>Frontend Framework</strong>: Next.js 16 (React 19, Turbopack builder) and strict TypeScript.</li>
+    <li><strong>Client-Side Processing</strong>: The application is marked with <code>"use client"</code> and processes all inputs in local component memory. There is no server rendering, and no backend interactions are performed.</li>
+    <li><strong>Styling Engine</strong>: Custom styling is handled via a structured <code>globals.css</code> file using system tokens, flexbox layout utilities, and micro-interaction animations.</li>
+  </ul>
+
+  <h2>3. Existing State Management & Database</h2>
+  <p>
+    <strong>Important Notice:</strong> There is no active backend API layer and no physical database (like SQL or MongoDB) connected.
+  </p>
+  <ul>
+    <li>Data inputs are managed entirely using React <code>useState</code> hooks.</li>
+    <li>A static seed database <code>CIRCUITS_DATABASE</code> is generated in-memory on initialization.</li>
+    <li>Form submissions append entries directly into React state arrays (e.g., <code>savedFaults</code>, <code>savedWifiRecords</code>, etc.) which act as in-memory data tables. Reloading the browser page resets the application state to default seed data.</li>
+  </ul>
+
+  <h2>4. User Workflows</h2>
+  <ol>
+    <li><strong>Select Division Context</strong>: Filters available Major Sections, Sections, and Stations dynamically.</li>
+    <li><strong>Select Circuit</strong>: Interactive accordion list sidebar loads the corresponding custom form.</li>
+    <li><strong>Manual Logging</strong>: Operator inputs technical fields. Date-time inputs automatically compute the outage duration.</li>
+    <li><strong>"All OK" Workflow</strong>: Logs a 100% healthy status in a single click, resets the form parameters, and auto-advances sidebar focus to the next circuit.</li>
+  </ol>
+
+  <h2>5. Existing Modules, Forms, and Fields</h2>
+  
+  <h3>5.1 Communication & Voice Circuits</h3>
+  <p><strong>Purpose</strong>: Tracks control links and conference codec failures.</p>
+  <p><strong>Fields</strong>: Major Section, Section, Station/Location, ICMS Entry No, Faulty Section, Circuit Failed, Failure DateTime, Rectification DateTime, Reasons, Custom Reason, Remarks.</p>
+  <p><strong>Validations</strong>: Failure Time and identifier fields are required. Rectification must succeed Failure Time.</p>
+  <p><strong>Registry State</strong>: <code>savedFaults</code></p>
+
+  <h3>5.2 Telecom Exchange</h3>
+  <p><strong>Purpose</strong>: Records analog voice switches and MDF card faults.</p>
+  <p><strong>Fields</strong>: Exchange Name (Searchable Select), Fault Name, Custom Fault, Failure DateTime, Rectification DateTime, Reasons, Custom Reason, Remarks.</p>
+  <p><strong>Validations</strong>: Exchange Name, Fault Name, and Failure DateTime are required.</p>
+  <p><strong>Registry State</strong>: <code>savedExchFaults</code></p>
+
+  <h3>5.3 Railnet / Internet</h3>
+  <p><strong>Purpose</strong>: Monitors gateways, speed throughput, and bandwidth status.</p>
+  <p><strong>Fields (Divisional tab)</strong>: Major Section, Section, Station/Location, Bandwidth, Testing DateTime, Download Speed (Mbps), Upload Speed (Mbps), Nature of Fault, Failure DateTime, Rectification DateTime, Reasons, Remarks.</p>
+  <p><strong>Fields (HQ tab)</strong>: ICMS Entry No/Docket No, Bandwidth, Testing DateTime, Nature of Fault, Audit Report Status, Attach File, Download Speed, Upload Speed, Failure DateTime, Rectification DateTime, Reasons, Remarks.</p>
+  <p><strong>Validations</strong>: Bandwidth, download/upload speeds, and failure time are required. Speeds must be numeric.</p>
+  <p><strong>Registry State</strong>: <code>savedNetRecords</code></p>
+
+  <h3>5.4 Rail Madad</h3>
+  <p><strong>Purpose</strong>: Logs public complaints and passenger grievances.</p>
+  <p><strong>Fields</strong>: Balance Last (Numeric), Received (Numeric), Complied (Numeric), Complaint Description, Case Time, Compliance Details, Compliance DateTime, Remarks.</p>
+  <p><strong>Validations</strong>: Complaint counts must be positive integers. Net Balance is computed as: <code>Balance Last + Received - Complied</code>.</p>
+  <p><strong>Registry State</strong>: <code>savedMadadRecords</code></p>
+
+  <h3>5.5 Railway Board Video Phones</h3>
+  <p><strong>Purpose</strong>: Logs daily audio and video test quality.</p>
+  <p><strong>Fields</strong>: PHOD Chamber (Select), Custom PHOD, Testing DateTime, Video Clarity, Audio Clarity, Remarks.</p>
+  <p><strong>Validations</strong>: Chamber type, video/audio clarity levels are required.</p>
+  <p><strong>Registry State</strong>: <code>savedVpRecords</code></p>
+
+  <h3>5.6 Cable Cut (OFC & Quad)</h3>
+  <p><strong>Purpose</strong>: Logs physical media cuts caused by construction agencies.</p>
+  <p><strong>Fields</strong>: Major Section, Section, Station/Location, Km.No., Cable Types (Multiselect), Cut By Whom (Multiselect), Failure DateTime, Rectification DateTime, Reason of Failure, Remarks.</p>
+  <p><strong>Validations</strong>: S&T location details, Km, Cable Types, and failure times are mandatory.</p>
+  <p><strong>Registry State</strong>: <code>savedCcRecords</code></p>
+
+  <h3>5.7 Walkie-Talkie Testing</h3>
+  <p><strong>Purpose</strong>: Logs diagnostic readings of VHF sets from lobbies.</p>
+  <p><strong>Fields</strong>: Station Lobby, Total to be Tested, Make/Model, Testing Date, Total Tested, Serial No, Frequency, Output Power, Battery Voltage, Battery Current, Antenna (Good/Defective), Remarks.</p>
+  <p><strong>Validations</strong>: All diagnostic values are mandatory. Balance to Test is computed as: <code>Total to be Tested - Total Tested</code>.</p>
+  <p><strong>Registry State</strong>: <code>savedWtRecords</code></p>
+
+  <h3>5.8 Walkie-Talkie Repairing</h3>
+  <p><strong>Purpose</strong>: Tracks replacement cells, workshop queues, and condemnation.</p>
+  <p><strong>Fields</strong>: Major Section, Section, Station/Location, Date, Opening Balance, Received, Sent to Firm, Repaired, Returned, Fault Types (Multiselect), Repair Status, Proposed Condemnation, Condemned, Total Condemned Year, Action Taken, Remarks.</p>
+  <p><strong>Validations</strong>: Opening balance and date are required. Transceiver queue numbers are auto-calculated.</p>
+  <p><strong>Registry State</strong>: <code>savedWtrRecords</code></p>
+
+  <h3>5.9 Low Insulation</h3>
+  <p><strong>Purpose</strong>: Monitors resistance leakage in signaling copper pairs.</p>
+  <p><strong>Fields</strong>: Major Section, Section, Station/Location, Km.No., Cable Type, Faults DateTime, Rectification DateTime, Balance Faults, Action Plan, Remarks.</p>
+  <p><strong>Validations</strong>: Km number, Cable Type, Faults Time, and Balance Fault count are required.</p>
+  <p><strong>Registry State</strong>: <code>savedLiRecords</code></p>
+
+  <h3>5.10 Temporary Joints</h3>
+  <p><strong>Purpose</strong>: Monitors splice enclosures awaiting permanent block jointing.</p>
+  <p><strong>Fields</strong>: Section/Yard, Km.No., Cable Type, Total Joints, Joint DateTime, Rectified Joints, Rectified DateTime, TDC (Date), Action Plan, Remarks.</p>
+  <p><strong>Validations</strong>: Yard Name, Km, Cable Type, and TDC date are required. Balance joints are calculated as: <code>Total Joints - Rectified</code>.</p>
+  <p><strong>Registry State</strong>: <code>savedTjRecords</code></p>
+
+  <h3>5.11 CGDM & TIB Display Systems</h3>
+  <p><strong>Purpose</strong>: Monitors faulty platforms and guidance board count.</p>
+  <p><strong>CGDM Fields</strong>: Major Section, Section, Station/Location, PF No., Faulty Guidance Boards, Failure DateTime, Rectification DateTime, Reason, Remarks.</p>
+  <p><strong>TIB Fields</strong>: Major Section, Section, Station/Location, Faulty Boards Count, Failure DateTime, Rectification DateTime, Reason, Remarks.</p>
+  <p><strong>Validations</strong>: Board count, station details, and failure time are required.</p>
+  <p><strong>Registry States</strong>: <code>savedCgdmRecords</code> and <code>savedTibRecords</code></p>
+
+  <h3>5.12 CCTV Monitoring & CCTV Maintenance</h3>
+  <p><strong>Purpose</strong>: Tracks stream outage locations and security war room feeds.</p>
+  <p><strong>Fields</strong>: Major Section, Section, Station/Location, Total CCTV / Not working location, Live Feed To War Room Failed (Yes/No), Failure DateTime, Rectification DateTime, Reason, Remarks.</p>
+  <p><strong>Validations</strong>: Location text, war room status, and failure time are required.</p>
+  <p><strong>Registry States</strong>: <code>savedCctvmRecords</code> and <code>savedCctvsRecords</code></p>
+
+  <h3>5.13 PRS/UTS Networks</h3>
+  <p><strong>Purpose</strong>: Tracks commercial reservation terminal network loops.</p>
+  <p><strong>Fields</strong>: Major Section, Section, Station/Location, PRS/UTS System Type, Nature of Fault, Failure DateTime, Rectification DateTime, Reason, Remarks.</p>
+  <p><strong>Validations</strong>: System Type, Nature of Fault, and Failure DateTime are required.</p>
+  <p><strong>Registry State</strong>: <code>savedPuRecords</code></p>
+
+  <h3>5.14 Wi-Fi</h3>
+  <p><strong>Purpose</strong>: Tracks RailWire access points.</p>
+  <p><strong>Fields</strong>: Major Section, Section, Station/Location, Failure DateTime, Rectification DateTime, Reason, Remarks.</p>
+  <p><strong>Validations</strong>: Failure DateTime is required.</p>
+  <p><strong>Registry State</strong>: <code>savedWifiRecords</code></p>
+
+  <h2>6. Environment & Deployment</h2>
+  <ul>
+    <li><strong>Environment Variables</strong>: None used in the system codebase.</li>
+    <li><strong>Build Script</strong>: <code>npm run build</code> generates an optimized build.</li>
+    <li><strong>Production Server</strong>: Start using <code>npm start</code> (Node listener at port 3000).</li>
+  </ul>
+
+  <h2>7. Known Limitations</h2>
+  <ul>
+    <li>No data persistence (refreshing the page clears all user entries).</li>
+    <li>No authorization or user logging audit trail.</li>
+    <li>Monolithic page code: <code>page.tsx</code> contains all operational layouts and state management.</li>
+  </ul>
+
+  <div class="footer">
+    South East Central Railway (SECR) Telecom Division &copy; 2026 - Confidential Internal Documentation
+  </div>
+
+</body>
+</html>

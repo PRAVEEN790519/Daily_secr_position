@@ -609,6 +609,15 @@ export default function Home() {
   const [puFormSuccess, setPuFormSuccess] = useState<boolean>(false);
   const [puSaving, setPuSaving] = useState<boolean>(false);
 
+  // Wi-Fi form states
+  const [wifiFailureTime, setWifiFailureTime] = useState<string>("");
+  const [wifiRectifiedTime, setWifiRectifiedTime] = useState<string>("");
+  const [wifiReasonOfFailure, setWifiReasonOfFailure] = useState<string>("");
+  const [wifiRemarks, setWifiRemarks] = useState<string>("");
+  const [wifiFormErrors, setWifiFormErrors] = useState<Record<string, string>>({});
+  const [wifiFormSuccess, setWifiFormSuccess] = useState<boolean>(false);
+  const [wifiSaving, setWifiSaving] = useState<boolean>(false);
+
 
 
   // Refs to handle click outside for dropdowns
@@ -917,6 +926,22 @@ export default function Home() {
     }
   ]);
 
+  // Saved Logged Wi-Fi Records
+  const [savedWifiRecords, setSavedWifiRecords] = useState<any[]>([
+    {
+      id: 1,
+      division: "Raipur",
+      majorSection: "Raipur - Durg (R-DURG)",
+      section: "Raipur - Bhilai (R-BPH)",
+      stationLocation: "Bhilai Nagar (BHN)",
+      failureTime: "02-06-2026 09:30",
+      rectifiedTime: "02-06-2026 10:45",
+      duration: "1 Hrs 15 Min",
+      reasonOfFailure: "Access point hung up due to voltage fluctuation",
+      remarks: "AP power recycled, functioning normally."
+    }
+  ]);
+
 
 
 
@@ -1068,6 +1093,15 @@ export default function Home() {
     setMadadFormErrors({});
     setMadadFormSuccess(false);
     setMadadSaving(false);
+
+    // Clear Wi-Fi form inputs when switching circuits
+    setWifiFailureTime("");
+    setWifiRectifiedTime("");
+    setWifiReasonOfFailure("");
+    setWifiRemarks("");
+    setWifiFormErrors({});
+    setWifiFormSuccess(false);
+    setWifiSaving(false);
 
     // Clear Video Phone states when switching circuits
     setVpPhodChamber("");
@@ -1550,6 +1584,23 @@ export default function Home() {
     
     return `${hrs} Hrs ${mins} Min`;
   }, [netFailureTime, netRectificationTime]);
+
+  // Wi-Fi Auto-calculated duration
+  const wifiTotalDuration = useMemo(() => {
+    if (!wifiFailureTime || !wifiRectifiedTime) return "";
+    const start = new Date(wifiFailureTime);
+    const end = new Date(wifiRectifiedTime);
+    if (isNaN(start.getTime()) || isNaN(end.getTime())) return "";
+    
+    const diffMs = end.getTime() - start.getTime();
+    if (diffMs < 0) return "RT is earlier than Failure Time";
+    
+    const diffMinutes = Math.floor(diffMs / (1000 * 60));
+    const hrs = Math.floor(diffMinutes / 60);
+    const mins = diffMinutes % 60;
+    
+    return `${hrs} Hrs ${mins} Min`;
+  }, [wifiFailureTime, wifiRectifiedTime]);
 
   // Handle Save Railnet Form
   const handleSaveNetRecord = (e: React.FormEvent) => {
@@ -2930,6 +2981,75 @@ export default function Home() {
 
       // Auto hide success banner after 5 seconds
       setTimeout(() => setPuFormSuccess(false), 5000);
+    }, 1200);
+  };
+
+  // Handle Save Wi-Fi Form
+  const handleSaveWifiRecord = (e: React.FormEvent) => {
+    e.preventDefault();
+    const errors: Record<string, string> = {};
+
+    if (!formMajorSection) errors.formMajorSection = "Major Section is required";
+    if (!formSection) errors.formSection = "Section is required";
+    if (!formStationLocation) errors.formStationLocation = "Location of faulty access point is required";
+    if (!wifiFailureTime) errors.wifiFailureTime = "Failure Date & Time is required";
+    if (!wifiRectifiedTime) errors.wifiRectifiedTime = "Rectification Time is required";
+    if (!wifiReasonOfFailure.trim()) errors.wifiReasonOfFailure = "Reason of failure is required";
+
+    if (wifiFailureTime && wifiRectifiedTime) {
+      const start = new Date(wifiFailureTime);
+      const end = new Date(wifiRectifiedTime);
+      if (end.getTime() < start.getTime()) {
+        errors.wifiRectifiedTime = "Rectification Time cannot be earlier than Failure Time";
+      }
+    }
+
+    if (Object.keys(errors).length > 0) {
+      setWifiFormErrors(errors);
+      return;
+    }
+
+    setWifiFormErrors({});
+    setWifiSaving(true);
+
+    setTimeout(() => {
+      const formatDate = (dateStr: string) => {
+        const d = new Date(dateStr);
+        const day = String(d.getDate()).padStart(2, "0");
+        const month = String(d.getMonth() + 1).padStart(2, "0");
+        const year = d.getFullYear();
+        const hour = String(d.getHours()).padStart(2, "0");
+        const minute = String(d.getMinutes()).padStart(2, "0");
+        return `${day}-${month}-${year} ${hour}:${minute}`;
+      };
+
+      const newWifiRecord = {
+        id: Date.now(),
+        division: selectedDivision,
+        majorSection: formMajorSection,
+        section: formSection,
+        stationLocation: formStationLocation,
+        failureTime: formatDate(wifiFailureTime),
+        rectifiedTime: formatDate(wifiRectifiedTime),
+        duration: wifiTotalDuration,
+        reasonOfFailure: wifiReasonOfFailure.trim(),
+        remarks: wifiRemarks.trim()
+      };
+
+      setSavedWifiRecords(prev => [newWifiRecord, ...prev]);
+      setWifiSaving(false);
+
+      // Reset form fields
+      setWifiFailureTime("");
+      setWifiRectifiedTime("");
+      setWifiReasonOfFailure("");
+      setWifiRemarks("");
+      setFormMajorSection("");
+      setFormSection("");
+      setFormStationLocation("");
+      setWifiFormSuccess(true);
+
+      setTimeout(() => setWifiFormSuccess(false), 5000);
     }, 1200);
   };
 
@@ -9095,6 +9215,257 @@ export default function Home() {
                     disabled={puSaving}
                   >
                     {puSaving ? (
+                      <>
+                        <span className="spinner"></span>
+                        <span>Saving...</span>
+                      </>
+                    ) : (
+                      "Save"
+                    )}
+                  </button>
+                </div>
+              </form>
+            </div>
+          ) : selectedCircuit.name === "Wi-Fi" ? (
+            /* Wi-Fi Form Workspace */
+            <div className="workspace-content">
+              {/* Workspace Title bar */}
+              <div className="workspace-title-section">
+                <div className="workspace-title-left">
+                  <h2>Wi-Fi</h2>
+                </div>
+              </div>
+
+              {/* Success Notification Alert */}
+              {wifiFormSuccess && (
+                <div className="alert-banner">
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="3"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                  </svg>
+                  <span>✅ Wi-Fi Record Saved Successfully</span>
+                </div>
+              )}
+
+              {/* Wi-Fi Dedicated Entry Form */}
+              <form className="fault-form" onSubmit={handleSaveWifiRecord}>
+                
+                {/* Row 1: Major Section & Section */}
+                <div className="form-group-row">
+                  <div className="form-group">
+                    <label htmlFor="formMajorSection" className="form-label">
+                      Major Section <span className="required">*</span>
+                    </label>
+                    <select
+                      id="formMajorSection"
+                      className={`form-input ${wifiFormErrors.formMajorSection ? "field-error-border" : ""}`}
+                      style={{ height: "42px", appearance: "auto" }}
+                      value={formMajorSection}
+                      onChange={(e) => handleMajorSectionChange(e.target.value)}
+                    >
+                      <option value="">Select Major Section</option>
+                      {selectedDivision && HIERARCHICAL_DATA[selectedDivision] && Object.keys(HIERARCHICAL_DATA[selectedDivision].majorSections).map((mSec) => (
+                        <option key={mSec} value={mSec}>{mSec}</option>
+                      ))}
+                    </select>
+                    {wifiFormErrors.formMajorSection && (
+                      <span className="error-text">{wifiFormErrors.formMajorSection}</span>
+                    )}
+                  </div>
+
+                  <div className="form-group">
+                    <label htmlFor="formSection" className="form-label">
+                      Section <span className="required">*</span>
+                    </label>
+                    <select
+                      id="formSection"
+                      className={`form-input ${wifiFormErrors.formSection ? "field-error-border" : ""}`}
+                      style={{ height: "42px", appearance: "auto" }}
+                      value={formSection}
+                      onChange={(e) => handleSectionChange(e.target.value)}
+                      disabled={!formMajorSection}
+                    >
+                      <option value="">Select Section</option>
+                      {formMajorSection && selectedDivision && HIERARCHICAL_DATA[selectedDivision]?.majorSections[formMajorSection] && 
+                        Object.keys(HIERARCHICAL_DATA[selectedDivision].majorSections[formMajorSection].sections).map((sec) => (
+                          <option key={sec} value={sec}>{sec}</option>
+                        ))
+                      }
+                    </select>
+                    {wifiFormErrors.formSection && (
+                      <span className="error-text">{wifiFormErrors.formSection}</span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Row 2: Location of faulty access point & Failure (Date & Time) */}
+                <div className="form-group-row">
+                  <div className="form-group">
+                    <label htmlFor="formStationLocation" className="form-label">
+                      Location of faulty access point <span className="required">*</span>
+                    </label>
+                    <select
+                      id="formStationLocation"
+                      className={`form-input ${wifiFormErrors.formStationLocation ? "field-error-border" : ""}`}
+                      style={{ height: "42px", appearance: "auto" }}
+                      value={formStationLocation}
+                      onChange={(e) => handleStationLocationChange(e.target.value)}
+                      disabled={!formMajorSection}
+                    >
+                      <option value="">Select Location</option>
+                      {formMajorSection && selectedDivision && HIERARCHICAL_DATA[selectedDivision]?.majorSections[formMajorSection] && (() => {
+                        const sectionsObj = HIERARCHICAL_DATA[selectedDivision].majorSections[formMajorSection].sections;
+                        if (formSection) {
+                          return sectionsObj[formSection]?.map((stn) => (
+                            <option key={stn} value={stn}>{stn}</option>
+                          ));
+                        } else {
+                          return Object.values(sectionsObj).flat().map((stn) => (
+                            <option key={stn} value={stn}>{stn}</option>
+                          ));
+                        }
+                      })()}
+                    </select>
+                    {wifiFormErrors.formStationLocation && (
+                      <span className="error-text">{wifiFormErrors.formStationLocation}</span>
+                    )}
+                  </div>
+
+                  <div className="form-group">
+                    <label htmlFor="wifiFailureTime" className="form-label">
+                      Failure (Date & Time) <span className="required">*</span>
+                    </label>
+                    <input
+                      type="datetime-local"
+                      id="wifiFailureTime"
+                      className={`form-input ${wifiFormErrors.wifiFailureTime ? "field-error-border" : ""}`}
+                      value={wifiFailureTime}
+                      onChange={(e) => setWifiFailureTime(e.target.value)}
+                    />
+                    {wifiFormErrors.wifiFailureTime && (
+                      <span className="error-text">{wifiFormErrors.wifiFailureTime}</span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Row 3: RectificationTime(RT)(date&Time) & Total Duration (Hrs. Min.) */}
+                <div className="form-group-row">
+                  <div className="form-group">
+                    <label htmlFor="wifiRectifiedTime" className="form-label">
+                      RectificationTime(RT)(date&Time) <span className="required">*</span>
+                    </label>
+                    <input
+                      type="datetime-local"
+                      id="wifiRectifiedTime"
+                      className={`form-input ${wifiFormErrors.wifiRectifiedTime ? "field-error-border" : ""}`}
+                      value={wifiRectifiedTime}
+                      onChange={(e) => setWifiRectifiedTime(e.target.value)}
+                    />
+                    {wifiFormErrors.wifiRectifiedTime && (
+                      <span className="error-text">{wifiFormErrors.wifiRectifiedTime}</span>
+                    )}
+                  </div>
+
+                  <div className="form-group">
+                    <label htmlFor="wifiDuration" className="form-label">
+                      Total Duration (Hrs. Min.)
+                    </label>
+                    <input
+                      type="text"
+                      id="wifiDuration"
+                      className="form-input"
+                      value={wifiTotalDuration}
+                      readOnly
+                      placeholder="XX Hrs XX Min"
+                    />
+                  </div>
+                </div>
+
+                {/* Row 4: Reason of failure */}
+                <div className="form-group-row">
+                  <div className="form-group">
+                    <label htmlFor="wifiReason" className="form-label">
+                      Reason of failure <span className="required">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      id="wifiReason"
+                      className={`form-input ${wifiFormErrors.wifiReasonOfFailure ? "field-error-border" : ""}`}
+                      placeholder="Enter reason of failure"
+                      value={wifiReasonOfFailure}
+                      onChange={(e) => setWifiReasonOfFailure(e.target.value)}
+                    />
+                    {wifiFormErrors.wifiReasonOfFailure && (
+                      <span className="error-text">{wifiFormErrors.wifiReasonOfFailure}</span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Row 5: Remarks */}
+                <div className="form-group full-width">
+                  <label htmlFor="wifiRemarks" className="form-label">Remarks</label>
+                  <textarea
+                    id="wifiRemarks"
+                    className="form-textarea"
+                    style={{ height: "65px" }}
+                    placeholder="Enter observations or restoration details"
+                    value={wifiRemarks}
+                    onChange={(e) => setWifiRemarks(e.target.value)}
+                  />
+                </div>
+
+                {/* Save button with Loading State */}
+                <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", gap: "12px" }}>
+                  <button
+                    type="button"
+                    className="all-ok-button"
+                    onClick={() => {
+                      const nowStr = new Date().toISOString().slice(0, 16);
+                      const formatDate = (dateStr: string) => {
+                        const d = new Date(dateStr);
+                        const day = String(d.getDate()).padStart(2, "0");
+                        const month = String(d.getMonth() + 1).padStart(2, "0");
+                        const year = d.getFullYear();
+                        const hour = String(d.getHours()).padStart(2, "0");
+                        const minute = String(d.getMinutes()).padStart(2, "0");
+                        return `${day}-${month}-${year} ${hour}:${minute}`;
+                      };
+                      const newWifiRecord = {
+                        id: Date.now(),
+                        division: selectedDivision,
+                        majorSection: "All Sections OK",
+                        section: "All OK",
+                        stationLocation: "All access points functioning normally.",
+                        failureTime: formatDate(nowStr),
+                        rectifiedTime: formatDate(nowStr),
+                        duration: "0 Hrs 0 Min",
+                        reasonOfFailure: "No failures reported.",
+                        remarks: "All systems healthy."
+                      };
+                      setSavedWifiRecords(prev => [newWifiRecord, ...prev]);
+                      setWifiFailureTime("");
+                      setWifiRectifiedTime("");
+                      setWifiReasonOfFailure("");
+                      setWifiRemarks("");
+                      moveToNextCircuit();
+                    }}
+                  >
+                    All OK
+                  </button>
+                  <button 
+                    type="submit" 
+                    className={`save-button ${wifiSaving ? "save-button-loading" : ""}`}
+                    disabled={wifiSaving}
+                  >
+                    {wifiSaving ? (
                       <>
                         <span className="spinner"></span>
                         <span>Saving...</span>
