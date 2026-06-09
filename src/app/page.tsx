@@ -352,6 +352,19 @@ export default function Home() {
     }
   }, [currentUser]);
 
+  // Set default active tab on login / session restoration
+  useEffect(() => {
+    if (currentUser) {
+      if (currentUser.role === "admin") {
+        setActiveNavTab("dashboard");
+      } else if (currentUser.role === "testroom") {
+        setActiveNavTab("recordform");
+      }
+    } else {
+      setActiveNavTab("recordform");
+    }
+  }, [currentUser]);
+
   // Click outside listener to close user menu dropdown
   useEffect(() => {
     const handleClickOutsideMenu = (event: MouseEvent) => {
@@ -3943,27 +3956,33 @@ export default function Home() {
 
         <div className="header-center">
           <nav className="header-navbar">
-            <button
-              type="button"
-              className={`nav-item ${activeNavTab === "dashboard" ? "active" : ""}`}
-              onClick={() => setActiveNavTab("dashboard")}
-            >
-              Dashboard
-            </button>
-            <button
-              type="button"
-              className={`nav-item ${activeNavTab === "recordform" ? "active" : ""}`}
-              onClick={() => setActiveNavTab("recordform")}
-            >
-              Daily Position
-            </button>
-            <button
-              type="button"
-              className={`nav-item ${activeNavTab === "history" ? "active" : ""}`}
-              onClick={() => setActiveNavTab("history")}
-            >
-              History
-            </button>
+            {currentUser && (
+              <>
+                <button
+                  type="button"
+                  className={`nav-item ${activeNavTab === "dashboard" ? "active" : ""}`}
+                  onClick={() => setActiveNavTab("dashboard")}
+                >
+                  Dashboard
+                </button>
+                {currentUser.role === "testroom" && (
+                  <button
+                    type="button"
+                    className={`nav-item ${activeNavTab === "recordform" ? "active" : ""}`}
+                    onClick={() => setActiveNavTab("recordform")}
+                  >
+                    Daily Position
+                  </button>
+                )}
+                <button
+                  type="button"
+                  className={`nav-item ${activeNavTab === "history" ? "active" : ""}`}
+                  onClick={() => setActiveNavTab("history")}
+                >
+                  History
+                </button>
+              </>
+            )}
           </nav>
         </div>
 
