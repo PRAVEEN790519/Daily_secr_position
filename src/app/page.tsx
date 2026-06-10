@@ -382,26 +382,45 @@ export default function Home() {
   const [formMajorSection, setFormMajorSection] = useState<string>("");
   const [formSection, setFormSection] = useState<string>("");
   const [formStationLocation, setFormStationLocation] = useState<string>("");
+  const [customStationLocation, setCustomStationLocation] = useState<string>("");
 
   const handleMajorSectionChange = (val: string) => {
     setFormMajorSection(val);
     setFormSection("");
     setFormStationLocation("");
+    setCustomStationLocation("");
   };
 
   const handleSectionChange = (val: string) => {
     setFormSection(val);
     setFormStationLocation("");
+    setCustomStationLocation("");
+    if (val && selectedDivision) {
+      const divData = HIERARCHICAL_DATA[selectedDivision];
+      if (divData) {
+        for (const [mSecName, mSecData] of Object.entries(divData.majorSections)) {
+          if (mSecData.sections[val]) {
+            setFormMajorSection(mSecName);
+            break;
+          }
+        }
+      }
+    }
   };
 
   const handleStationLocationChange = (val: string) => {
     setFormStationLocation(val);
-    if (val && formMajorSection && selectedDivision && HIERARCHICAL_DATA[selectedDivision]?.majorSections[formMajorSection]) {
-      const sectionsObj = HIERARCHICAL_DATA[selectedDivision].majorSections[formMajorSection].sections;
-      for (const [secName, stations] of Object.entries(sectionsObj)) {
-        if (stations.includes(val)) {
-          setFormSection(secName);
-          break;
+    if (val && selectedDivision) {
+      const divData = HIERARCHICAL_DATA[selectedDivision];
+      if (divData) {
+        for (const [mSecName, mSecData] of Object.entries(divData.majorSections)) {
+          for (const [secName, stations] of Object.entries(mSecData.sections)) {
+            if (stations.includes(val)) {
+              setFormMajorSection(mSecName);
+              setFormSection(secName);
+              return;
+            }
+          }
         }
       }
     }
@@ -587,6 +606,7 @@ export default function Home() {
   const [ccCustomCutBy, setCcCustomCutBy] = useState<string>("");
   const [ccReasonOfFailure, setCcReasonOfFailure] = useState<string>("");
   const [ccRemarks, setCcRemarks] = useState<string>("");
+  const [ccCfmsNo, setCcCfmsNo] = useState<string>("");
   const [ccFormErrors, setCcFormErrors] = useState<Record<string, string>>({});
   const [ccFormSuccess, setCcFormSuccess] = useState<boolean>(false);
   const [ccSaving, setCcSaving] = useState<boolean>(false);
@@ -1119,6 +1139,7 @@ export default function Home() {
     setSelectedReasons([]);
     setCustomReason("");
     setRemarks("");
+    setCustomStationLocation("");
     setFormErrors({});
 
     // Reset hierarchical fields
@@ -1211,6 +1232,7 @@ export default function Home() {
     setCcCustomCutBy("");
     setCcReasonOfFailure("");
     setCcRemarks("");
+    setCcCfmsNo("");
     setCcFormErrors({});
     setCcFormSuccess(false);
     setCcSaving(false);
@@ -1463,7 +1485,7 @@ export default function Home() {
         category: "Cable Infrastructure",
         circuitName: "Cable Cut (OFC & Quad)",
         status: f.rectificationTime ? "Rectified" : "Active Cut",
-        details: `Km: ${f.kmNo || "N/A"}. Cables: ${f.cableTypes || "N/A"}. Cut By: ${f.cutByWhom || "N/A"}`,
+        details: `Km: ${f.kmNo || "N/A"}. Cables: ${f.cableTypes || "N/A"}. Cut By: ${f.cutByWhom || "N/A"}${f.cfmsNo ? `. CFMS No: ${f.cfmsNo}` : ""}`,
         remarks: f.remarks
       });
     });
@@ -1915,15 +1937,11 @@ export default function Home() {
   const handleSaveFault = (e: React.FormEvent) => {
     e.preventDefault();
     const errors: Record<string, string> = {};
-    const isIcmsCom = selectedCircuit?.name === "Control & ICMS Position";
-    const isFoisVsat = selectedCircuit?.name === "FOIS (VSAT)";
-    const isHotline = selectedCircuit?.name === "Hotline";
-    const isVcDiv = selectedCircuit?.name === "Video Conferencing with Divisions";
-    const isCftmConf = selectedCircuit?.name === "CFTM Conference";
-    if (!icmsEntryNo.trim()) {
+    const isStandard = selectedCircuit ? isStandardFaultCircuit(selectedCircuit) : false;
+    if (!isStandard && !icmsEntryNo.trim()) {
       errors.icmsEntryNo = "ICMS Entry No./Docket No. is required";
     }
-    if (!isIcmsCom && !isFoisVsat && !isHotline && !isVcDiv && !isCftmConf && !faultySection.trim()) {
+    if (!isStandard && !faultySection.trim()) {
       errors.faultySection = "Faulty Section is required";
     }
     if (!circuitFailed.trim()) errors.circuitFailed = "Failed Circuit Name is required";
@@ -1936,7 +1954,11 @@ export default function Home() {
 
     if (!formMajorSection) errors.formMajorSection = "Major Section is required";
     if (!formSection) errors.formSection = "Section is required";
-    if (!formStationLocation) errors.formStationLocation = "Station/Location is required";
+    if (!formStationLocation) {
+      errors.formStationLocation = "Station/Location is required";
+    } else if (formStationLocation === "Other" && !customStationLocation.trim()) {
+      errors.customStationLocation = "Other Station/Location is required";
+    }
 
     if (failureTime && rectificationTime) {
       const start = new Date(failureTime);
@@ -1969,7 +1991,7 @@ export default function Home() {
       circuitId: selectedCircuit?.id,
       division: selectedDivision,
       icmsEntryNo: icmsEntryNo.trim(),
-      faultySection: (isIcmsCom || isFoisVsat || isHotline || isVcDiv || isCftmConf) ? "None" : faultySection.trim(),
+      faultySection: (selectedCircuit && isStandardFaultCircuit(selectedCircuit)) ? "None" : faultySection.trim(),
       circuitFailed: circuitFailed.trim(),
       failureTime: formatDate(failureTime),
       rectificationTime: formatDate(rectificationTime),
@@ -1978,7 +2000,7 @@ export default function Home() {
       remarks: remarks.trim(),
       majorSection: formMajorSection,
       section: formSection,
-      stationLocation: formStationLocation
+      stationLocation: formStationLocation === "Other" ? customStationLocation.trim() : formStationLocation
     };
 
     setSavedFaults(prev => [newFault, ...prev]);
@@ -1992,6 +2014,7 @@ export default function Home() {
     setSelectedReasons([]);
     setCustomReason("");
     setRemarks("");
+    setCustomStationLocation("");
     setFormMajorSection("");
     setFormSection("");
     setFormStationLocation("");
@@ -2171,9 +2194,6 @@ export default function Home() {
   const handleSaveNetRecord = (e: React.FormEvent) => {
     e.preventDefault();
     const errors: Record<string, string> = {};
-    if (!icmsEntryNo.trim()) {
-      errors.icmsEntryNo = "ICMS Entry No./Docket No. is required";
-    }
     if (!netBandwidth.trim()) errors.netBandwidth = "Bandwidth is required";
     if (!netTestingTime) {
       errors.netTestingTime = selectedCircuit?.name === "Railnet / Internet"
@@ -2196,7 +2216,11 @@ export default function Home() {
 
     if (!formMajorSection) errors.formMajorSection = "Major Section is required";
     if (!formSection) errors.formSection = "Section is required";
-    if (!formStationLocation) errors.formStationLocation = "Station/Location is required";
+    if (!formStationLocation) {
+      errors.formStationLocation = "Station/Location is required";
+    } else if (formStationLocation === "Other" && !customStationLocation.trim()) {
+      errors.customStationLocation = "Other Station/Location is required";
+    }
 
     // Number validations
     if (netDnSpeed && isNaN(Number(netDnSpeed))) {
@@ -2239,7 +2263,7 @@ export default function Home() {
         id: Date.now(),
         division: selectedDivision,
         icmsEntryNo: icmsEntryNo.trim(),
-        location: netActiveTab === "hq" ? "Bilaspur HQ" : formStationLocation,
+        location: netActiveTab === "hq" ? "Bilaspur HQ" : (formStationLocation === "Other" ? customStationLocation.trim() : formStationLocation),
         bandwidth: netBandwidth.trim(),
         testingTime: formatDate(netTestingTime),
         dnSpeed: netDnSpeed ? `${netDnSpeed} Mbps` : "-",
@@ -2254,7 +2278,7 @@ export default function Home() {
         remarks: netRemarks.trim(),
         majorSection: formMajorSection,
         section: formSection,
-        stationLocation: formStationLocation
+        stationLocation: formStationLocation === "Other" ? customStationLocation.trim() : formStationLocation
       };
 
       setSavedNetRecords(prev => [newNetRecord, ...prev]);
@@ -2275,6 +2299,7 @@ export default function Home() {
       setNetSelectedReasons([]);
       setNetCustomReason("");
       setNetRemarks("");
+      setCustomStationLocation("");
       if (netActiveTab === "hq") {
         setFormMajorSection("Bilaspur HQ");
         setFormSection("HQ Internet Maintenance");
@@ -2502,7 +2527,6 @@ export default function Home() {
     if (!ccRectificationTime) errors.ccRectificationTime = "Rectification Time (RT) is required";
     if (!ccReasonOfFailure.trim()) errors.ccReasonOfFailure = "Reason of failure is required";
 
-    if (!formMajorSection) errors.formMajorSection = "Major Section is required";
     if (!formSection) errors.formSection = "Section is required";
     if (!formStationLocation) errors.formStationLocation = "Station/Location is required";
 
@@ -2539,6 +2563,7 @@ export default function Home() {
         id: Date.now(),
         division: selectedDivision,
         kmNo: ccKmNo.trim(),
+        cfmsNo: ccCfmsNo.trim(),
         cableTypes: ccCableTypes.map(c => c === "Other" ? `Other: ${ccCustomCableType.trim()}` : c).join(", "),
         cutByWhom: ccCutByWhom.map(c => c === "Other" ? `Other: ${ccCustomCutBy.trim()}` : c).join(", "),
         failureTime: formatDate(ccFailureTime),
@@ -2563,6 +2588,7 @@ export default function Home() {
       setCcRectificationTime("");
       setCcReasonOfFailure("");
       setCcRemarks("");
+      setCcCfmsNo("");
       setFormMajorSection("");
       setFormSection("");
       setFormStationLocation("");
@@ -2865,9 +2891,11 @@ export default function Home() {
       }
     }
 
-    if (!formMajorSection) errors.formMajorSection = "Major Section is required";
-    if (!formSection) errors.formSection = "Section is required";
-    if (!formStationLocation) errors.formStationLocation = "Station/Location is required";
+    if (!formStationLocation) {
+      errors.formStationLocation = "Station/Location is required";
+    } else if (formStationLocation === "Other" && !customStationLocation.trim()) {
+      errors.customStationLocation = "Other Station/Location is required";
+    }
 
     if (Object.keys(errors).length > 0) {
       setLiFormErrors(errors);
@@ -2904,7 +2932,7 @@ export default function Home() {
         remarks: liRemarks.trim(),
         majorSection: formMajorSection,
         section: formSection,
-        stationLocation: formStationLocation
+        stationLocation: formStationLocation === "Other" ? `Other: ${customStationLocation.trim()}` : formStationLocation
       };
 
       setSavedLiRecords(prev => [newLiRecord, ...prev]);
@@ -2921,6 +2949,7 @@ export default function Home() {
       setFormMajorSection("");
       setFormSection("");
       setFormStationLocation("");
+      setCustomStationLocation("");
       setLiFormSuccess(true);
 
       // Auto hide success banner after 5 seconds
@@ -2935,7 +2964,6 @@ export default function Home() {
 
     if (!tjSectionYardName.trim()) errors.tjSectionYardName = "Section/Yard Name is required";
     if (!tjKmNo.trim()) errors.tjKmNo = "KM Number is required";
-    if (!tjCableType.trim()) errors.tjCableType = "Type of Cable is required";
 
     if (!tjTotalJoints.trim()) {
       errors.tjTotalJoints = "Total number of temporary joints is required";
@@ -2976,10 +3004,8 @@ export default function Home() {
       }
     }
 
-    if (!tjActionPlan.trim()) errors.tjActionPlan = "Action Plan is required";
     if (!tjTdc) errors.tjTdc = "Target Date of Completion (TDC) is required";
 
-    if (!formMajorSection) errors.formMajorSection = "Major Section is required";
     if (!formSection) errors.formSection = "Section is required";
 
     if (Object.keys(errors).length > 0) {
@@ -3487,7 +3513,11 @@ export default function Home() {
 
     if (!formMajorSection) errors.formMajorSection = "Major Section is required";
     if (!formSection) errors.formSection = "Section is required";
-    if (!formStationLocation) errors.formStationLocation = "Station/Location is required";
+    if (!formStationLocation) {
+      errors.formStationLocation = "Station/Location is required";
+    } else if (formStationLocation === "Other" && !customStationLocation.trim()) {
+      errors.customStationLocation = "Other Station/Location is required";
+    }
 
     if (puFailureTime && puRectifiedTime) {
       const start = new Date(puFailureTime);
@@ -3524,7 +3554,7 @@ export default function Home() {
         systemType: puSystemType,
         majorSection: formMajorSection,
         section: formSection,
-        stationLocation: formStationLocation,
+        stationLocation: formStationLocation === "Other" ? customStationLocation.trim() : formStationLocation,
         natureOfFault: puNatureOfFault === "Other" ? puCustomNatureOfFault.trim() : puNatureOfFault,
         failureTime: formatDate(puFailureTime),
         rectifiedTime: formatDate(puRectifiedTime),
@@ -3543,6 +3573,7 @@ export default function Home() {
       setPuRectifiedTime("");
       setPuReasonOfFailure("");
       setPuRemarks("");
+      setCustomStationLocation("");
       setFormMajorSection("");
       setFormSection("");
       setFormStationLocation("");
@@ -3560,7 +3591,11 @@ export default function Home() {
 
     if (!formMajorSection) errors.formMajorSection = "Major Section is required";
     if (!formSection) errors.formSection = "Section is required";
-    if (!formStationLocation) errors.formStationLocation = "Location of faulty access point is required";
+    if (!formStationLocation) {
+      errors.formStationLocation = "Location of faulty access point is required";
+    } else if (formStationLocation === "Other" && !customStationLocation.trim()) {
+      errors.customStationLocation = "Other Location of faulty access point is required";
+    }
     if (!wifiFailureTime) errors.wifiFailureTime = "Failure Date & Time is required";
     if (!wifiRectifiedTime) errors.wifiRectifiedTime = "Rectification Time is required";
     if (!wifiReasonOfFailure.trim()) errors.wifiReasonOfFailure = "Reason of failure is required";
@@ -3597,7 +3632,7 @@ export default function Home() {
         division: selectedDivision,
         majorSection: formMajorSection,
         section: formSection,
-        stationLocation: formStationLocation,
+        stationLocation: formStationLocation === "Other" ? customStationLocation.trim() : formStationLocation,
         failureTime: formatDate(wifiFailureTime),
         rectifiedTime: formatDate(wifiRectifiedTime),
         duration: wifiTotalDuration,
@@ -3613,6 +3648,7 @@ export default function Home() {
       setWifiRectifiedTime("");
       setWifiReasonOfFailure("");
       setWifiRemarks("");
+      setCustomStationLocation("");
       setFormMajorSection("");
       setFormSection("");
       setFormStationLocation("");
@@ -4278,7 +4314,7 @@ export default function Home() {
                       {/* ICMS Entry No./Docket No. */}
                       <div className="form-group">
                         <label htmlFor="icmsEntryNo" className="form-label">
-                          ICMS Entry No./Docket No. <span className="required">*</span>
+                          ICMS Entry No./Docket No.
                         </label>
                         <input
                           type="text"
@@ -4359,22 +4395,45 @@ export default function Home() {
                           <option value="">Select Station/Location</option>
                           {formMajorSection && selectedDivision && HIERARCHICAL_DATA[selectedDivision]?.majorSections[formMajorSection] && (() => {
                             const sectionsObj = HIERARCHICAL_DATA[selectedDivision].majorSections[formMajorSection].sections;
+                            let list: string[] = [];
                             if (formSection) {
-                              return sectionsObj[formSection]?.map((stn) => (
-                                <option key={stn} value={stn}>{stn}</option>
-                              ));
+                              list = sectionsObj[formSection] || [];
                             } else {
-                              return Object.values(sectionsObj).flat().map((stn) => (
-                                <option key={stn} value={stn}>{stn}</option>
-                              ));
+                              list = Object.values(sectionsObj).flat();
                             }
+                            return list.map((stn) => (
+                              <option key={stn} value={stn}>{stn}</option>
+                            ));
                           })()}
+                          {selectedCircuit && isStandardFaultCircuit(selectedCircuit) && (
+                            <option value="Other">Other</option>
+                          )}
                         </select>
                         {formErrors.formStationLocation && (
                           <span className="error-text">{formErrors.formStationLocation}</span>
                         )}
                       </div>
                     </div>
+
+                    {/* Conditional Row: Custom Station/Location for Standard Fault Circuits */}
+                    {selectedCircuit && isStandardFaultCircuit(selectedCircuit) && formStationLocation === "Other" && (
+                      <div className="form-group full-width" style={{ animation: "fadeIn 0.15s ease-out" }}>
+                        <label htmlFor="customStationLocation" className="form-label">
+                          Other Station/Location <span className="required">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          id="customStationLocation"
+                          className={`form-input ${formErrors.customStationLocation ? "field-error-border" : ""}`}
+                          placeholder="Specify other station/location manually"
+                          value={customStationLocation}
+                          onChange={(e) => setCustomStationLocation(e.target.value)}
+                        />
+                        {formErrors.customStationLocation && (
+                          <span className="error-text">{formErrors.customStationLocation}</span>
+                        )}
+                      </div>
+                    )}
 
                     {/* Row 3: Name of Circuit Failed & Failure Date & Time */}
                     <div className="form-group-row">
@@ -4546,17 +4605,7 @@ export default function Home() {
                       </div>
 
                       {/* Remarks */}
-                      <div className="form-group">
-                        <label htmlFor="remarks" className="form-label">Remarks</label>
-                        <input
-                          type="text"
-                          id="remarks"
-                          className="form-input"
-                          placeholder="Enter observations, action taken, or additional remarks"
-                          value={remarks}
-                          onChange={(e) => setRemarks(e.target.value)}
-                        />
-                      </div>
+                      <div className="form-group"></div>
                     </div>
                   </>
                 ) : (
@@ -4806,19 +4855,17 @@ export default function Home() {
                 )}
 
                 {/* Remarks */}
-                {!isStandardFaultCircuit(selectedCircuit) && (
-                  <div className="form-group full-width">
-                    <label htmlFor="remarks" className="form-label">Remarks</label>
-                    <textarea
-                      id="remarks"
-                      className="form-textarea"
-                      style={{ height: "65px" }}
-                      placeholder="Enter observations, action taken, or additional remarks"
-                      value={remarks}
-                      onChange={(e) => setRemarks(e.target.value)}
-                    />
-                  </div>
-                )}
+                <div className="form-group full-width">
+                  <label htmlFor="remarks" className="form-label">Remarks</label>
+                  <textarea
+                    id="remarks"
+                    className="form-textarea"
+                    style={{ height: "65px" }}
+                    placeholder="Enter observations, action taken, or additional remarks"
+                    value={remarks}
+                    onChange={(e) => setRemarks(e.target.value)}
+                  />
+                </div>
 
                 {/* Save button */}
                 <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", gap: "12px" }}>
@@ -4840,7 +4887,7 @@ export default function Home() {
                         id: Date.now(),
                         circuitId: selectedCircuit?.id,
                         division: selectedDivision,
-                        icmsEntryNo: selectedCircuit?.name === "Control & ICMS Position" ? "None" : undefined,
+                        icmsEntryNo: selectedCircuit && isStandardFaultCircuit(selectedCircuit) ? "None" : undefined,
                         faultySection: "None",
                         circuitFailed: selectedCircuit?.name || "All Circuits OK",
                         failureTime: formatDate(nowStr),
@@ -5338,7 +5385,7 @@ export default function Home() {
                       {/* ICMS Entry No./Docket No. */}
                       <div className="form-group">
                         <label htmlFor="netIcmsEntryNo" className="form-label">
-                          ICMS Entry No./Docket No. <span className="required">*</span>
+                          ICMS Entry No./Docket No.
                         </label>
                         <input
                           type="text"
@@ -5429,12 +5476,33 @@ export default function Home() {
                               ));
                             }
                           })()}
+                          <option value="Other">Other</option>
                         </select>
                         {netFormErrors.formStationLocation && (
                           <span className="error-text">{netFormErrors.formStationLocation}</span>
                         )}
                       </div>
                     </div>
+
+                    {/* Conditional Row: Custom Station/Location for Railnet / Internet */}
+                    {formStationLocation === "Other" && (
+                      <div className="form-group full-width" style={{ animation: "fadeIn 0.15s ease-out" }}>
+                        <label htmlFor="customStationLocation" className="form-label">
+                          Other Station/Location <span className="required">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          id="customStationLocation"
+                          className={`form-input ${netFormErrors.customStationLocation ? "field-error-border" : ""}`}
+                          placeholder="Specify other station/location manually"
+                          value={customStationLocation}
+                          onChange={(e) => setCustomStationLocation(e.target.value)}
+                        />
+                        {netFormErrors.customStationLocation && (
+                          <span className="error-text">{netFormErrors.customStationLocation}</span>
+                        )}
+                      </div>
+                    )}
 
                     {/* Row 3: Bandwidth & Last Testing Time */}
                     <div className="form-group-row">
@@ -5763,17 +5831,7 @@ export default function Home() {
                       </div>
 
                       {/* Remarks */}
-                      <div className="form-group">
-                        <label htmlFor="netRemarks" className="form-label">Remarks</label>
-                        <input
-                          type="text"
-                          id="netRemarks"
-                          className="form-input"
-                          placeholder="Enter observations, troubleshooting details, or additional remarks"
-                          value={netRemarks}
-                          onChange={(e) => setNetRemarks(e.target.value)}
-                        />
-                      </div>
+                      <div className="form-group"></div>
                     </div>
                   </>
                 ) : (
@@ -5783,7 +5841,7 @@ export default function Home() {
                     <div className="form-group-row">
                       <div className="form-group">
                         <label htmlFor="netIcmsEntryNo" className="form-label">
-                          ICMS Entry No./Docket No. <span className="required">*</span>
+                          ICMS Entry No./Docket No.
                         </label>
                         <input
                           type="text"
@@ -6127,17 +6185,7 @@ export default function Home() {
                       </div>
 
                       {/* Remarks */}
-                      <div className="form-group">
-                        <label htmlFor="netRemarks" className="form-label">Remarks</label>
-                        <input
-                          type="text"
-                          id="netRemarks"
-                          className="form-input"
-                          placeholder="Enter observations, troubleshooting details, or additional remarks"
-                          value={netRemarks}
-                          onChange={(e) => setNetRemarks(e.target.value)}
-                        />
-                      </div>
+                      <div className="form-group"></div>
                     </div>
                   </>
                 )}
@@ -6161,6 +6209,19 @@ export default function Home() {
                     )}
                   </div>
                 )}
+
+                {/* Remarks */}
+                <div className="form-group full-width">
+                  <label htmlFor="netRemarks" className="form-label">Remarks</label>
+                  <textarea
+                    id="netRemarks"
+                    className="form-textarea"
+                    style={{ height: "65px" }}
+                    placeholder="Enter observations, troubleshooting details, or additional remarks"
+                    value={netRemarks}
+                    onChange={(e) => setNetRemarks(e.target.value)}
+                  />
+                </div>
 
                 {/* Save button with Loading State */}
                 <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", gap: "12px" }}>
@@ -6947,11 +7008,25 @@ export default function Home() {
               {/* Cable Cut Entry Form */}
               <form className="fault-form" onSubmit={handleSaveCcRecord}>
                 
-                {/* Row 1: Major Section & Section */}
+                {/* Row 1: CFMS No & Major Section */}
                 <div className="form-group-row">
                   <div className="form-group">
+                    <label htmlFor="ccCfmsNo" className="form-label">
+                      CFMS No
+                    </label>
+                    <input
+                      type="text"
+                      id="ccCfmsNo"
+                      className="form-input"
+                      placeholder="Enter CFMS No (optional)"
+                      value={ccCfmsNo}
+                      onChange={(e) => setCcCfmsNo(e.target.value)}
+                    />
+                  </div>
+
+                  <div className="form-group">
                     <label htmlFor="formMajorSection" className="form-label">
-                      Major Section <span className="required">*</span>
+                      Major Section
                     </label>
                     <select
                       id="formMajorSection"
@@ -6969,7 +7044,10 @@ export default function Home() {
                       <span className="error-text">{ccFormErrors.formMajorSection}</span>
                     )}
                   </div>
+                </div>
 
+                {/* Row 2: Section & Section/Yard */}
+                <div className="form-group-row">
                   <div className="form-group">
                     <label htmlFor="formSection" className="form-label">
                       Section <span className="required">*</span>
@@ -6980,26 +7058,38 @@ export default function Home() {
                       style={{ height: "42px", appearance: "auto" }}
                       value={formSection}
                       onChange={(e) => handleSectionChange(e.target.value)}
-                      disabled={!formMajorSection}
                     >
                       <option value="">Select Section</option>
-                      {formMajorSection && selectedDivision && HIERARCHICAL_DATA[selectedDivision]?.majorSections[formMajorSection] && 
-                        Object.keys(HIERARCHICAL_DATA[selectedDivision].majorSections[formMajorSection].sections).map((sec) => (
-                          <option key={sec} value={sec}>{sec}</option>
-                        ))
-                      }
+                      {selectedDivision && HIERARCHICAL_DATA[selectedDivision] && (() => {
+                        if (formMajorSection) {
+                          const mSecData = HIERARCHICAL_DATA[selectedDivision].majorSections[formMajorSection];
+                          return mSecData ? Object.keys(mSecData.sections).map((sec) => (
+                            <option key={sec} value={sec}>{sec}</option>
+                          )) : null;
+                        } else {
+                          // Show all sections for the division
+                          const allSections: string[] = [];
+                          Object.values(HIERARCHICAL_DATA[selectedDivision].majorSections).forEach((mSec) => {
+                            Object.keys(mSec.sections).forEach((sec) => {
+                              if (!allSections.includes(sec)) {
+                                allSections.push(sec);
+                              }
+                            });
+                          });
+                          return allSections.map((sec) => (
+                            <option key={sec} value={sec}>{sec}</option>
+                          ));
+                        }
+                      })()}
                     </select>
                     {ccFormErrors.formSection && (
                       <span className="error-text">{ccFormErrors.formSection}</span>
                     )}
                   </div>
-                </div>
 
-                {/* Row 2: Station/Location & Km.No. */}
-                <div className="form-group-row">
                   <div className="form-group">
                     <label htmlFor="formStationLocation" className="form-label">
-                      Station/Location <span className="required">*</span>
+                      Section/Yard <span className="required">*</span>
                     </label>
                     <select
                       id="formStationLocation"
@@ -7007,17 +7097,41 @@ export default function Home() {
                       style={{ height: "42px", appearance: "auto" }}
                       value={formStationLocation}
                       onChange={(e) => handleStationLocationChange(e.target.value)}
-                      disabled={!formMajorSection}
                     >
-                      <option value="">Select Station/Location</option>
-                      {formMajorSection && selectedDivision && HIERARCHICAL_DATA[selectedDivision]?.majorSections[formMajorSection] && (() => {
-                        const sectionsObj = HIERARCHICAL_DATA[selectedDivision].majorSections[formMajorSection].sections;
+                      <option value="">Select Section/Yard</option>
+                      {selectedDivision && HIERARCHICAL_DATA[selectedDivision] && (() => {
+                        const divData = HIERARCHICAL_DATA[selectedDivision];
                         if (formSection) {
-                          return sectionsObj[formSection]?.map((stn) => (
-                            <option key={stn} value={stn}>{stn}</option>
-                          ));
+                          // Find formSection in the hierarchy
+                          for (const mSecData of Object.values(divData.majorSections)) {
+                            if (mSecData.sections[formSection]) {
+                              return mSecData.sections[formSection].map((stn) => (
+                                <option key={stn} value={stn}>{stn}</option>
+                              ));
+                            }
+                          }
+                          return null;
+                        } else if (formMajorSection) {
+                          const mSecData = divData.majorSections[formMajorSection];
+                          if (mSecData) {
+                            return Object.values(mSecData.sections).flat().map((stn) => (
+                              <option key={stn} value={stn}>{stn}</option>
+                            ));
+                          }
+                          return null;
                         } else {
-                          return Object.values(sectionsObj).flat().map((stn) => (
+                          // Show all stations in the division
+                          const allStations: string[] = [];
+                          Object.values(divData.majorSections).forEach((mSec) => {
+                            Object.values(mSec.sections).forEach((stns) => {
+                              stns.forEach((stn) => {
+                                if (!allStations.includes(stn)) {
+                                  allStations.push(stn);
+                                }
+                              });
+                            });
+                          });
+                          return allStations.map((stn) => (
                             <option key={stn} value={stn}>{stn}</option>
                           ));
                         }
@@ -7027,7 +7141,10 @@ export default function Home() {
                       <span className="error-text">{ccFormErrors.formStationLocation}</span>
                     )}
                   </div>
+                </div>
 
+                {/* Row 2b: Km.No */}
+                <div className="form-group-row">
                   <div className="form-group">
                     <label htmlFor="ccKmNo" className="form-label">
                       Km.No <span className="required">*</span>
@@ -7044,6 +7161,7 @@ export default function Home() {
                       <span className="error-text">{ccFormErrors.ccKmNo}</span>
                     )}
                   </div>
+                  <div className="form-group"></div>
                 </div>
 
                 {/* Row 3: Cable Type & Cable Cut by Whom */}
@@ -7295,6 +7413,7 @@ export default function Home() {
                         id: Date.now(),
                         division: selectedDivision,
                         kmNo: "None",
+                        cfmsNo: "",
                         cableTypes: "OFC (24 Core)",
                         cutByWhom: "Railway Contractor",
                         failureTime: formatDate(nowStr),
@@ -7313,6 +7432,7 @@ export default function Home() {
                       setCcRectificationTime("");
                       setCcReasonOfFailure("");
                       setCcRemarks("");
+                      setCcCfmsNo("");
                       moveToNextCircuit();
                     }}
                   >
@@ -8246,11 +8366,11 @@ export default function Home() {
               {/* Low Insulation Form */}
               <form className="fault-form" onSubmit={handleSaveLiRecord}>
                 
-                {/* Row 1: Major Section & Section */}
+                {/* Row 1: Major Section & Sub Section */}
                 <div className="form-group-row">
                   <div className="form-group">
                     <label htmlFor="formMajorSection" className="form-label">
-                      Major Section <span className="required">*</span>
+                      Major Section
                     </label>
                     <select
                       id="formMajorSection"
@@ -8271,7 +8391,7 @@ export default function Home() {
 
                   <div className="form-group">
                     <label htmlFor="formSection" className="form-label">
-                      Section <span className="required">*</span>
+                      Sub Section
                     </label>
                     <select
                       id="formSection"
@@ -8279,14 +8399,29 @@ export default function Home() {
                       style={{ height: "42px", appearance: "auto" }}
                       value={formSection}
                       onChange={(e) => handleSectionChange(e.target.value)}
-                      disabled={!formMajorSection}
                     >
-                      <option value="">Select Section</option>
-                      {formMajorSection && selectedDivision && HIERARCHICAL_DATA[selectedDivision]?.majorSections[formMajorSection] && 
-                        Object.keys(HIERARCHICAL_DATA[selectedDivision].majorSections[formMajorSection].sections).map((sec) => (
-                          <option key={sec} value={sec}>{sec}</option>
-                        ))
-                      }
+                      <option value="">Select Sub Section</option>
+                      {selectedDivision && HIERARCHICAL_DATA[selectedDivision] && (() => {
+                        if (formMajorSection) {
+                          const mSecData = HIERARCHICAL_DATA[selectedDivision].majorSections[formMajorSection];
+                          return mSecData ? Object.keys(mSecData.sections).map((sec) => (
+                            <option key={sec} value={sec}>{sec}</option>
+                          )) : null;
+                        } else {
+                          // Show all sections for the division
+                          const allSections: string[] = [];
+                          Object.values(HIERARCHICAL_DATA[selectedDivision].majorSections).forEach((mSec) => {
+                            Object.keys(mSec.sections).forEach((sec) => {
+                              if (!allSections.includes(sec)) {
+                                allSections.push(sec);
+                              }
+                            });
+                          });
+                          return allSections.map((sec) => (
+                            <option key={sec} value={sec}>{sec}</option>
+                          ));
+                        }
+                      })()}
                     </select>
                     {liFormErrors.formSection && (
                       <span className="error-text">{liFormErrors.formSection}</span>
@@ -8294,11 +8429,11 @@ export default function Home() {
                   </div>
                 </div>
 
-                {/* Row 2: Station/Location & Km.No */}
+                {/* Row 2: Section/Yard & Km.No */}
                 <div className="form-group-row">
                   <div className="form-group">
                     <label htmlFor="formStationLocation" className="form-label">
-                      Station/Location <span className="required">*</span>
+                      Section/Yard <span className="required">*</span>
                     </label>
                     <select
                       id="formStationLocation"
@@ -8306,21 +8441,41 @@ export default function Home() {
                       style={{ height: "42px", appearance: "auto" }}
                       value={formStationLocation}
                       onChange={(e) => handleStationLocationChange(e.target.value)}
-                      disabled={!formMajorSection}
                     >
-                      <option value="">Select Station/Location</option>
-                      {formMajorSection && selectedDivision && HIERARCHICAL_DATA[selectedDivision]?.majorSections[formMajorSection] && (() => {
-                        const sectionsObj = HIERARCHICAL_DATA[selectedDivision].majorSections[formMajorSection].sections;
+                      <option value="">Select Section/Yard</option>
+                      {selectedDivision && HIERARCHICAL_DATA[selectedDivision] && (() => {
+                        const divData = HIERARCHICAL_DATA[selectedDivision];
+                        let list: string[] = [];
                         if (formSection) {
-                          return sectionsObj[formSection]?.map((stn) => (
-                            <option key={stn} value={stn}>{stn}</option>
-                          ));
+                          // Find formSection in the hierarchy
+                          for (const mSecData of Object.values(divData.majorSections)) {
+                            if (mSecData.sections[formSection]) {
+                              list = mSecData.sections[formSection];
+                              break;
+                            }
+                          }
+                        } else if (formMajorSection) {
+                          const mSecData = divData.majorSections[formMajorSection];
+                          if (mSecData) {
+                            list = Object.values(mSecData.sections).flat();
+                          }
                         } else {
-                          return Object.values(sectionsObj).flat().map((stn) => (
-                            <option key={stn} value={stn}>{stn}</option>
-                          ));
+                          // Show all stations in the division
+                          Object.values(divData.majorSections).forEach((mSec) => {
+                            Object.values(mSec.sections).forEach((stns) => {
+                              stns.forEach((stn) => {
+                                if (!list.includes(stn)) {
+                                  list.push(stn);
+                                }
+                              });
+                            });
+                          });
                         }
+                        return list.map((stn) => (
+                          <option key={stn} value={stn}>{stn}</option>
+                        ));
                       })()}
+                      <option value="Other">Other</option>
                     </select>
                     {liFormErrors.formStationLocation && (
                       <span className="error-text">{liFormErrors.formStationLocation}</span>
@@ -8344,6 +8499,26 @@ export default function Home() {
                     )}
                   </div>
                 </div>
+
+                {/* Conditional Row: Custom Station/Location for Low Insulation */}
+                {formStationLocation === "Other" && (
+                  <div className="form-group" style={{ animation: "fadeIn 0.15s ease-out" }}>
+                    <label htmlFor="customStationLocation" className="form-label">
+                      Other Section/Yard <span className="required">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      id="customStationLocation"
+                      className={`form-input ${liFormErrors.customStationLocation ? "field-error-border" : ""}`}
+                      placeholder="Specify other section/yard manually"
+                      value={customStationLocation}
+                      onChange={(e) => setCustomStationLocation(e.target.value)}
+                    />
+                    {liFormErrors.customStationLocation && (
+                      <span className="error-text">{liFormErrors.customStationLocation}</span>
+                    )}
+                  </div>
+                )}
 
                 {/* Row 3: Type of Cable & Total no. of Insulation Faults(Date & Time) */}
                 <div className="form-group-row">
@@ -8417,36 +8592,35 @@ export default function Home() {
                   </div>
                 </div>
 
-                {/* Row 5: Action Plan & TDC to rectify Low Insulation & Remarks */}
-                <div className="form-group-row">
-                  <div className="form-group">
-                    <label htmlFor="liActionPlan" className="form-label">
-                      Action Plan & TDC to rectify Low Insulation <span className="required">*</span>
-                    </label>
-                    <textarea
-                      id="liActionPlan"
-                      className={`form-textarea ${liFormErrors.liActionPlan ? "field-error-border" : ""}`}
-                      style={{ height: "65px" }}
-                      placeholder="Enter Action Plan & TDC"
-                      value={liActionPlan}
-                      onChange={(e) => setLiActionPlan(e.target.value)}
-                    />
-                    {liFormErrors.liActionPlan && (
-                      <span className="error-text">{liFormErrors.liActionPlan}</span>
-                    )}
-                  </div>
+                {/* Row 5: Action Plan & TDC to rectify Low Insulation */}
+                <div className="form-group">
+                  <label htmlFor="liActionPlan" className="form-label">
+                    Action Plan & TDC to rectify Low Insulation <span className="required">*</span>
+                  </label>
+                  <textarea
+                    id="liActionPlan"
+                    className={`form-textarea ${liFormErrors.liActionPlan ? "field-error-border" : ""}`}
+                    style={{ height: "65px" }}
+                    placeholder="Enter Action Plan & TDC"
+                    value={liActionPlan}
+                    onChange={(e) => setLiActionPlan(e.target.value)}
+                  />
+                  {liFormErrors.liActionPlan && (
+                    <span className="error-text">{liFormErrors.liActionPlan}</span>
+                  )}
+                </div>
 
-                  <div className="form-group">
-                    <label htmlFor="liRemarks" className="form-label">Remarks</label>
-                    <textarea
-                      id="liRemarks"
-                      className="form-textarea"
-                      style={{ height: "65px" }}
-                      placeholder="Enter observations, cable quad details, or testing measurements"
-                      value={liRemarks}
-                      onChange={(e) => setLiRemarks(e.target.value)}
-                    />
-                  </div>
+                {/* Remarks */}
+                <div className="form-group">
+                  <label htmlFor="liRemarks" className="form-label">Remarks</label>
+                  <textarea
+                    id="liRemarks"
+                    className="form-textarea"
+                    style={{ height: "65px" }}
+                    placeholder="Enter observations, cable quad details, or testing measurements"
+                    value={liRemarks}
+                    onChange={(e) => setLiRemarks(e.target.value)}
+                  />
                 </div>
 
                 {/* Save button with Loading State */}
@@ -8486,6 +8660,7 @@ export default function Home() {
                       setLiBalanceFaults("");
                       setLiActionPlan("");
                       setLiRemarks("");
+                      setCustomStationLocation("");
                       moveToNextCircuit();
                     }}
                   >
@@ -10060,6 +10235,7 @@ export default function Home() {
                           ));
                         }
                       })()}
+                      <option value="Other">Other</option>
                     </select>
                     {puFormErrors.formStationLocation && (
                       <span className="error-text">{puFormErrors.formStationLocation}</span>
@@ -10088,6 +10264,26 @@ export default function Home() {
                     )}
                   </div>
                 </div>
+
+                {/* Conditional Row: Custom Station/Location for PRS/UTS */}
+                {formStationLocation === "Other" && (
+                  <div className="form-group full-width" style={{ animation: "fadeIn 0.15s ease-out" }}>
+                    <label htmlFor="customStationLocation" className="form-label">
+                      Other Station/Location <span className="required">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      id="customStationLocation"
+                      className={`form-input ${puFormErrors.customStationLocation ? "field-error-border" : ""}`}
+                      placeholder="Specify other station/location manually"
+                      value={customStationLocation}
+                      onChange={(e) => setCustomStationLocation(e.target.value)}
+                    />
+                    {puFormErrors.customStationLocation && (
+                      <span className="error-text">{puFormErrors.customStationLocation}</span>
+                    )}
+                  </div>
+                )}
 
                 {/* Specify custom Nature of Fault (Conditional) */}
                 {puNatureOfFault === "Other" && (
@@ -10228,6 +10424,7 @@ export default function Home() {
                       setPuRectifiedTime("");
                       setPuReasonOfFailure("");
                       setPuRemarks("");
+                      setCustomStationLocation("");
                       moveToNextCircuit();
                     }}
                   >
@@ -10357,6 +10554,7 @@ export default function Home() {
                           ));
                         }
                       })()}
+                      <option value="Other">Other</option>
                     </select>
                     {wifiFormErrors.formStationLocation && (
                       <span className="error-text">{wifiFormErrors.formStationLocation}</span>
@@ -10379,6 +10577,26 @@ export default function Home() {
                     )}
                   </div>
                 </div>
+
+                {/* Conditional Row: Custom Station/Location for Wi-Fi */}
+                {formStationLocation === "Other" && (
+                  <div className="form-group full-width" style={{ animation: "fadeIn 0.15s ease-out" }}>
+                    <label htmlFor="customStationLocation" className="form-label">
+                      Other Location of faulty access point <span className="required">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      id="customStationLocation"
+                      className={`form-input ${wifiFormErrors.customStationLocation ? "field-error-border" : ""}`}
+                      placeholder="Specify other location manually"
+                      value={customStationLocation}
+                      onChange={(e) => setCustomStationLocation(e.target.value)}
+                    />
+                    {wifiFormErrors.customStationLocation && (
+                      <span className="error-text">{wifiFormErrors.customStationLocation}</span>
+                    )}
+                  </div>
+                )}
 
                 {/* Row 3: RectificationTime(RT)(date&Time) & Total Duration (Hrs. Min.) */}
                 <div className="form-group-row">
@@ -10432,17 +10650,21 @@ export default function Home() {
                     )}
                   </div>
 
-                  <div className="form-group">
-                    <label htmlFor="wifiRemarks" className="form-label">Remarks</label>
-                    <input
-                      type="text"
-                      id="wifiRemarks"
-                      className="form-input"
-                      placeholder="Enter observations or restoration details"
-                      value={wifiRemarks}
-                      onChange={(e) => setWifiRemarks(e.target.value)}
-                    />
-                  </div>
+                  {/* Remarks */}
+                  <div className="form-group"></div>
+                </div>
+
+                {/* Remarks */}
+                <div className="form-group full-width">
+                  <label htmlFor="wifiRemarks" className="form-label">Remarks</label>
+                  <textarea
+                    id="wifiRemarks"
+                    className="form-textarea"
+                    style={{ height: "65px" }}
+                    placeholder="Enter observations or restoration details"
+                    value={wifiRemarks}
+                    onChange={(e) => setWifiRemarks(e.target.value)}
+                  />
                 </div>
 
                 {/* Save button with Loading State */}
@@ -10478,6 +10700,7 @@ export default function Home() {
                       setWifiRectifiedTime("");
                       setWifiReasonOfFailure("");
                       setWifiRemarks("");
+                      setCustomStationLocation("");
                       moveToNextCircuit();
                     }}
                   >
